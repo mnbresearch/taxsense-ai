@@ -7,6 +7,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Planner from "./Planner";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -23,6 +24,8 @@ export default function AppPage() {
   const [result, setResult] = useState<any>(null);
   const [provider, setProvider] = useState<string>("");
   const [saved, setSaved] = useState<string>("");
+  const [tab, setTab] = useState<"results" | "planner">("results");
+  const importRef = useRef<HTMLInputElement>(null);
   const bottom = useRef<HTMLDivElement>(null);
 
   useEffect(() => bottom.current?.scrollIntoView({ behavior: "smooth" }), [messages, busy]);
@@ -98,6 +101,34 @@ export default function AppPage() {
     setSaved(d.saved ? (d.mode === "demo" ? "Saved (demo mode — sign in to persist)" : "Saved to your account") : d.error);
   }
 
+  function exportProfile() {
+    if (!state) return;
+    const blob = new Blob([JSON.stringify({ taxsense: 1, state }, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "taxsense-profile.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function importProfile(file: File) {
+    file.text().then((t) => {
+      try {
+        const data = JSON.parse(t);
+        if (data?.state?.profile) {
+          setState(data.state);
+          setMessages((m) => [
+            ...m,
+            { role: "assistant", content: "Profile imported — your computation is refreshed on the right. Anything to update?" },
+          ]);
+        }
+      } catch {
+        setMessages((m) => [...m, { role: "assistant", content: "That file didn't look like a TaxSense profile export." }]);
+      }
+    });
+  }
+
   const cmp = result?.comparison;
   const opt = result?.optimizer;
 
@@ -156,7 +187,25 @@ export default function AppPage() {
 
         {/* Results panel */}
         <section className="min-h-0 overflow-y-auto rounded-xl border border-stone-200 bg-white p-5">
-          {!cmp ? (
+          {cmp && (
+            <div className="mb-4 flex gap-1 rounded-lg bg-stone-100 p-1 text-sm font-medium">
+              {(["results", "planner"] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className={
+                    "flex-1 rounded-md py-1.5 capitalize " +
+                    (tab === t ? "bg-white text-brand-700 shadow-sm" : "text-stone-500 hover:text-stone-700")
+                  }
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          )}
+          {cmp && tab === "planner" ? (
+            <Planner profile={state?.profile} />
+          ) : !cmp ? (
             <div className="flex h-full flex-col items-center justify-center text-center text-stone-400">
               <div className="text-4xl">🧮</div>
               <p className="mt-3 max-w-xs text-sm">
@@ -225,6 +274,21 @@ export default function AppPage() {
                 >
                   Save
                 </button>
+              </div>
+              <div className="flex gap-3 text-xs text-stone-500">
+                <button onClick={exportProfile} className="underline hover:text-brand-700">
+                  Export profile (JSON)
+                </button>
+                <button onClick={() => importRef.current?.click()} className="underline hover:text-brand-700">
+                  Import profile
+                </button>
+                <input
+                  ref={importRef}
+                  type="file"
+                  accept="application/json"
+                  className="hidden"
+                  onChange={(e) => e.target.files?.[0] && importProfile(e.target.files[0])}
+                />
               </div>
               {saved && <p className="text-xs text-stone-500">{saved}</p>}
             </div>
