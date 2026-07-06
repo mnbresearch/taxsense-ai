@@ -2,11 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { runIntakeTurn, newIntakeState } from "@/lib/intake/engine";
 import type { IntakeState } from "@/lib/intake/engine";
 import { supabaseServer, demoEvents } from "@/lib/supabase/server";
+import { clientKey, rateLimit } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
 export async function POST(req: NextRequest) {
+  const rl = rateLimit(`chat:${clientKey(req)}`, { capacity: 20, refillPerMinute: 15 });
+  if (!rl.allowed)
+    return NextResponse.json(
+      { error: "Whoa — too many messages at once. Give me a few seconds." },
+      { status: 429, headers: { "retry-after": String(rl.retryAfterSeconds) } }
+    );
   try {
     const body = await req.json();
     const state: IntakeState = body.state ?? newIntakeState();
