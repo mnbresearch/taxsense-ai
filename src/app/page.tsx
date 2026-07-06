@@ -1,0 +1,108 @@
+import Link from "next/link";
+
+/** Landing page (Session 8 copy) — MNB Research / founder-building-in-public voice. */
+export default function Landing() {
+  return (
+    <main>
+      {/* Nav */}
+      <nav className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
+        <div className="text-lg font-bold text-brand-700">
+          TaxSense <span className="text-stone-400 font-normal">AI</span>
+        </div>
+        <div className="flex items-center gap-6 text-sm">
+          <a href="#how" className="text-stone-600 hover:text-brand-700">How it works</a>
+          <Link href="/app" className="rounded-lg bg-brand-600 px-4 py-2 font-medium text-white hover:bg-brand-700">
+            Try it free
+          </Link>
+        </div>
+      </nav>
+
+      {/* Hero */}
+      <section className="mx-auto max-w-5xl px-6 pb-16 pt-14 text-center">
+        <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-brand-600">
+          An MNB Research product · FY 2025-26 ready
+        </p>
+        <h1 className="mx-auto max-w-3xl text-4xl font-bold leading-tight sm:text-5xl">
+          Your taxes, figured out in one conversation.
+        </h1>
+        <p className="mx-auto mt-5 max-w-2xl text-lg text-stone-600">
+          TaxSense AI talks to you like a sharp CA — not a 40-field form. Tell it how you earn,
+          it computes your tax under <em>both</em> regimes, finds the deductions you&apos;re leaving on
+          the table, and hands you a filing-ready summary PDF.
+        </p>
+        <div className="mt-8 flex items-center justify-center gap-4">
+          <Link href="/app" className="rounded-lg bg-brand-600 px-6 py-3 font-semibold text-white hover:bg-brand-700">
+            Start the conversation →
+          </Link>
+          <a href="#how" className="rounded-lg border border-stone-300 px-6 py-3 font-semibold text-stone-700 hover:border-brand-600">
+            See how it works
+          </a>
+        </div>
+        <p className="mt-4 text-sm text-stone-500">
+          Free while in beta. No signup needed to try. Your numbers never train anyone&apos;s model.
+        </p>
+      </section>
+
+      {/* Proof strip */}
+      <section className="border-y border-stone-200 bg-white">
+        <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 px-6 py-10 text-center sm:grid-cols-3">
+          <div>
+            <div className="text-2xl font-bold text-brand-700">Old vs New</div>
+            <p className="mt-1 text-sm text-stone-600">Every rupee computed under both regimes, with the exact section-wise math shown.</p>
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-brand-700">₹-quantified advice</div>
+            <p className="mt-1 text-sm text-stone-600">&quot;Put ₹15,000 more in NPS and save ₹4,680&quot; — moves ranked by savings-per-rupee.</p>
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-brand-700">Filing-ready PDF</div>
+            <p className="mt-1 text-sm text-stone-600">A professional summary + document checklist you can file from, or hand to your CA.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section id="how" className="mx-auto max-w-5xl px-6 py-16">
+        <h2 className="text-center text-3xl font-bold">How it works</h2>
+        <div className="mt-10 grid gap-8 sm:grid-cols-3">
+          {[
+            {
+              n: "1",
+              t: "Talk, don't type into forms",
+              d: "“I make around 80k a month, pay 25k rent in Pune, put 1.5L in PPF.” That's enough — TaxSense AI structures it, annualises it, and asks only what actually matters next.",
+            },
+            {
+              n: "2",
+              t: "See both regimes, honestly",
+              d: "A transparent, auditable computation under the old and new regime — slabs, HRA, 87A rebate, surcharge, capital gains — with every rule cited, not a black box.",
+            },
+            {
+              n: "3",
+              t: "Walk away filing-ready",
+              d: "Download your filing summary PDF with the regime recommendation, quantified deduction moves, and the exact list of documents you'll need.",
+            },
+          ].map((s) => (
+            <div key={s.n} className="rounded-xl border border-stone-200 bg-white p-6">
+              <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 font-bold text-white">{s.n}</div>
+              <h3 className="font-semibold">{s.t}</h3>
+              <p className="mt-2 text-sm text-stone-600">{s.d}</p>
+            </div>
+          ))}
+        </div>
+        <p className="mx-auto mt-10 max-w-2xl text-center text-sm text-stone-600">
+          <strong>TaxSense AI + your CA, not instead of your CA.</strong> It does the tedious 90% —
+          intake, regime math, document prep — so if you do work with a professional, they start
+          from a clean, complete file instead of a shoebox of screenshots.
+        </p>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-stone-200 bg-white">
+        <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-3 px-6 py-8 text-sm text-stone-500 sm:flex-row">
+          <span>© {new Date().getFullYear()} MNB Research · TaxSense AI</span>
+          <span>Computations per Income-tax Act, 1961 (Finance Act 2025). Not a substitute for professional advice.</span>
+        </div>
+      </footer>
+    </main>
+  );
+}
