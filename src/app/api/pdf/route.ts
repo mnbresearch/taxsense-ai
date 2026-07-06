@@ -3,11 +3,15 @@ import { computeBoth } from "@/lib/tax-engine";
 import { optimize } from "@/lib/optimizer";
 import { generateFilingSummaryPdf } from "@/lib/pdf/filingSummary";
 import { supabaseServer, demoEvents } from "@/lib/supabase/server";
+import { clientKey, rateLimit } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
 export async function POST(req: NextRequest) {
+  const rl = rateLimit(`pdf:${clientKey(req)}`, { capacity: 10, refillPerMinute: 6 });
+  if (!rl.allowed)
+    return NextResponse.json({ error: "rate limited" }, { status: 429, headers: { "retry-after": String(rl.retryAfterSeconds) } });
   try {
     const { profile, estimates, name } = await req.json();
     if (!profile) return NextResponse.json({ error: "profile required" }, { status: 400 });
