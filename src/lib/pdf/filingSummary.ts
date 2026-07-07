@@ -98,6 +98,15 @@ export interface FilingSummaryInput {
   optimizer: OptimizerReport;
   estimates?: string[];
   generatedFor?: string;
+  /** v2 sections (optional — computed by the API route). */
+  advanceTax?: {
+    applicable: boolean;
+    reason: string;
+    installments: { label: string; dueDate: string; cumulativePct: number; installmentAmount: number }[];
+    interest234C_ifAllMissed: number;
+  };
+  itr?: { form: string; formName: string; reasons: string[] };
+  insights?: { kind: string; headline: string; detail: string }[];
 }
 
 export async function generateFilingSummaryPdf(input: FilingSummaryInput): Promise<Uint8Array> {
@@ -186,6 +195,40 @@ export async function generateFilingSummaryPdf(input: FilingSummaryInput): Promi
     sectionTitle(ctx, "Moves that would lower your tax");
     for (const s of optimizer.suggestions.slice(0, 5)) {
       row(ctx, `• ${s.label}`, `saves ${inr(s.taxSaved)}`);
+    }
+  }
+
+  /* v2 — Which ITR form */
+  if (input.itr) {
+    sectionTitle(ctx, "Which ITR form to file");
+    row(ctx, `${input.itr.form} (${input.itr.formName})`, "", { bold: true });
+    for (const r of input.itr.reasons.slice(0, 3)) text(ctx, `- ${r}`, { size: 9, color: MUTE, dy: 4 });
+  }
+
+  /* v2 — Advance-tax calendar */
+  if (input.advanceTax) {
+    sectionTitle(ctx, "Advance-tax calendar (s.211)");
+    if (!input.advanceTax.applicable) {
+      text(ctx, input.advanceTax.reason, { size: 9.5, color: MUTE });
+    } else {
+      for (const inst of input.advanceTax.installments) {
+        const dt = new Date(inst.dueDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+        row(ctx, `${dt} — ${inst.cumulativePct}% cumulative`, inr(inst.installmentAmount));
+      }
+      text(
+        ctx,
+        `Skipping the calendar entirely would cost about ${inr(input.advanceTax.interest234C_ifAllMissed)} in s.234C interest.`,
+        { size: 9, color: WARN, dy: 6 }
+      );
+    }
+  }
+
+  /* v2 — Smart insights */
+  if (input.insights?.length) {
+    sectionTitle(ctx, "Smart insights");
+    for (const ins of input.insights.slice(0, 3)) {
+      text(ctx, ins.headline, { size: 10, bold: true, dy: 3 });
+      text(ctx, ins.detail, { size: 8.5, color: MUTE, dy: 8 });
     }
   }
 
