@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { computeBoth } from "@/lib/tax-engine";
+import { safeParseProfile } from "@/lib/tax-engine/validate";
 import { demoStore, supabaseServer } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -7,8 +8,11 @@ export const dynamic = "force-dynamic";
 
 /** Save (upsert) the user's profile + cached computation. */
 export async function POST(req: NextRequest) {
-  const { profile, intakeState, label } = await req.json();
-  if (!profile) return NextResponse.json({ error: "profile required" }, { status: 400 });
+  const { profile: rawProfile, intakeState, label } = await req.json();
+  if (!rawProfile) return NextResponse.json({ error: "profile required" }, { status: 400 });
+  const parsed = safeParseProfile(rawProfile);
+  if (!parsed.ok) return NextResponse.json({ error: `invalid profile — ${parsed.error}` }, { status: 400 });
+  const profile = parsed.profile;
   const computation = computeBoth(profile);
 
   const sb = supabaseServer();
