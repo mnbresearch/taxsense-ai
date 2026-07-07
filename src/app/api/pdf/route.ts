@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { computeBoth } from "@/lib/tax-engine";
 import { optimize } from "@/lib/optimizer";
 import { generateFilingSummaryPdf } from "@/lib/pdf/filingSummary";
+import { safeParseProfile } from "@/lib/tax-engine/validate";
 import { supabaseServer, demoEvents } from "@/lib/supabase/server";
 import { clientKey, rateLimit } from "@/lib/rateLimit";
 
@@ -13,8 +14,11 @@ export async function POST(req: NextRequest) {
   if (!rl.allowed)
     return NextResponse.json({ error: "rate limited" }, { status: 429, headers: { "retry-after": String(rl.retryAfterSeconds) } });
   try {
-    const { profile, estimates, name } = await req.json();
-    if (!profile) return NextResponse.json({ error: "profile required" }, { status: 400 });
+    const { profile: rawProfile, estimates, name } = await req.json();
+    if (!rawProfile) return NextResponse.json({ error: "profile required" }, { status: 400 });
+    const parsedP = safeParseProfile(rawProfile);
+    if (!parsedP.ok) return NextResponse.json({ error: `invalid profile — ${parsedP.error}` }, { status: 400 });
+    const profile = parsedP.profile;
     const comparison = computeBoth(profile);
     const optimizer = optimize(profile);
     const pdf = await generateFilingSummaryPdf({
