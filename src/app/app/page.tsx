@@ -255,6 +255,20 @@ export default function AppPage() {
                 </div>
               )}
 
+              {result?.insights?.length > 0 && (
+                <div>
+                  <div className="mb-2 text-sm font-semibold">Smart insights</div>
+                  <ul className="space-y-2">
+                    {result.insights.map((ins: any) => (
+                      <li key={ins.kind} className="rounded-lg border border-brand-100 bg-brand-50/60 p-3">
+                        <div className="text-sm font-semibold text-brand-700">{ins.headline}</div>
+                        <p className="mt-0.5 text-xs text-stone-600">{ins.detail}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {state?.estimates?.length > 0 && (
                 <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
                   <strong>Estimates to verify:</strong> {state.estimates.join(" · ")}
