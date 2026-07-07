@@ -3,6 +3,9 @@ import { computeBoth } from "@/lib/tax-engine";
 import { optimize } from "@/lib/optimizer";
 import { generateFilingSummaryPdf } from "@/lib/pdf/filingSummary";
 import { safeParseProfile } from "@/lib/tax-engine/validate";
+import { advanceTaxPlan } from "@/lib/tax-engine/advanceTax";
+import { recommendItrForm } from "@/lib/tax-engine/itrForm";
+import { computeInsights } from "@/lib/optimizer/insights";
 import { supabaseServer, demoEvents } from "@/lib/supabase/server";
 import { clientKey, rateLimit } from "@/lib/rateLimit";
 
@@ -21,12 +24,22 @@ export async function POST(req: NextRequest) {
     const profile = parsedP.profile;
     const comparison = computeBoth(profile);
     const optimizer = optimize(profile);
+    const best = comparison[comparison.recommended];
+    const adv = advanceTaxPlan(profile, best);
     const pdf = await generateFilingSummaryPdf({
       profile,
       comparison,
       optimizer,
       estimates,
       generatedFor: name,
+      advanceTax: {
+        applicable: adv.applicable,
+        reason: adv.reason,
+        installments: adv.installments,
+        interest234C_ifAllMissed: adv.interest234C_ifAllMissed,
+      },
+      itr: recommendItrForm(profile, best.totalIncome),
+      insights: computeInsights(profile, comparison),
     });
 
     const sb = supabaseServer();
