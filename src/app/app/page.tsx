@@ -136,6 +136,18 @@ export default function AppPage() {
     setSaved(d.saved ? (d.mode === "demo" ? "Saved (demo mode — sign in to persist)" : "Saved to your account") : d.error);
   }
 
+  function shareResults() {
+    if (!state?.profile) return;
+    const json = JSON.stringify(state.profile);
+    const b64 = btoa(unescape(encodeURIComponent(json)))
+      .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    const url = `${window.location.origin}/s/${b64}`;
+    navigator.clipboard?.writeText(url).then(
+      () => setSaved("Share link copied — anyone with it sees a read-only summary."),
+      () => setSaved(url)
+    );
+  }
+
   function exportProfile() {
     if (!state) return;
     const blob = new Blob([JSON.stringify({ taxsense: 1, state }, null, 2)], { type: "application/json" });
@@ -348,6 +360,9 @@ export default function AppPage() {
                     Save as scenario ({scenarios.length}/3)
                   </button>
                 )}
+                <button onClick={shareResults} className="underline hover:text-brand-700">
+                  Share results (link)
+                </button>
                 <button onClick={exportProfile} className="underline hover:text-brand-700">
                   Export profile (JSON)
                 </button>

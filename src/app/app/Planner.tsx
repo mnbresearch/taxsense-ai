@@ -45,7 +45,31 @@ export default function Planner({ profile }: { profile: any }) {
   const [draft, setDraft] = useState<any>(null);
   const [result, setResult] = useState<any>(null);
   const [busy, setBusy] = useState(false);
+  const [rr, setRr] = useState({ tenantName: "", landlordName: "", propertyAddress: "", landlordPan: "" });
+  const [rrMsg, setRrMsg] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  async function downloadReceipts() {
+    const monthlyRent = Math.round((draft?.salary?.rentPaid ?? 0) / 12);
+    if (!monthlyRent) { setRrMsg("Add your rent in the chat first."); return; }
+    setRrMsg("Generating…");
+    const res = await fetch("/api/rent-receipts", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        tenantName: rr.tenantName, landlordName: rr.landlordName,
+        propertyAddress: rr.propertyAddress, monthlyRent,
+        ...(rr.landlordPan ? { landlordPan: rr.landlordPan } : {}),
+      }),
+    });
+    if (!res.ok) { const e = await res.json().catch(() => ({})); setRrMsg(e.error ?? "Failed"); return; }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "rent-receipts-fy2025-26.pdf"; a.click();
+    URL.revokeObjectURL(url);
+    setRrMsg("Downloaded — 12 receipts, April 2025 to March 2026.");
+  }
 
   // Re-seed the draft whenever the underlying chat profile changes.
   useEffect(() => {
@@ -142,6 +166,33 @@ export default function Planner({ profile }: { profile: any }) {
               <li key={i}>• {r}</li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {(draft?.salary?.rentPaid ?? 0) > 0 && (
+        <div className="rounded-lg border border-stone-200 p-3">
+          <div className="text-xs font-semibold uppercase tracking-wide text-stone-500">
+            Rent receipts for HRA ({inr(Math.round(draft.salary.rentPaid / 12))}/month)
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            {([["tenantName", "Your name"], ["landlordName", "Landlord name"], ["propertyAddress", "Property address"], ["landlordPan", "Landlord PAN (if rent > ₹1L/yr)"]] as const).map(([k, ph]) => (
+              <input
+                key={k}
+                value={(rr as any)[k]}
+                onChange={(e) => setRr({ ...rr, [k]: e.target.value })}
+                placeholder={ph}
+                className={"rounded-md border border-stone-300 px-2.5 py-2 text-xs outline-none focus:border-brand-600 " + (k === "propertyAddress" ? "col-span-2" : "")}
+              />
+            ))}
+          </div>
+          <button
+            onClick={downloadReceipts}
+            disabled={rr.tenantName.length < 2 || rr.landlordName.length < 2 || rr.propertyAddress.length < 5}
+            className="mt-2 w-full rounded-md bg-brand-600 py-2 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-40"
+          >
+            Download 12 rent receipts (PDF)
+          </button>
+          {rrMsg && <p className="mt-1 text-[11px] text-stone-500">{rrMsg}</p>}
         </div>
       )}
 
