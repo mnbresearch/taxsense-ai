@@ -25,8 +25,43 @@ export default function AppPage() {
   const [provider, setProvider] = useState<string>("");
   const [saved, setSaved] = useState<string>("");
   const [tab, setTab] = useState<"results" | "planner">("results");
+  const [scenarios, setScenarios] = useState<any[]>([]);
   const importRef = useRef<HTMLInputElement>(null);
   const bottom = useRef<HTMLDivElement>(null);
+
+  // one-shot client error telemetry (no PII, rate-limited server-side)
+  useEffect(() => {
+    let sent = false;
+    const h = (e: ErrorEvent) => {
+      if (sent) return;
+      sent = true;
+      fetch("/api/telemetry", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ type: "window.onerror", message: e.message }),
+      }).catch(() => {});
+    };
+    window.addEventListener("error", h);
+    return () => window.removeEventListener("error", h);
+  }, []);
+
+  function saveScenario() {
+    if (!state?.profile || !cmp || scenarios.length >= 3) return;
+    const name = ["A", "B", "C"][scenarios.length];
+    setScenarios([...scenarios, {
+      name: `Scenario ${name}`,
+      profile: JSON.parse(JSON.stringify(state.profile)),
+      state: JSON.parse(JSON.stringify(state)),
+      old: cmp.old.totalTaxLiability,
+      new: cmp.new.totalTaxLiability,
+      recommended: cmp.recommended,
+    }]);
+  }
+
+  function loadScenario(s: any) {
+    setState(s.state);
+    setMessages((m) => [...m, { role: "assistant", content: `Loaded ${s.name} — the computation on the right reflects it now.` }]);
+  }
 
   useEffect(() => bottom.current?.scrollIntoView({ behavior: "smooth" }), [messages, busy]);
 
@@ -187,6 +222,24 @@ export default function AppPage() {
 
         {/* Results panel */}
         <section className="min-h-0 overflow-y-auto rounded-xl border border-stone-200 bg-white p-5">
+          {scenarios.length > 0 && (
+            <div className="mb-3 flex gap-2 overflow-x-auto">
+              {scenarios.map((s) => (
+                <button
+                  key={s.name}
+                  onClick={() => loadScenario(s)}
+                  className="min-w-[150px] rounded-lg border border-stone-200 bg-stone-50 p-2 text-left hover:border-brand-600"
+                  title="Click to load this scenario"
+                >
+                  <div className="text-[11px] font-semibold uppercase text-stone-500">{s.name}</div>
+                  <div className="text-sm font-bold text-brand-700">
+                    {inr(Math.min(s.old, s.new))}
+                  </div>
+                  <div className="text-[11px] text-stone-500">{s.recommended} regime</div>
+                </button>
+              ))}
+            </div>
+          )}
           {cmp && (
             <div className="mb-4 flex gap-1 rounded-lg bg-stone-100 p-1 text-sm font-medium">
               {(["results", "planner"] as const).map((t) => (
@@ -290,6 +343,11 @@ export default function AppPage() {
                 </button>
               </div>
               <div className="flex gap-3 text-xs text-stone-500">
+                {scenarios.length < 3 && (
+                  <button onClick={saveScenario} className="underline hover:text-brand-700">
+                    Save as scenario ({scenarios.length}/3)
+                  </button>
+                )}
                 <button onClick={exportProfile} className="underline hover:text-brand-700">
                   Export profile (JSON)
                 </button>
