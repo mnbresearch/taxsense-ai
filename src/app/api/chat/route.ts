@@ -3,6 +3,7 @@ import { runIntakeTurn, newIntakeState } from "@/lib/intake/engine";
 import type { IntakeState } from "@/lib/intake/engine";
 import { supabaseServer, demoEvents } from "@/lib/supabase/server";
 import { clientKey, rateLimit } from "@/lib/rateLimit";
+import { glossaryAnswer } from "@/lib/glossary";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -20,6 +21,18 @@ export async function POST(req: NextRequest) {
     const history = Array.isArray(body.history) ? body.history.slice(-12) : [];
     const message = String(body.message ?? "").slice(0, 4000);
     if (!message.trim()) return NextResponse.json({ error: "empty message" }, { status: 400 });
+
+    // Glossary fast-path: definitional questions answered locally — instant,
+    // accurate, zero LLM cost. Profile state is untouched.
+    const gloss = glossaryAnswer(message);
+    if (gloss) {
+      return NextResponse.json({
+        reply: `**${gloss.term}** — ${gloss.answer}\n\nBack to your profile: anything else about your income or savings?`,
+        state,
+        provider: "glossary/local",
+        extraction: { updates: {}, notApplicable: [], estimates: [], clarify: null },
+      });
+    }
 
     const turn = await runIntakeTurn(state, history, message);
 
