@@ -50,6 +50,17 @@ export default function GuidePage() {
   const progress = Math.round(((flow.indexOf(step) + 1) / flow.length) * 100);
   const report = step === "report" ? buildGuide(a) : null;
 
+  // product telemetry: one event per completed guide (no answers sent)
+  const firedRef = useState({ fired: false })[0];
+  if (report && !firedRef.fired) {
+    firedRef.fired = true;
+    fetch("/api/telemetry", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ type: "guide_complete", message: a.earns.join(",") }),
+    }).catch(() => {});
+  }
+
   const Opt = ({ onClick, label, sub, active = false }: any) => (
     <button
       onClick={onClick}
@@ -240,7 +251,10 @@ export default function GuidePage() {
           </div>
 
           <div className="mt-6 flex gap-3">
-            <Link href="/app" className="flex-1 rounded-xl bg-brand-600 py-3 text-center font-semibold text-white hover:bg-brand-700">
+            <Link
+              href={`/app?earns=${a.earns.join(",")}`}
+              className="flex-1 rounded-xl bg-brand-600 py-3 text-center font-semibold text-white hover:bg-brand-700"
+            >
               Now compute my actual numbers →
             </Link>
             <button onClick={() => window.print()} className="rounded-xl border border-stone-300 px-5 font-semibold text-stone-700 hover:border-brand-600">
