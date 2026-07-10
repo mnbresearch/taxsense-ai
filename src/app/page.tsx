@@ -1,4 +1,5 @@
 import Link from "next/link";
+import RequestAccess from "./RequestAccess";
 
 /** Landing page (Session 8 copy) — MNB Research / founder-building-in-public voice. */
 export default function Landing() {
@@ -49,6 +50,13 @@ export default function Landing() {
           </Link>{" "}
           — learn exactly what you must file before you compute a single number.
         </p>
+        <div className="mx-auto mt-8 max-w-xl rounded-2xl border border-brand-100 bg-brand-50/60 p-5">
+          <p className="mb-3 text-sm font-semibold text-brand-700">
+            🚀 Launching Monday, 13 July — request early access
+          </p>
+          <RequestAccess compact />
+          <p className="mt-2 text-xs text-stone-500">No spam. One email with your access details at launch.</p>
+        </div>
       </section>
 
       {/* Proof strip */}
@@ -103,6 +111,19 @@ export default function Landing() {
           intake, regime math, document prep — so if you do work with a professional, they start
           from a clean, complete file instead of a shoebox of screenshots.
         </p>
+      </section>
+
+      {/* Access CTA */}
+      <section className="bg-brand-700">
+        <div className="mx-auto max-w-3xl px-6 py-14 text-center">
+          <h2 className="text-3xl font-bold text-white">Be first in line.</h2>
+          <p className="mx-auto mt-2 max-w-xl text-sm text-brand-100">
+            We launch Monday, 13 July. Request access now and your invite — with a free month — lands the moment we go live.
+          </p>
+          <div className="mt-6">
+            <RequestAccess />
+          </div>
+        </div>
       </section>
 
       {/* Footer */}
