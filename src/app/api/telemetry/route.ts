@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { demoEvents, supabaseServer } from "@/lib/supabase/server";
+import { demoEvents, supabaseAdmin } from "@/lib/supabase/server";
 import { clientKey, rateLimit } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
@@ -14,9 +14,11 @@ export async function POST(req: NextRequest) {
   if (!rl.allowed) return NextResponse.json({ ok: false }, { status: 429 });
   try {
     const { type, message } = await req.json();
-    const event = `client_error:${String(type ?? "unknown").slice(0, 40)}`;
+    const t = String(type ?? "unknown").slice(0, 40);
+    // product events vs client errors, both PII-free
+    const event = ["guide_complete", "share_created"].includes(t) ? t : `client_error:${t}`;
     const meta = { message: String(message ?? "").slice(0, 300) };
-    const sb = supabaseServer();
+    const sb = supabaseAdmin(); // service role — audit_events has no anon-insert policy by design
     if (sb) await sb.from("audit_events").insert({ event, meta });
     else demoEvents.push({ event, at: new Date().toISOString() });
     return NextResponse.json({ ok: true });
