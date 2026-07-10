@@ -187,6 +187,7 @@ export default function AppPage() {
         </Link>
         <div className="flex items-center gap-3 text-xs text-stone-500">
           {provider && <span className="rounded bg-stone-100 px-2 py-1">intake: {provider}</span>}
+          <Link href="/guide" className="hover:text-brand-700">Tax Guide</Link>
           <Link href="/admin" className="hover:text-brand-700">Admin</Link>
         </div>
       </header>
