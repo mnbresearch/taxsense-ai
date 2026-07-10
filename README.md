@@ -43,3 +43,7 @@ Add `GROQ_API_KEY` for real conversations; add Supabase env for auth + persisten
 - Not an e-filing intermediary: output is a filing-ready summary, not an ITR submission.
 
 Computed under the Income-tax Act, 1961 as amended by Finance Act 2025. Not a substitute for professional advice.
+
+## Email notifications
+
+Access requests and first-time logins trigger transactional emails via Resend (`RESEND_API_KEY`, server-side only). Admin notifications go to the configured admin inbox; requesters get a branded confirmation.
