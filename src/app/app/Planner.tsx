@@ -47,7 +47,32 @@ export default function Planner({ profile }: { profile: any }) {
   const [busy, setBusy] = useState(false);
   const [rr, setRr] = useState({ tenantName: "", landlordName: "", propertyAddress: "", landlordPan: "" });
   const [rrMsg, setRrMsg] = useState("");
+  const [structure, setStructure] = useState<any>(null);
+  const [structBusy, setStructBusy] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  async function designCtc() {
+    if (!draft?.salary?.grossSalary) return;
+    setStructBusy(true);
+    try {
+      const res = await fetch("/api/structure", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          ctc: draft.salary.grossSalary,
+          rentPaid: draft.salary.rentPaid ?? 0,
+          isMetroCity: !!draft.salary.isMetroCity,
+          age: draft.age ?? 30,
+          currentBasicPct: Math.max(10, Math.min(90, Math.round((draft.salary.basicPlusDA / draft.salary.grossSalary) * 100))),
+          currentEmployerNpsPct: Math.min(14, Math.round(((draft.salary.employerNpsContribution ?? 0) / Math.max(1, draft.salary.basicPlusDA)) * 100)),
+        }),
+      });
+      const d = await res.json();
+      if (!d.error) setStructure(d);
+    } finally {
+      setStructBusy(false);
+    }
+  }
 
   async function downloadReceipts() {
     const monthlyRent = Math.round((draft?.salary?.rentPaid ?? 0) / 12);
@@ -166,6 +191,68 @@ export default function Planner({ profile }: { profile: any }) {
               <li key={i}>• {r}</li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {(draft?.salary?.grossSalary ?? 0) > 0 && (
+        <div className="rounded-lg border border-stone-200 p-3">
+          <div className="flex items-center justify-between">
+            <div className="text-xs font-semibold uppercase tracking-wide text-stone-500">
+              CTC Designer — the structure to ask HR for
+            </div>
+            <button
+              onClick={designCtc}
+              disabled={structBusy}
+              className="rounded-md bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-40"
+            >
+              {structBusy ? "Designing…" : structure ? "Re-run" : "Design my structure"}
+            </button>
+          </div>
+          {structure && (
+            <div className="mt-3 space-y-3">
+              <div className="rounded-md bg-brand-50 p-3">
+                <div className="text-sm font-bold text-brand-700">
+                  Optimal: basic {structure.best.basicPct}% of CTC · employer NPS {structure.best.employerNpsPct}% of basic
+                </div>
+                <div className="mt-0.5 text-xs text-stone-600">
+                  Basic {inr(structure.best.basicPlusDA)} · HRA {inr(structure.best.hraComponent)} · NPS {inr(structure.best.employerNps)} →
+                  tax {inr(structure.best.bestTax)} ({structure.best.bestRegime} regime)
+                  {structure.savingsVsCurrent > 0 && (
+                    <span className="font-semibold text-brand-700"> · saves {inr(structure.savingsVsCurrent)} vs your current structure</span>
+                  )}
+                </div>
+              </div>
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="text-left text-stone-400">
+                    <th className="py-1 font-medium">Basic %</th>
+                    <th className="font-medium">NPS %</th>
+                    <th className="text-right font-medium">Best tax</th>
+                    <th className="text-right font-medium">Regime</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {structure.options.slice(0, 5).map((o: any, i: number) => (
+                    <tr key={i} className={"border-t border-stone-100 " + (i === 0 ? "font-semibold text-brand-700" : "text-stone-600")}>
+                      <td className="py-1">{o.basicPct}%{!o.wageCodeAligned && " *"}</td>
+                      <td>{o.employerNpsPct}%</td>
+                      <td className="text-right">{inr(o.bestTax)}</td>
+                      <td className="text-right">{o.bestRegime}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <details className="text-[11px] text-stone-500">
+                <summary className="cursor-pointer font-medium">Assumptions & caveats</summary>
+                <ul className="mt-1 list-disc space-y-0.5 pl-4">
+                  {structure.notes.map((n: string, i: number) => (
+                    <li key={i}>{n}</li>
+                  ))}
+                  <li>* basic below 50% of CTC — Wage Code may make HR reluctant.</li>
+                </ul>
+              </details>
+            </div>
+          )}
         </div>
       )}
 
