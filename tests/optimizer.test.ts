@@ -143,4 +143,19 @@ describe("optimizer — 5 realistic profiles", () => {
     expect(r.headline).toMatch(/regime/);
     expect(r.headline).toMatch(/₹/);
   });
+
+  it("employer-NPS restructure move exists, works in the NEW regime, and respects the 14% cap", () => {
+    const vars = standardVariations(landlord); // basic+DA 9L → cap 1.26L
+    const enps = vars.find((v) => v.id.startsWith("enps"))!;
+    expect(enps).toBeDefined();
+    expect(enps.label).toMatch(/BOTH regimes/);
+    // applying it must reduce NEW-regime tax (the whole point)
+    const sims = simulate(landlord, [enps]);
+    expect(sims[0].comparison.new.totalTaxLiability).toBeLessThan(
+      optimize(landlord).baseline.new.totalTaxLiability
+    );
+    // amount within the 14% new-regime cap
+    const amt = Number(enps.id.split("-")[1]);
+    expect(amt).toBeLessThanOrEqual(0.14 * 900_000);
+  });
 });
