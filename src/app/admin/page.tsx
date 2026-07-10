@@ -6,6 +6,7 @@ import Link from "next/link";
 
 export default function AdminPage() {
   const [data, setData] = useState<any>(null);
+  const [leads, setLeads] = useState<any[] | null>(null);
   const [err, setErr] = useState<string>("");
 
   useEffect(() => {
@@ -13,6 +14,10 @@ export default function AdminPage() {
       .then((r) => r.json())
       .then((d) => (d.error ? setErr(d.error) : setData(d)))
       .catch((e) => setErr(String(e)));
+    fetch("/api/admin/access-requests")
+      .then((r) => r.json())
+      .then((d) => !d.error && setLeads(d.leads ?? []))
+      .catch(() => {});
   }, []);
 
   const s = data?.stats ?? {};
@@ -71,6 +76,51 @@ export default function AdminPage() {
               </div>
             ) : (
               <p className="mt-2 text-sm text-stone-500">No computed profiles yet.</p>
+            )}
+          </div>
+
+          <div className="mt-6 rounded-xl border border-stone-200 bg-white p-5">
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold">Access requests {leads && <span className="ml-1 rounded bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-700">{leads.length}</span>}</h2>
+              {leads && leads.length > 0 && (
+                <button
+                  onClick={() => {
+                    const csv = "email,name,source,created_at\n" + leads.map((l) => [l.email, l.name ?? "", l.source, l.created_at].join(",")).join("\n");
+                    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+                    const a = document.createElement("a"); a.href = url; a.download = "taxsense-access-requests.csv"; a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="text-xs text-brand-700 underline"
+                >
+                  Export CSV
+                </button>
+              )}
+            </div>
+            {!leads || leads.length === 0 ? (
+              <p className="mt-2 text-sm text-stone-500">No access requests yet — they appear here the moment someone signs up on the landing page.</p>
+            ) : (
+              <table className="mt-3 w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs uppercase text-stone-400">
+                    <th className="py-1 font-medium">Email</th>
+                    <th className="font-medium">Name</th>
+                    <th className="font-medium">Source</th>
+                    <th className="text-right font-medium">When</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {leads.slice(0, 50).map((l, i) => (
+                    <tr key={i} className="border-t border-stone-100">
+                      <td className="py-1.5 font-medium">{l.email}</td>
+                      <td className="text-stone-600">{l.name ?? "—"}</td>
+                      <td className="text-stone-500">{l.source}</td>
+                      <td className="text-right text-xs text-stone-500">
+                        {new Date(l.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             )}
           </div>
 
