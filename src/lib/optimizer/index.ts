@@ -117,6 +117,26 @@ export function standardVariations(profile: TaxProfile): WhatIfVariation[] {
       apply: (p) => ((p.deductions.section80D_parents += cPar), p),
     });
 
+  // Employer NPS (80CCD(2)) — the only big deduction that works in BOTH
+  // regimes. Restructuring salary so the employer routes part of it into NPS
+  // is usually the highest-leverage move for new-regime filers.
+  if (profile.salary && profile.salary.basicPlusDA > 0) {
+    const capNew = 0.14 * profile.salary.basicPlusDA; // new-regime cap (14%)
+    const room = Math.max(0, Math.floor(capNew - profile.salary.employerNpsContribution));
+    if (room >= 10_000) {
+      const amt = Math.min(room, 200_000);
+      v.push({
+        id: `enps-${amt}`,
+        label: `Restructure salary: route ₹${fmt(amt)} through employer NPS (80CCD(2) — works in BOTH regimes)`,
+        cashOutlay: amt, // it's your own CTC, locked till 60 — treat as outlay
+        apply: (p) => {
+          if (p.salary) p.salary.employerNpsContribution += amt;
+          return p;
+        },
+      });
+    }
+  }
+
   // Equity LTCG harvesting: realise up to the ₹1.25L exemption "for free".
   const ltcg = profile.capitalGains?.ltcg112A ?? 0;
   if (ltcg > 0 && ltcg < 125_000)
