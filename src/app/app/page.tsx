@@ -29,6 +29,23 @@ export default function AppPage() {
   const importRef = useRef<HTMLInputElement>(null);
   const bottom = useRef<HTMLDivElement>(null);
 
+  // Guide → chat handoff: /app?earns=business,professional tailors the opener.
+  useEffect(() => {
+    const earns = new URLSearchParams(window.location.search).get("earns");
+    if (!earns) return;
+    const parts = earns.split(",").filter(Boolean);
+    if (parts.length === 0) return;
+    const label = parts
+      .map((p) => ({ salaried: "salary", business: "your business", professional: "freelancing/practice", rental: "rent", investor: "investments" } as any)[p] ?? p)
+      .join(" + ");
+    const opener = parts.includes("business")
+      ? `Welcome from the Tax Guide! Since you run a business, let's start there: what was your total turnover this year, roughly? (If you're on the presumptive scheme, that's the only number I really need.)`
+      : parts.includes("professional")
+        ? `Welcome from the Tax Guide! For your freelance/professional work: what were your gross receipts this year, roughly?`
+        : `Welcome from the Tax Guide! You mentioned earning from ${label}. Let's get the numbers — what's the biggest income first?`;
+    setMessages([{ role: "assistant", content: opener }]);
+  }, []);
+
   // one-shot client error telemetry (no PII, rate-limited server-side)
   useEffect(() => {
     let sent = false;
@@ -82,8 +99,8 @@ export default function AppPage() {
       .catch(() => {});
   }, [state]);
 
-  async function send() {
-    const message = input.trim();
+  async function send(text?: string) {
+    const message = (text ?? input).trim();
     if (!message || busy) return;
     setInput("");
     setBusy(true);
@@ -186,6 +203,9 @@ export default function AppPage() {
           TaxSense <span className="font-normal text-stone-400">AI</span>
         </Link>
         <div className="flex items-center gap-3 text-xs text-stone-500">
+          <span className="rounded-full bg-amber-100 px-2.5 py-1 font-semibold text-amber-800">
+            {Math.max(0, Math.ceil((new Date("2026-07-31T23:59:59+05:30").getTime() - Date.now()) / 86400000))} days to file
+          </span>
           {provider && <span className="rounded bg-stone-100 px-2 py-1">intake: {provider}</span>}
           <Link href="/guide" className="hover:text-brand-700">Tax Guide</Link>
           <Link href="/admin" className="hover:text-brand-700">Admin</Link>
@@ -214,6 +234,25 @@ export default function AppPage() {
             <div ref={bottom} />
           </div>
           <div className="border-t border-stone-200 p-3">
+            {messages.length <= 1 && !busy && (
+              <div className="mb-2 flex flex-wrap gap-1.5">
+                {[
+                  "I'm salaried — around 80k a month",
+                  "I run a small business",
+                  "I freelance",
+                  "What is 87A?",
+                  "Old vs new regime?",
+                ].map((q) => (
+                  <button
+                    key={q}
+                    onClick={() => send(q)}
+                    className="rounded-full border border-stone-300 px-3 py-1.5 text-xs text-stone-600 hover:border-brand-600 hover:text-brand-700"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="flex gap-2">
               <input
                 value={input}
@@ -223,7 +262,7 @@ export default function AppPage() {
                 className="flex-1 rounded-lg border border-stone-300 px-3 py-2.5 text-sm outline-none focus:border-brand-600"
               />
               <button
-                onClick={send}
+                onClick={() => send()}
                 disabled={busy}
                 className="rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
               >
