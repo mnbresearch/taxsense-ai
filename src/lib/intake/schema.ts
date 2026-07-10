@@ -6,7 +6,8 @@
  */
 import { z } from "zod";
 
-const money = z
+// coerce: LLMs sometimes emit numbers as strings ("960000") — accept both.
+const money = z.coerce
   .number()
   .min(0)
   .max(10_000_000_000)
@@ -16,7 +17,7 @@ export const ExtractionSchema = z.object({
   /** Fields the model confidently extracted from the user's last message. */
   updates: z
     .object({
-      age: z.number().min(18).max(110).optional(),
+      age: z.coerce.number().min(18).max(110).optional(),
       salary: z
         .object({
           grossSalary: money.optional(),
