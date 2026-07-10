@@ -10,6 +10,7 @@ export default function Landing() {
           TaxSense <span className="text-stone-400 font-normal">AI</span>
         </div>
         <div className="flex items-center gap-6 text-sm">
+          <Link href="/guide" className="text-stone-600 hover:text-brand-700">Tax Guide</Link>
           <a href="#how" className="text-stone-600 hover:text-brand-700">How it works</a>
           <Link href="/app" className="rounded-lg bg-brand-600 px-4 py-2 font-medium text-white hover:bg-brand-700">
             Try it free
@@ -40,6 +41,13 @@ export default function Landing() {
         </div>
         <p className="mt-4 text-sm text-stone-500">
           Free while in beta. No signup needed to try. Your numbers never train anyone&apos;s model.
+        </p>
+        <p className="mt-2 text-sm text-stone-500">
+          Business owner or freelancer?{" "}
+          <Link href="/guide" className="font-semibold text-brand-700 underline">
+            Take the 60-second Tax Guide
+          </Link>{" "}
+          — learn exactly what you must file before you compute a single number.
         </p>
       </section>
 
