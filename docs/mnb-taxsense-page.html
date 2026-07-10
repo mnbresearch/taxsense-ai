@@ -1,0 +1,182 @@
+<section class="ts-hero">
+  <style>
+    .ts-hero{position:relative;overflow:hidden;background:linear-gradient(160deg,#052720 0%,#083c30 55%,#0d5947 100%);padding:88px 16px 72px;text-align:center;color:#fff;}
+    .ts-hero:before{content:"";position:absolute;width:720px;height:720px;border-radius:50%;background:radial-gradient(circle,rgba(52,211,153,.28),transparent 65%);top:-320px;right:-200px;animation:tsFloat 9s ease-in-out infinite alternate;}
+    .ts-hero:after{content:"";position:absolute;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(16,185,129,.18),transparent 60%);bottom:-260px;left:-160px;animation:tsFloat 11s ease-in-out infinite alternate-reverse;}
+    @keyframes tsFloat{from{transform:translateY(0) scale(1);}to{transform:translateY(46px) scale(1.07);}}
+    @keyframes tsUp{from{opacity:0;transform:translateY(26px);}to{opacity:1;transform:translateY(0);}}
+    @keyframes tsPop{0%{opacity:0;transform:translateY(14px) scale(.97);}100%{opacity:1;transform:translateY(0) scale(1);}}
+    @keyframes tsPulse{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,.45);}50%{box-shadow:0 0 0 12px rgba(52,211,153,0);}}
+    .ts-wrap{position:relative;max-width:1080px;margin:0 auto;z-index:1;}
+    .ts-badge{display:inline-block;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:8px 20px;font-size:13px;letter-spacing:.4px;color:#a7f3d0;animation:tsUp .7s ease both;}
+    .ts-h1{font-size:52px;line-height:1.08;font-weight:800;margin:26px auto 18px;max-width:880px;color:#fff;animation:tsUp .7s .12s ease both;}
+    .ts-h1 em{font-style:normal;background:linear-gradient(90deg,#6ee7b7,#a7f3d0);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+    .ts-sub{font-size:19px;color:#d1fae5;max-width:720px;margin:0 auto 34px;line-height:1.6;animation:tsUp .7s .22s ease both;}
+    .ts-ctas{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;animation:tsUp .7s .32s ease both;}
+    .ts-btn{display:inline-block;padding:15px 32px;border-radius:12px;font-weight:700;font-size:16px;text-decoration:none;transition:transform .2s,box-shadow .2s;}
+    .ts-btn:hover{transform:translateY(-3px);}
+    .ts-btn-a{background:#34d399;color:#052720;animation:tsPulse 2.6s infinite;}
+    .ts-btn-b{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.35);color:#fff;}
+    .ts-stats{display:flex;gap:34px;justify-content:center;flex-wrap:wrap;margin-top:44px;animation:tsUp .7s .45s ease both;}
+    .ts-stat b{display:block;font-size:26px;color:#6ee7b7;}
+    .ts-stat span{font-size:12.5px;color:#a7cfc2;letter-spacing:.4px;text-transform:uppercase;}
+    .ts-launch{margin:38px auto 0;max-width:640px;background:rgba(52,211,153,.12);border:1px solid rgba(110,231,183,.4);border-radius:14px;padding:14px 22px;font-size:15px;color:#d1fae5;animation:tsPop .7s .55s ease both;}
+    .ts-launch b{color:#fff;}
+    @media(max-width:640px){.ts-h1{font-size:34px;}.ts-sub{font-size:16px;}}
+  </style>
+  <div class="ts-wrap">
+    <span class="ts-badge">A product by MNB Research · in collaboration with Abrobot.ai · Live now</span>
+    <h1 class="ts-h1">TaxSense AI — your taxes, <em>figured out in one conversation.</em></h1>
+    <p class="ts-sub">India&#8217;s income-tax copilot you can actually talk to. Tell it how you earn — it computes your tax under both regimes, finds the deductions you&#8217;re leaving on the table, and hands you a filing-ready PDF. FY 2025-26 ready.</p>
+    <div class="ts-ctas">
+      <a class="ts-btn ts-btn-a" href="https://taxsense-ai.vercel.app/app" target="_blank" rel="noopener">▶ Try the live demo</a>
+      <a class="ts-btn ts-btn-b" href="https://taxsense-ai.vercel.app/" target="_blank" rel="noopener">Request access</a>
+    </div>
+    <div class="ts-stats">
+      <div class="ts-stat"><b>2 regimes</b><span>computed live, side by side</span></div>
+      <div class="ts-stat"><b>₹-exact</b><span>savings on every move</span></div>
+      <div class="ts-stat"><b>60 sec</b><span>business-owner tax guide</span></div>
+      <div class="ts-stat"><b>24/7</b><span>always-on, section-cited</span></div>
+    </div>
+    <div class="ts-launch">🚀 <b>Launched 13 July.</b> Comment <b>&#8220;Tax Bachao&#8221;</b> on our LinkedIn launch post and get free access for one full month.</div>
+  </div>
+</section>
+
+<section class="ts-chatsec">
+  <style>
+    .ts-chatsec{background:#f6f8f7;padding:78px 16px;}
+    .ts-chatgrid{max-width:1080px;margin:0 auto;display:flex;gap:48px;align-items:center;flex-wrap:wrap;}
+    .ts-chatcol{flex:1 1 420px;}
+    .ts-kicker{font-size:13px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:#0d5947;}
+    .ts-h2{font-size:34px;font-weight:800;color:#0f1e1a;margin:10px 0 16px;line-height:1.15;}
+    .ts-p{font-size:16.5px;color:#4a5b55;line-height:1.7;}
+    .ts-phone{flex:1 1 380px;background:#0f1e1a;border-radius:22px;padding:26px;box-shadow:0 30px 60px rgba(5,39,32,.25);}
+    .ts-phone-h{display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.12);padding-bottom:14px;margin-bottom:16px;}
+    .ts-dot{width:10px;height:10px;border-radius:50%;background:#34d399;animation:tsPulse 2s infinite;}
+    .ts-phone-h span{color:#d1fae5;font-size:14px;font-weight:600;}
+    .ts-bub{max-width:85%;padding:12px 16px;border-radius:14px;font-size:14px;line-height:1.55;margin-bottom:12px;opacity:0;animation:tsPop .6s ease forwards;}
+    .ts-bub-u{background:#1d3b32;color:#e7fff5;margin-left:auto;border-bottom-right-radius:4px;animation-delay:.4s;}
+    .ts-bub-a{background:#eafaf3;color:#12332a;border-bottom-left-radius:4px;animation-delay:1.1s;}
+    .ts-bub-a2{background:#eafaf3;color:#12332a;border-bottom-left-radius:4px;animation-delay:1.9s;}
+    .ts-bub b{color:#0d5947;}
+    .ts-bub-u b{color:#a7f3d0;}
+  </style>
+  <div class="ts-chatgrid">
+    <div class="ts-chatcol">
+      <div class="ts-kicker">Talk, don&#8217;t type into forms</div>
+      <h2 class="ts-h2">Like a sharp CA — not a 40-field form.</h2>
+      <p class="ts-p">Say it the way you&#8217;d say it to a friend: salary in lakhs, rent per month, &#8220;some mutual-fund gains&#8221;. TaxSense AI structures it, annualises it, applies the right sections — 87A rebate, HRA, 111A/112A capital gains, surcharge — and shows every rule it used. No black box, ever.</p>
+    </div>
+    <div class="ts-phone">
+      <div class="ts-phone-h"><span class="ts-dot"></span><span>TaxSense AI — live session</span></div>
+      <div class="ts-bub ts-bub-u">I make around <b>80k a month</b>, pay 25k rent in Pune, put 1.5L in PPF. Some LTCG from mutual funds too — about 2L.</div>
+      <div class="ts-bub ts-bub-a">Got it. Annualised salary <b>₹9.6L</b>, HRA claim computed under Rule 2A, 80C at the ₹1.5L cap, LTCG ₹2L with the <b>₹1.25L exemption</b> applied.</div>
+      <div class="ts-bub ts-bub-a2"><b>Old regime: ₹58,240 · New regime: ₹42,900.</b> New wins by ₹15,340 — and I found 2 moves that save you ₹18,700 more. Want the PDF?</div>
+    </div>
+  </div>
+</section>
+
+<section class="ts-feat">
+  <style>
+    .ts-feat{background:#fff;padding:78px 16px;}
+    .ts-feat-head{text-align:center;max-width:680px;margin:0 auto 48px;}
+    .ts-grid{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:22px;}
+    .ts-card{background:#f8faf9;border:1px solid #e3ece8;border-radius:16px;padding:28px;transition:transform .25s,box-shadow .25s,border-color .25s;}
+    .ts-card:hover{transform:translateY(-6px);box-shadow:0 18px 40px rgba(8,60,48,.12);border-color:#34d399;}
+    .ts-ico{width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,#0d5947,#34d399);color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;}
+    .ts-card h3{font-size:18px;font-weight:700;color:#0f1e1a;margin:0 0 8px;}
+    .ts-card p{font-size:14.5px;color:#4a5b55;line-height:1.65;margin:0;}
+  </style>
+  <div class="ts-feat-head">
+    <div class="ts-kicker">The platform</div>
+    <h2 class="ts-h2">Everything between &#8220;how do taxes work?&#8221; and a filed return</h2>
+  </div>
+  <div class="ts-grid">
+    <div class="ts-card"><div class="ts-ico">⇄</div><h3>Old vs New, honestly</h3><p>A transparent computation under both regimes — slabs, HRA, 87A rebate with marginal relief, capital gains, surcharge — with every section cited.</p></div>
+    <div class="ts-card"><div class="ts-ico">₹</div><h3>₹-quantified advice</h3><p>Not &#8220;invest in 80C&#8221; — but &#8220;this exact move saves you ₹18,700&#8221;. Every suggestion ranked by savings per rupee, including employer-NPS restructuring.</p></div>
+    <div class="ts-card"><div class="ts-ico">🏗</div><h3>CTC Designer</h3><p>The only tool that designs the salary structure you should ask HR for — sweeping basic %, HRA and employer NPS to find your take-home-maximising split.</p></div>
+    <div class="ts-card"><div class="ts-ico">📊</div><h3>Business-owner ready</h3><p>44AD / 44ADA presumptive guidance, audit triggers, GST registration pointers, a full advance-tax calendar with 234B/234C interest, and a monthly Tax Jar.</p></div>
+    <div class="ts-card"><div class="ts-ico">🧭</div><h3>60-second Tax Guide</h3><p>A tap-through wizard that tells freelancers and business owners exactly what they must file — ITR form, deadlines, presumptive options — before any numbers.</p></div>
+    <div class="ts-card"><div class="ts-ico">📄</div><h3>Filing-ready PDF</h3><p>Regime recommendation, quantified moves, installment calendar and a document checklist — file it yourself or hand your CA a clean, complete file.</p></div>
+  </div>
+</section>
+
+<section class="ts-steps">
+  <style>
+    .ts-steps{background:#f6f8f7;padding:78px 16px;}
+    .ts-steps-grid{max-width:1020px;margin:48px auto 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px;}
+    .ts-step{background:#fff;border:1px solid #e3ece8;border-radius:16px;padding:30px;position:relative;transition:transform .25s,box-shadow .25s;}
+    .ts-step:hover{transform:translateY(-5px);box-shadow:0 16px 36px rgba(8,60,48,.1);}
+    .ts-stepn{width:40px;height:40px;border-radius:50%;background:#0d5947;color:#fff;font-weight:800;font-size:17px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;}
+    .ts-step h3{font-size:17.5px;font-weight:700;color:#0f1e1a;margin:0 0 8px;}
+    .ts-step p{font-size:14.5px;color:#4a5b55;line-height:1.65;margin:0;}
+  </style>
+  <div class="ts-feat-head" style="text-align:center;max-width:680px;margin:0 auto;">
+    <div class="ts-kicker">Simple by design</div>
+    <h2 class="ts-h2">Filing-ready in three steps</h2>
+  </div>
+  <div class="ts-steps-grid">
+    <div class="ts-step"><div class="ts-stepn">1</div><h3>Say how you earn</h3><p>Salary, freelance, business, rent, capital gains — in plain English or Hinglish. The AI asks only what actually matters next.</p></div>
+    <div class="ts-step"><div class="ts-stepn">2</div><h3>See both regimes</h3><p>An auditable old-vs-new comparison with a clear winner, plus ranked deduction moves with the exact ₹ each one saves.</p></div>
+    <div class="ts-step"><div class="ts-stepn">3</div><h3>Walk away filing-ready</h3><p>Download the summary PDF, rent receipts, advance-tax calendar and your recommended ITR form. Done before your chai cools.</p></div>
+  </div>
+</section>
+
+<section class="ts-proof">
+  <style>
+    .ts-proof{background:linear-gradient(160deg,#083c30,#052720);padding:78px 16px;color:#fff;}
+    .ts-proof-grid{max-width:1080px;margin:0 auto;display:flex;gap:48px;align-items:center;flex-wrap:wrap;}
+    .ts-proof-col{flex:1 1 460px;}
+    .ts-proof .ts-kicker{color:#6ee7b7;}
+    .ts-proof .ts-h2{color:#fff;}
+    .ts-proof .ts-p{color:#c8e6db;}
+    .ts-checks{list-style:none;padding:0;margin:22px 0 30px;}
+    .ts-checks li{padding:9px 0 9px 34px;position:relative;color:#e7fff5;font-size:15.5px;}
+    .ts-checks li:before{content:"✓";position:absolute;left:0;top:7px;width:22px;height:22px;border-radius:50%;background:#34d399;color:#052720;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;}
+    .ts-proofstats{flex:1 1 340px;display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+    .ts-pstat{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:26px 20px;text-align:center;transition:transform .25s;}
+    .ts-pstat:hover{transform:translateY(-4px);}
+    .ts-pstat b{display:block;font-size:30px;color:#6ee7b7;}
+    .ts-pstat span{font-size:12.5px;color:#a7cfc2;text-transform:uppercase;letter-spacing:.5px;}
+  </style>
+  <div class="ts-proof-grid">
+    <div class="ts-proof-col">
+      <div class="ts-kicker">Built by MNB Research × Abrobot.ai</div>
+      <h2 class="ts-h2">A complete AI SaaS, designed and shipped end to end.</h2>
+      <p class="ts-p">TaxSense AI isn&#8217;t a wrapper — it&#8217;s a full product we architected ourselves: a section-cited rules engine, an LLM intake pipeline, secure per-user data isolation and a live optimizer. It&#8217;s proof of what MNB Research builds for clients: real software that ships and scales.</p>
+      <ul class="ts-checks">
+        <li>Deterministic FY 2025-26 rules engine — every figure traceable to the Income-tax Act</li>
+        <li>Conversational AI intake that understands lakhs, crores and Hinglish</li>
+        <li>Bank-grade isolation: row-level security, your numbers never train anyone&#8217;s model</li>
+        <li>Optimizer, CTC Designer, advance-tax calendar, notice decoder, PDF engine</li>
+      </ul>
+      <a class="ts-btn ts-btn-a" href="https://taxsense-ai.vercel.app/" target="_blank" rel="noopener">Explore the live product →</a>
+    </div>
+    <div class="ts-proofstats">
+      <div class="ts-pstat"><b>97</b><span>automated tests</span></div>
+      <div class="ts-pstat"><b>15+</b><span>tax sections modelled</span></div>
+      <div class="ts-pstat"><b>4</b><span>ITR forms recommended</span></div>
+      <div class="ts-pstat"><b>100%</b><span>section-cited math</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="ts-cta">
+  <style>
+    .ts-cta{background:#fff;padding:84px 16px;text-align:center;}
+    .ts-cta .ts-h2{max-width:640px;margin:10px auto 14px;}
+    .ts-cta .ts-p{max-width:560px;margin:0 auto 30px;}
+    .ts-cta .ts-btn-a{animation:none;}
+    .ts-cta .ts-btn-c{background:#f0f6f3;border:1px solid #cfe3da;color:#0d5947;}
+  </style>
+  <div class="ts-kicker">See TaxSense AI in action</div>
+  <h2 class="ts-h2">Your taxes deserve better than a shoebox of screenshots.</h2>
+  <p class="ts-p">Open the live demo and compute your own old-vs-new comparison in minutes — or request access and get your invite with a free month.</p>
+  <div class="ts-ctas" style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+    <a class="ts-btn ts-btn-a" href="https://taxsense-ai.vercel.app/app" target="_blank" rel="noopener">▶ Open the live demo</a>
+    <a class="ts-btn ts-btn-c" href="https://taxsense-ai.vercel.app/" target="_blank" rel="noopener">Request access</a>
+    <a class="ts-btn ts-btn-c" href="/contactus">Talk to us</a>
+  </div>
+  <p style="margin-top:26px;font-size:13px;color:#8aa39a;">Computations per the Income-tax Act, 1961 (Finance Act 2025). TaxSense AI + your CA, not instead of your CA.</p>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"TaxSense AI","applicationCategory":"FinanceApplication","operatingSystem":"Web","url":"https://taxsense-ai.vercel.app","description":"Conversational income-tax copilot for India. Computes tax under the old and new regime for FY 2025-26, quantifies deduction moves in rupees, designs salary structures, guides business owners on 44AD/44ADA and GST, and generates a filing-ready PDF summary.","offers":{"@type":"Offer","price":"0","priceCurrency":"INR"},"creator":{"@type":"Organization","name":"MNB Research","url":"https://www.mnbresearch.com"},"publisher":{"@type":"Organization","name":"MNB Research in collaboration with Abrobot.ai"}}</script>
+</section>
