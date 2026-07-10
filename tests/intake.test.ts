@@ -14,9 +14,17 @@ describe("extraction schema", () => {
     expect(ex.clarify).toBeNull();
   });
 
-  it("rejects negative amounts and absurd ages", () => {
-    expect(() => ExtractionSchema.parse({ updates: { taxesPaid: -5 } })).toThrow();
-    expect(() => ExtractionSchema.parse({ updates: { age: 5 } })).toThrow();
+  it("degrades invalid fields instead of rejecting the whole extraction", () => {
+    // resilience > strictness: bad values collapse updates to {}, the
+    // conversation continues, nothing corrupts the profile.
+    const bad = ExtractionSchema.parse({ updates: { taxesPaid: -5 }, notApplicable: "junk" });
+    expect(bad.updates).toEqual({});
+    expect(bad.notApplicable).toEqual([]);
+    const badAge = ExtractionSchema.parse({ updates: { age: 5 } });
+    expect(badAge.updates).toEqual({});
+    // string numbers (LLM habit) coerce fine
+    const coerced = ExtractionSchema.parse({ updates: { salary: { grossSalary: "1440000" } } });
+    expect((coerced.updates.salary as any).grossSalary).toBe(1_440_000);
   });
 });
 
