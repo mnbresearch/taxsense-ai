@@ -54,18 +54,19 @@ export default function Landing() {
       {/* Proof strip */}
       <section className="border-y border-stone-200 bg-white">
         <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 px-6 py-10 text-center sm:grid-cols-3">
-          <div>
-            <div className="text-2xl font-bold text-brand-700">Old vs New</div>
-            <p className="mt-1 text-sm text-stone-600">Every rupee computed under both regimes, with the exact section-wise math shown.</p>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-brand-700">₹-quantified advice</div>
-            <p className="mt-1 text-sm text-stone-600">&quot;Put ₹15,000 more in NPS and save ₹4,680&quot; — moves ranked by savings-per-rupee.</p>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-brand-700">Filing-ready PDF</div>
-            <p className="mt-1 text-sm text-stone-600">A professional summary + document checklist you can file from, or hand to your CA.</p>
-          </div>
+          {[
+            ["Old vs New", "Every rupee computed under both regimes — section-cited, never a black box."],
+            ["₹-quantified advice", "Ranked moves with exact savings: NPS, 80C, LTCG harvesting — by savings-per-rupee."],
+            ["CTC Designer", "The only tool that designs the salary structure you should ask HR for."],
+            ["Business-ready", "44AD/44ADA guidance, audit triggers, GST pointers, advance-tax calendar, Tax Jar."],
+            ["Tax Guide", "60 seconds of taps → exactly what YOU must file, before any numbers."],
+            ["Filing-ready PDF", "Summary, insights, installment calendar and checklist — file it or hand it to your CA."],
+          ].map(([h, s]) => (
+            <div key={h}>
+              <div className="text-2xl font-bold text-brand-700">{h}</div>
+              <p className="mt-1 text-sm text-stone-600">{s}</p>
+            </div>
+          ))}
         </div>
       </section>
 
