@@ -102,6 +102,37 @@ export const GLOSSARY: GlossaryEntry[] = [
     answer:
       "The tax department's own record of your money: TDS, interest, dividends, share sales, big purchases. Download both from incometax.gov.in before filing and reconcile — mismatches between your return and AIS are the #1 cause of notices.",
   },
+  /* ---------- notice decoder ---------- */
+  {
+    keys: ["143(1)", "143(1) intimation", "intimation", "section 143"],
+    term: "Intimation u/s 143(1) — usually not scary",
+    answer:
+      "This is the automated 'we processed your return' message every filer gets. Three outcomes: no change (relax), refund (great), or a demand (compare their computation column with yours in the PDF — the mismatch is usually TDS credit or an arithmetic difference). You have 30 days to respond to a demand; agree and pay, or disagree online with reasons. It is NOT a scrutiny notice.",
+  },
+  {
+    keys: ["139(9)", "defective return", "defective"],
+    term: "Defective return — s.139(9)",
+    answer:
+      "The department found something structurally wrong with your return (missing income schedule, wrong form for your income mix, unmatched TDS…). You get 15 days to fix it via e-Proceedings — miss the window and the return can be treated as never filed. Fixing usually means filing a corrected return online; the notice itself lists the exact defect code.",
+  },
+  {
+    keys: ["245", "refund adjusted", "set off refund"],
+    term: "Refund adjustment — s.245",
+    answer:
+      "The department wants to adjust your current refund against an OLD outstanding demand. You get 21 days to agree or contest online. Contest it if the old demand is wrong (very common with legacy TDS mismatches) — respond via the e-filing portal under 'Response to Outstanding Demand'; don't just let the refund vanish.",
+  },
+  {
+    keys: ["ais mismatch", "26as mismatch", "mismatch"],
+    term: "AIS / 26AS mismatch",
+    answer:
+      "The #1 cause of notices: your return says one thing, the department's data (AIS/26AS) says another — usually unreported FD interest, dividends, or share sales your broker reported. Fix: download AIS before filing, reconcile every line, and if a notice already arrived, file a revised/updated return including the missed income.",
+  },
+  {
+    keys: ["148", "reassessment", "income escaping"],
+    term: "Reassessment notice — s.148",
+    answer:
+      "The serious one: the department believes income escaped assessment. Timelines and monetary thresholds apply (generally 3 years, extendable when escaped income is large). Do NOT respond casually — this is the point where a professional (CA) should draft the reply. TaxSense helps you prevent these by reconciling AIS before filing, not fight them after.",
+  },
   {
     keys: ["234f", "late filing", "deadline", "due date"],
     term: "Filing deadline & late fee",
