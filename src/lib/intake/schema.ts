@@ -21,7 +21,11 @@ const money = z.preprocess((v) => {
 }, z.number().min(0).max(10_000_000_000))
   .describe("Amount in whole rupees per YEAR (annualise monthly figures)");
 
-export const ExtractionSchema = z.object({
+const SECTION_KEYS = [
+  "age", "salary", "houseProperty", "capitalGains", "business", "otherSources", "deductions", "taxesPaid",
+] as const;
+
+const BaseExtraction = z.object({
   /** Fields the model confidently extracted from the user's last message. */
   updates: z
     .object({
@@ -95,4 +99,22 @@ export const ExtractionSchema = z.object({
   clarify: z.string().nullable().catch(null),
 });
 
-export type Extraction = z.infer<typeof ExtractionSchema>;
+/**
+ * Models sometimes emit the section fields at the TOP level instead of inside
+ * "updates" — auto-wrap them so the data isn't lost.
+ */
+export const ExtractionSchema = z.preprocess((raw) => {
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+    const o = raw as Record<string, unknown>;
+    const hasWrapper = o.updates && typeof o.updates === "object";
+    const strays = SECTION_KEYS.filter((k) => k in o);
+    if (!hasWrapper && strays.length > 0) {
+      const updates: Record<string, unknown> = {};
+      for (const k of strays) updates[k] = o[k];
+      return { ...o, updates };
+    }
+  }
+  return raw;
+}, BaseExtraction);
+
+export type Extraction = z.infer<typeof BaseExtraction>;
