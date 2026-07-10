@@ -138,7 +138,9 @@ export async function runIntakeTurn(
       { role: "user", content: userMessage },
     ]);
     extraction = ExtractionSchema.parse(JSON.parse(jsonOnly(raw)));
-  } catch {
+  } catch (err) {
+    // Log the failure shape server-side so we can tune the prompt/schema.
+    console.error("[intake] extraction parse failed:", (err as Error)?.message?.slice(0, 300));
     extraction = { updates: {}, notApplicable: [], estimates: [], clarify: null };
   }
 

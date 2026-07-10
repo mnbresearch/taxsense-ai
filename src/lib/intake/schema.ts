@@ -70,20 +70,21 @@ export const ExtractionSchema = z.object({
         .optional(),
       taxesPaid: money.optional(),
     })
-    .default({}),
+    .catch({}),
   /**
    * Sections the user explicitly said DON'T apply ("no I don't own a house",
    * "no stocks") — the engine stops asking about them.
+   * .catch: a malformed value degrades THIS field, never the whole extraction.
    */
   notApplicable: z
     .array(
       z.enum(["salary", "houseProperty", "capitalGains", "business", "otherSources", "deductions"])
     )
-    .default([]),
+    .catch([]),
   /** Estimated figures the user was unsure about ("around 80k a month"). */
-  estimates: z.array(z.string()).default([]),
+  estimates: z.array(z.string()).catch([]),
   /** Anything ambiguous the assistant should clarify next. */
-  clarify: z.string().nullable().default(null),
+  clarify: z.string().nullable().catch(null),
 });
 
 export type Extraction = z.infer<typeof ExtractionSchema>;
