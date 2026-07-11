@@ -8,6 +8,19 @@ export default function AdminPage() {
   const [data, setData] = useState<any>(null);
   const [leads, setLeads] = useState<any[] | null>(null);
   const [err, setErr] = useState<string>("");
+  const [emails, setEmails] = useState<any[] | null>(null);
+  const [to, setTo] = useState("");
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sendMsg, setSendMsg] = useState("");
+
+  function loadEmails() {
+    fetch("/api/admin/emails")
+      .then((r) => r.json())
+      .then((d) => !d.error && setEmails(d.emails ?? []))
+      .catch(() => {});
+  }
 
   useEffect(() => {
     fetch("/api/admin/stats")
@@ -18,7 +31,35 @@ export default function AdminPage() {
       .then((r) => r.json())
       .then((d) => !d.error && setLeads(d.leads ?? []))
       .catch(() => {});
+    loadEmails();
   }, []);
+
+  async function sendCampaign() {
+    const recipients = to.split(/[\s,;]+/).map((x) => x.trim()).filter(Boolean);
+    if (recipients.length === 0 || !subject.trim() || !body.trim()) {
+      setSendMsg("Fill recipients, subject and body first.");
+      return;
+    }
+    if (!window.confirm(`Send this email to ${recipients.length} recipient${recipients.length > 1 ? "s" : ""}?`)) return;
+    setSending(true);
+    setSendMsg("");
+    try {
+      const res = await fetch("/api/admin/emails", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ subject, body, recipients }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error ?? "send failed");
+      setSendMsg(`✓ Sent ${d.sent}${d.failed ? ` · ${d.failed} failed` : ""}`);
+      if (d.sent > 0) { setSubject(""); setBody(""); }
+      loadEmails();
+    } catch (e: any) {
+      setSendMsg(e.message ?? "send failed");
+    } finally {
+      setSending(false);
+    }
+  }
 
   const s = data?.stats ?? {};
   const cards: [string, any][] = [
@@ -116,6 +157,95 @@ export default function AdminPage() {
                       <td className="text-stone-500">{l.source}</td>
                       <td className="text-right text-xs text-stone-500">
                         {new Date(l.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          <div className="mt-6 rounded-xl border border-stone-200 bg-white p-5">
+            <h2 className="font-semibold">Compose email</h2>
+            <p className="mt-1 text-xs text-stone-500">
+              Sends live via Resend from <code>hello@updates.mnbresearch.com</code>. Use <code>{"{name}"}</code> anywhere to personalise per recipient.
+            </p>
+            <div className="mt-3 flex flex-col gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <input
+                  value={to}
+                  onChange={(e) => setTo(e.target.value)}
+                  placeholder="Recipients — comma-separated emails"
+                  className="min-w-0 flex-1 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-600"
+                />
+                {leads && leads.length > 0 && (
+                  <button
+                    onClick={() => setTo(Array.from(new Set(leads.map((l) => String(l.email).toLowerCase()))).join(", "))}
+                    className="rounded-lg border border-brand-600 px-3 py-2 text-xs font-semibold text-brand-700 hover:bg-brand-50"
+                  >
+                    Use all leads ({new Set(leads.map((l) => String(l.email).toLowerCase())).size})
+                  </button>
+                )}
+              </div>
+              <input
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                placeholder="Subject"
+                className="rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-600"
+              />
+              <textarea
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                placeholder={"Hi {name},\n\nYour TaxSense AI access is live...\n\nBlank line = new paragraph."}
+                rows={7}
+                className="rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-600"
+              />
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={sendCampaign}
+                  disabled={sending}
+                  className="rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+                >
+                  {sending ? "Sending…" : "Send email"}
+                </button>
+                {sendMsg && <span className="text-sm text-stone-600">{sendMsg}</span>}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 rounded-xl border border-stone-200 bg-white p-5">
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold">
+                Email activity {emails && <span className="ml-1 rounded bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-700">{emails.length}</span>}
+              </h2>
+              <button onClick={loadEmails} className="text-xs text-brand-700 underline">Refresh</button>
+            </div>
+            {!emails || emails.length === 0 ? (
+              <p className="mt-2 text-sm text-stone-500">No emails logged yet — every notification, confirmation and campaign send shows up here.</p>
+            ) : (
+              <table className="mt-3 w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs uppercase text-stone-400">
+                    <th className="py-1 font-medium">To</th>
+                    <th className="font-medium">Subject</th>
+                    <th className="font-medium">Kind</th>
+                    <th className="font-medium">Status</th>
+                    <th className="text-right font-medium">When</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {emails.slice(0, 50).map((m, i) => (
+                    <tr key={i} className="border-t border-stone-100">
+                      <td className="py-1.5 font-medium">{m.to_email}</td>
+                      <td className="max-w-[220px] truncate text-stone-600" title={m.subject}>{m.subject}</td>
+                      <td className="text-stone-500">{m.kind}</td>
+                      <td>
+                        <span className={m.status === "sent" ? "rounded bg-green-50 px-1.5 py-0.5 text-xs font-semibold text-green-700" : "rounded bg-red-50 px-1.5 py-0.5 text-xs font-semibold text-red-700"} title={m.error ?? ""}>
+                          {m.status}
+                        </span>
+                      </td>
+                      <td className="text-right text-xs text-stone-500">
+                        {new Date(m.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                       </td>
                     </tr>
                   ))}
