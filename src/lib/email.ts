@@ -121,9 +121,14 @@ export async function sendAccessRequestEmails(info: AccessRequestInfo): Promise<
        <p style="margin-top:16px;"><a href="https://taxsense-ai.vercel.app/admin" style="color:#0d5947;font-weight:600;">Open the admin panel →</a></p>`
     );
 
+    const plan = info.extra?.Plan;
     const requesterHtml = brandedShell(
       `Thanks${name ? ", " + esc(name.split(" ")[0]) : ""} — request received ✓`,
-      `<p style="color:#44403c;font-size:14px;line-height:1.6;">Your request for access to <strong>${APP_NAME}</strong> is in. The team will review it and get back to you soon — access details land in this inbox at launch.</p>
+      `<p style="color:#44403c;font-size:14px;line-height:1.6;">${
+        plan
+          ? `Your request for the <strong>${esc(plan)}</strong> plan on <strong>${APP_NAME}</strong> is in. The team will contact you shortly${info.extra?.Phone ? " on the number you shared" : ""} to complete your setup and payment.`
+          : `Your request for access to <strong>${APP_NAME}</strong> is in. The team will review it and get back to you soon — access details land in this inbox at launch.`
+      }</p>
        <p style="color:#44403c;font-size:14px;line-height:1.6;">Meanwhile, you can already explore the live demo:</p>
        <p style="margin:18px 0;"><a href="https://taxsense-ai.vercel.app/app" style="background:#0d5947;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;display:inline-block;">Try TaxSense AI →</a></p>
        <p style="color:#78716c;font-size:12px;line-height:1.6;">Questions? Just reply to this email.<br/>${CONTACT_LINE}</p>`
