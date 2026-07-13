@@ -165,6 +165,23 @@ export default function AppPage() {
     );
   }
 
+  async function emailResults() {
+    if (!state?.profile) return;
+    const email = window.prompt("Send this snapshot to which email?");
+    if (!email) return;
+    try {
+      const res = await fetch("/api/email-results", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email, profile: state.profile }),
+      });
+      const d = await res.json();
+      setSaved(res.ok ? d.message : d.error ?? "send failed");
+    } catch {
+      setSaved("send failed — try again");
+    }
+  }
+
   function exportProfile() {
     if (!state) return;
     const blob = new Blob([JSON.stringify({ taxsense: 1, state }, null, 2)], { type: "application/json" });
@@ -402,6 +419,9 @@ export default function AppPage() {
                 )}
                 <button onClick={shareResults} className="underline hover:text-brand-700">
                   Share results (link)
+                </button>
+                <button onClick={emailResults} className="underline hover:text-brand-700">
+                  Email me my results
                 </button>
                 <button onClick={exportProfile} className="underline hover:text-brand-700">
                   Export profile (JSON)
