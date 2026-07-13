@@ -13,6 +13,7 @@ export default function Landing() {
         <div className="flex items-center gap-6 text-sm">
           <Link href="/guide" className="text-stone-600 hover:text-brand-700">Tax Guide</Link>
           <Link href="/pricing" className="text-stone-600 hover:text-brand-700">Pricing</Link>
+          <Link href="/deadlines" className="text-stone-600 hover:text-brand-700">Deadlines</Link>
           <a href="#how" className="text-stone-600 hover:text-brand-700">How it works</a>
           <Link href="/app" className="rounded-lg bg-brand-600 px-4 py-2 font-medium text-white hover:bg-brand-700">
             Try it free
