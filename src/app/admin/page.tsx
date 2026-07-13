@@ -15,6 +15,20 @@ export default function AdminPage() {
   const [sending, setSending] = useState(false);
   const [sendMsg, setSendMsg] = useState("");
   const [ops, setOps] = useState<any>(null);
+  const [subs, setSubs] = useState<any[] | null>(null);
+
+  function loadSubs() {
+    fetch("/api/admin/reminders")
+      .then((r) => r.json())
+      .then((d) => !d.error && setSubs(d.subs ?? []))
+      .catch(() => {});
+  }
+
+  async function deactivateSub(email: string) {
+    if (!window.confirm(`Stop deadline reminders for ${email}?`)) return;
+    await fetch(`/api/admin/reminders?email=${encodeURIComponent(email)}`, { method: "DELETE" }).catch(() => {});
+    loadSubs();
+  }
 
   function loadLeads() {
     fetch("/api/admin/access-requests")
@@ -43,6 +57,7 @@ export default function AdminPage() {
       .catch((e) => setErr(String(e)));
     loadLeads();
     loadEmails();
+    loadSubs();
     fetch("/api/admin/ops")
       .then((r) => r.json())
       .then((d) => !d.error && setOps(d))
@@ -307,6 +322,22 @@ export default function AdminPage() {
               </table>
             )}
           </div>
+
+          {subs && subs.length > 0 && (
+            <div className="mt-6 rounded-xl border border-stone-200 bg-white p-5">
+              <h2 className="font-semibold">
+                Reminder subscribers <span className="ml-1 rounded bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-700">{subs.filter((s) => s.active).length}</span>
+              </h2>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {subs.slice(0, 30).map((s, i) => (
+                  <span key={i} className={"inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs " + (s.active ? "border-stone-200 bg-stone-50 text-stone-700" : "border-stone-100 text-stone-400 line-through")}>
+                    {s.email}
+                    {s.active && <button onClick={() => deactivateSub(s.email)} title="Stop reminders" className="text-stone-400 hover:text-red-600">✕</button>}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           {ops && (
             <div className="mt-6 rounded-xl border border-stone-200 bg-white p-5">
