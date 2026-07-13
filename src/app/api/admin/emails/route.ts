@@ -57,5 +57,9 @@ export async function POST(req: NextRequest) {
   });
   const sent = results.filter((r) => r.ok).length;
   const failed = results.filter((r) => !r.ok);
+  await g.admin.from("audit_events").insert({
+    event: "admin_campaign_sent",
+    meta: { subject: subject.slice(0, 120), recipients: recipients.length, sent, failed: failed.length },
+  });
   return NextResponse.json({ ok: true, sent, failed: failed.length, failures: failed.slice(0, 10) });
 }
