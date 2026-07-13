@@ -5,6 +5,7 @@ import { recommendItrForm } from "@/lib/tax-engine/itrForm";
 import { safeParseProfile } from "@/lib/tax-engine/validate";
 import { optimize } from "@/lib/optimizer";
 import { computeInsights } from "@/lib/optimizer/insights";
+import { computeTaxScore } from "@/lib/tax-engine/score";
 import { clientKey, rateLimit } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
@@ -29,6 +30,7 @@ export async function POST(req: NextRequest) {
       comparison,
       optimizer,
       insights,
+      score: computeTaxScore(profile, comparison),
       advanceTax: {
         applicable: advanceTax.applicable,
         reason: advanceTax.reason,
