@@ -152,6 +152,22 @@ export default function AdminPage() {
                 </button>
               )}
             </div>
+            {leads && leads.length > 1 && (() => {
+              const days: string[] = [];
+              for (let i = 13; i >= 0; i--) {
+                const d = new Date(); d.setDate(d.getDate() - i);
+                days.push(d.toLocaleDateString("en-CA"));
+              }
+              const counts = days.map((day) => leads.filter((l) => new Date(l.created_at).toLocaleDateString("en-CA") === day).length);
+              const max = Math.max(...counts, 1);
+              return (
+                <div className="mt-3 flex h-12 items-end gap-1" title="Leads per day, last 14 days">
+                  {counts.map((c, i) => (
+                    <div key={i} className="flex-1 rounded-t bg-brand-600/80" style={{ height: `${Math.max((c / max) * 100, c > 0 ? 12 : 4)}%`, opacity: c > 0 ? 1 : 0.25 }} title={`${days[i]}: ${c}`} />
+                  ))}
+                </div>
+              );
+            })()}
             {!leads || leads.length === 0 ? (
               <p className="mt-2 text-sm text-stone-500">No access requests yet — they appear here the moment someone signs up on the landing page.</p>
             ) : (
