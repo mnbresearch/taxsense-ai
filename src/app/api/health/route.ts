@@ -22,6 +22,7 @@ export async function GET() {
       providers: {
         intake: process.env.GROQ_API_KEY ? "groq" : process.env.ANTHROPIC_API_KEY ? "anthropic" : "mock",
         supabase: supabaseConfigured() ? "configured" : "demo-mode",
+        email: process.env.RESEND_API_KEY ? "resend" : "not configured",
       },
       time: new Date().toISOString(),
     },
