@@ -141,7 +141,7 @@ export default function AdminPage() {
               {leads && leads.length > 0 && (
                 <button
                   onClick={() => {
-                    const csv = "email,name,source,created_at\n" + leads.map((l) => [l.email, l.name ?? "", l.source, l.created_at].join(",")).join("\n");
+                    const csv = "email,name,phone,plan,source,created_at\n" + leads.map((l) => [l.email, l.name ?? "", l.phone ?? "", l.plan ?? "", l.source, l.created_at].join(",")).join("\n");
                     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
                     const a = document.createElement("a"); a.href = url; a.download = "taxsense-access-requests.csv"; a.click();
                     URL.revokeObjectURL(url);
@@ -160,6 +160,8 @@ export default function AdminPage() {
                   <tr className="text-left text-xs uppercase text-stone-400">
                     <th className="py-1 font-medium">Email</th>
                     <th className="font-medium">Name</th>
+                    <th className="font-medium">Phone</th>
+                    <th className="font-medium">Plan</th>
                     <th className="font-medium">Source</th>
                     <th className="text-right font-medium">When</th>
                     <th></th>
@@ -170,6 +172,8 @@ export default function AdminPage() {
                     <tr key={i} className="border-t border-stone-100">
                       <td className="py-1.5 font-medium">{l.email}</td>
                       <td className="text-stone-600">{l.name ?? "—"}</td>
+                      <td className="text-stone-600">{l.phone ?? "—"}</td>
+                      <td className="text-stone-600">{l.plan ? <span className="rounded bg-brand-50 px-1.5 py-0.5 text-xs font-semibold text-brand-700">{l.plan}</span> : "—"}</td>
                       <td className="text-stone-500">{l.source}</td>
                       <td className="text-right text-xs text-stone-500">
                         {new Date(l.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
