@@ -212,6 +212,34 @@ export default function AppPage() {
 
   const cmp = result?.comparison;
   const opt = result?.optimizer;
+  const score = result?.score;
+
+  function pasteForm16() {
+    setMessages((m) => [
+      ...m,
+      {
+        role: "assistant",
+        content:
+          "📄 Open your Form 16 PDF, select all the text (Ctrl/Cmd+A), copy it, and paste it straight into this chat. I'll read your salary, TDS, HRA and deductions out of it automatically — messy formatting is fine.",
+      },
+    ]);
+  }
+
+  async function subscribeReminders() {
+    const email = window.prompt("Email for deadline reminders (7 days & 1 day before every due date):");
+    if (!email) return;
+    try {
+      const res = await fetch("/api/reminders", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const d = await res.json();
+      setSaved(res.ok ? d.message : d.error ?? "failed");
+    } catch {
+      setSaved("failed — try again");
+    }
+  }
 
   return (
     <main className="mx-auto flex h-screen max-w-7xl flex-col px-4 py-4">
@@ -253,6 +281,12 @@ export default function AppPage() {
           <div className="border-t border-stone-200 p-3">
             {messages.length <= 1 && !busy && (
               <div className="mb-2 flex flex-wrap gap-1.5">
+                <button
+                  onClick={pasteForm16}
+                  className="rounded-full border border-brand-600 bg-brand-50 px-3 py-1.5 text-xs font-semibold text-brand-700 hover:bg-brand-100"
+                >
+                  📄 Paste my Form 16
+                </button>
                 {[
                   "I'm salaried — around 80k a month",
                   "I run a small business",
@@ -363,6 +397,41 @@ export default function AppPage() {
                 ))}
               </div>
 
+              {score && (
+                <div className="rounded-lg border border-stone-200 p-4">
+                  <div className="flex items-center gap-4">
+                    <div className="relative h-20 w-20 flex-none">
+                      <svg viewBox="0 0 80 80" className="h-20 w-20 -rotate-90">
+                        <circle cx="40" cy="40" r="34" fill="none" stroke="#e7e5e4" strokeWidth="8" />
+                        <circle
+                          cx="40" cy="40" r="34" fill="none"
+                          stroke={score.score >= 70 ? "#0d5947" : score.score >= 40 ? "#d97706" : "#dc2626"}
+                          strokeWidth="8" strokeLinecap="round"
+                          strokeDasharray={`${(score.score / 100) * 213.6} 213.6`}
+                          style={{ transition: "stroke-dasharray 1s ease" }}
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-xl font-bold">{score.score}</span>
+                        <span className="text-[10px] font-semibold text-stone-500">{score.grade}</span>
+                      </div>
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold">Tax Health Score</div>
+                      <p className="text-xs text-stone-600">{score.headline}</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 space-y-1.5">
+                    {score.dimensions.filter((x: any) => x.tip).slice(0, 3).map((x: any) => (
+                      <div key={x.key} className="flex items-start gap-2 text-xs text-stone-600">
+                        <span className="mt-0.5 flex-none rounded bg-stone-100 px-1.5 py-0.5 font-semibold text-stone-500">{x.earned}/{x.max}</span>
+                        <span>{x.tip}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {opt?.suggestions?.length > 0 && (
                 <div>
                   <div className="mb-2 text-sm font-semibold">Moves that lower your tax</div>
@@ -422,6 +491,9 @@ export default function AppPage() {
                 </button>
                 <button onClick={emailResults} className="underline hover:text-brand-700">
                   Email me my results
+                </button>
+                <button onClick={subscribeReminders} className="underline hover:text-brand-700">
+                  🔔 Deadline reminders
                 </button>
                 <button onClick={exportProfile} className="underline hover:text-brand-700">
                   Export profile (JSON)
