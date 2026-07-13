@@ -14,6 +14,20 @@ export default function AdminPage() {
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
   const [sendMsg, setSendMsg] = useState("");
+  const [ops, setOps] = useState<any>(null);
+
+  function loadLeads() {
+    fetch("/api/admin/access-requests")
+      .then((r) => r.json())
+      .then((d) => !d.error && setLeads(d.leads ?? []))
+      .catch(() => {});
+  }
+
+  async function deleteLead(email: string) {
+    if (!window.confirm(`Remove ${email} from the access-request list?`)) return;
+    await fetch(`/api/admin/access-requests?email=${encodeURIComponent(email)}`, { method: "DELETE" }).catch(() => {});
+    loadLeads();
+  }
 
   function loadEmails() {
     fetch("/api/admin/emails")
@@ -27,11 +41,12 @@ export default function AdminPage() {
       .then((r) => r.json())
       .then((d) => (d.error ? setErr(d.error) : setData(d)))
       .catch((e) => setErr(String(e)));
-    fetch("/api/admin/access-requests")
-      .then((r) => r.json())
-      .then((d) => !d.error && setLeads(d.leads ?? []))
-      .catch(() => {});
+    loadLeads();
     loadEmails();
+    fetch("/api/admin/ops")
+      .then((r) => r.json())
+      .then((d) => !d.error && setOps(d))
+      .catch(() => {});
   }, []);
 
   async function sendCampaign() {
@@ -147,6 +162,7 @@ export default function AdminPage() {
                     <th className="font-medium">Name</th>
                     <th className="font-medium">Source</th>
                     <th className="text-right font-medium">When</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -157,6 +173,9 @@ export default function AdminPage() {
                       <td className="text-stone-500">{l.source}</td>
                       <td className="text-right text-xs text-stone-500">
                         {new Date(l.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                      </td>
+                      <td className="pl-2 text-right">
+                        <button onClick={() => deleteLead(l.email)} title="Remove lead" className="text-xs text-stone-400 hover:text-red-600">✕</button>
                       </td>
                     </tr>
                   ))}
@@ -218,7 +237,22 @@ export default function AdminPage() {
               <h2 className="font-semibold">
                 Email activity {emails && <span className="ml-1 rounded bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-700">{emails.length}</span>}
               </h2>
-              <button onClick={loadEmails} className="text-xs text-brand-700 underline">Refresh</button>
+              <div className="flex items-center gap-3">
+                {emails && emails.length > 0 && (
+                  <button
+                    onClick={() => {
+                      const csv = "to,subject,kind,status,created_at\n" + emails.map((m) => [m.to_email, JSON.stringify(m.subject), m.kind, m.status, m.created_at].join(",")).join("\n");
+                      const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+                      const a = document.createElement("a"); a.href = url; a.download = "taxsense-email-log.csv"; a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                    className="text-xs text-brand-700 underline"
+                  >
+                    Export CSV
+                  </button>
+                )}
+                <button onClick={loadEmails} className="text-xs text-brand-700 underline">Refresh</button>
+              </div>
             </div>
             {!emails || emails.length === 0 ? (
               <p className="mt-2 text-sm text-stone-500">No emails logged yet — every notification, confirmation and campaign send shows up here.</p>
@@ -253,6 +287,33 @@ export default function AdminPage() {
               </table>
             )}
           </div>
+
+          {ops && (
+            <div className="mt-6 rounded-xl border border-stone-200 bg-white p-5">
+              <h2 className="font-semibold">System status</h2>
+              <div className="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+                <div><div className="text-xs uppercase text-stone-400">Intake AI</div><div className="font-semibold">{ops.providers?.intake}</div></div>
+                <div><div className="text-xs uppercase text-stone-400">Email</div><div className="font-semibold">{ops.providers?.email}</div></div>
+                <div><div className="text-xs uppercase text-stone-400">Cron secret</div><div className="font-semibold">{ops.providers?.cronSecret}</div></div>
+                <div>
+                  <div className="text-xs uppercase text-stone-400">Last keep-alive</div>
+                  <div className="font-semibold">
+                    {ops.lastKeepalive ? new Date(ops.lastKeepalive.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "not yet run"}
+                  </div>
+                </div>
+              </div>
+              {ops.adminActions && ops.adminActions.length > 0 && (
+                <div className="mt-4 text-xs text-stone-500">
+                  Recent admin actions:{" "}
+                  {ops.adminActions.slice(0, 5).map((a: any, i: number) => (
+                    <span key={i} className="mr-2 rounded bg-stone-100 px-1.5 py-0.5">
+                      {a.event.replace("admin_", "")} · {new Date(a.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="mt-6 rounded-xl border border-stone-200 bg-white p-5 text-sm text-stone-600">
             <h2 className="font-semibold text-stone-900">Operational runbook</h2>
