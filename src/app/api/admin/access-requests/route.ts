@@ -20,7 +20,7 @@ export async function GET() {
   if (!admin) return NextResponse.json({ error: "service key not configured" }, { status: 500 });
   const { data, error } = await admin
     .from("access_requests")
-    .select("email, name, source, created_at")
+    .select("email, name, source, phone, plan, created_at")
     .order("created_at", { ascending: false })
     .limit(200);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
