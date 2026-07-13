@@ -38,7 +38,8 @@ export default function Pricing() {
           <p className="text-xs font-semibold uppercase tracking-widest text-brand-600">Pricing</p>
           <h1 className="mx-auto mt-3 max-w-2xl text-4xl font-bold leading-tight">Start free. Upgrade when it saves you more than it costs.</h1>
           <p className="mx-auto mt-4 max-w-xl text-stone-600">
-            Launch offer: comment <strong>&quot;Tax Bachao&quot;</strong> on our LinkedIn post and get one month of Pro free.
+            A single missed deduction costs more than a year of Pro. Launch offer: comment{" "}
+            <strong>&quot;Tax Bachao&quot;</strong> on our LinkedIn post and get one month of Pro free.
           </p>
         </div>
 
@@ -68,7 +69,8 @@ export default function Pricing() {
             <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-600 px-3 py-0.5 text-xs font-bold text-white">Most popular</span>
             <h2 className="text-lg font-bold">Pro</h2>
             <p className="mt-1 text-sm text-stone-500">For salaried professionals who optimise.</p>
-            <div className="mt-4 text-4xl font-bold">₹499<span className="text-base font-medium text-stone-400"> / year</span></div>
+            <div className="mt-4 text-4xl font-bold">₹299<span className="text-base font-medium text-stone-400"> / month</span></div>
+            <p className="mt-1 text-xs text-stone-500">or ₹2,999/year — 2 months free</p>
             <Feat items={[
               "Everything in Starter",
               "Unlimited filing-summary PDFs",
@@ -78,14 +80,15 @@ export default function Pricing() {
               "Email-me-my-results snapshots",
               "Saved profiles across devices (secure account)",
             ]} />
-            <div className="mt-auto pt-6"><PlanRequest plan="Pro (₹499/yr)" /></div>
+            <div className="mt-auto pt-6"><PlanRequest plan="Pro (₹299/mo or ₹2,999/yr)" /></div>
           </div>
 
           {/* Business */}
           <div className="flex flex-col rounded-2xl border border-stone-200 bg-white p-6">
             <h2 className="text-lg font-bold">Business</h2>
             <p className="mt-1 text-sm text-stone-500">Freelancers, consultants & business owners.</p>
-            <div className="mt-4 text-4xl font-bold">₹1,499<span className="text-base font-medium text-stone-400"> / year</span></div>
+            <div className="mt-4 text-4xl font-bold">₹699<span className="text-base font-medium text-stone-400"> / month</span></div>
+            <p className="mt-1 text-xs text-stone-500">or ₹6,999/year — 2 months free</p>
             <Feat items={[
               "Everything in Pro",
               "44AD / 44ADA presumptive taxation guidance",
@@ -95,14 +98,15 @@ export default function Pricing() {
               "Rent-receipt generator (12 months, PAN-ready)",
               "ITR form recommendation with reasons",
             ]} />
-            <div className="mt-auto pt-6"><PlanRequest plan="Business (₹1,499/yr)" /></div>
+            <div className="mt-auto pt-6"><PlanRequest plan="Business (₹699/mo or ₹6,999/yr)" /></div>
           </div>
 
           {/* Filed For You */}
           <div className="flex flex-col rounded-2xl border border-stone-200 bg-brand-900 p-6 text-white">
             <h2 className="text-lg font-bold">Filed For You</h2>
             <p className="mt-1 text-sm text-brand-100">We prepare and file your return with you.</p>
-            <div className="mt-4 text-4xl font-bold">₹2,999<span className="text-base font-medium text-brand-100"> / return</span></div>
+            <div className="mt-4 text-4xl font-bold">₹4,999<span className="text-base font-medium text-brand-100"> / return</span></div>
+            <p className="mt-1 text-xs text-brand-100">Pro subscribers pay ₹3,999</p>
             <ul className="mt-5 space-y-2.5 text-sm text-brand-100">
               {[
                 "Everything in Business, for the full year",
@@ -118,7 +122,7 @@ export default function Pricing() {
                 </li>
               ))}
             </ul>
-            <div className="mt-auto pt-6"><PlanRequest plan="Filed For You (₹2,999/return)" cta="Request expert filing" /></div>
+            <div className="mt-auto pt-6"><PlanRequest plan="Filed For You (₹4,999/return)" cta="Request expert filing" /></div>
           </div>
         </div>
 
