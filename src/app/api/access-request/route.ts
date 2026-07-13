@@ -10,6 +10,7 @@ const Input = z.object({
   email: z.string().email().max(120),
   name: z.string().max(80).optional(),
   source: z.string().max(40).optional(),
+  company: z.string().max(200).optional(), // honeypot
 });
 
 export async function POST(req: NextRequest) {
@@ -18,7 +19,11 @@ export async function POST(req: NextRequest) {
   try {
     const parsed = Input.safeParse(await req.json());
     if (!parsed.success) return NextResponse.json({ error: "please enter a valid email" }, { status: 400 });
-    const { email, name, source } = parsed.data;
+    const { email, name, source, company } = parsed.data;
+    // Honeypot: bots fill the hidden field — pretend success, store nothing.
+    if (company) {
+      return NextResponse.json({ ok: true, message: "You're on the list — access details land in your inbox at launch." });
+    }
     const sb = supabaseAdmin();
     let isNew = true;
     if (sb) {
