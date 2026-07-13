@@ -4,6 +4,10 @@
   "regions": ["bom1"],
   "functions": {
     "src/app/api/chat/route.ts": { "maxDuration": 30 },
-    "src/app/api/pdf/route.ts": { "maxDuration": 30 }
-  }
+    "src/app/api/pdf/route.ts": { "maxDuration": 30 },
+    "src/app/api/admin/emails/route.ts": { "maxDuration": 60 }
+  },
+  "crons": [
+    { "path": "/api/cron/keepalive", "schedule": "0 2 * * *" }
+  ]
 }
