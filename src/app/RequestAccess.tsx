@@ -6,6 +6,7 @@ import { useState } from "react";
 export default function RequestAccess({ compact = false }: { compact?: boolean }) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
+  const [company, setCompany] = useState(""); // honeypot — humans never see or fill this
   const [state, setState] = useState<"idle" | "busy" | "done" | "error">("idle");
   const [msg, setMsg] = useState("");
 
@@ -16,7 +17,7 @@ export default function RequestAccess({ compact = false }: { compact?: boolean }
       const res = await fetch("/api/access-request", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, name: name || undefined, source: compact ? "hero" : "landing" }),
+        body: JSON.stringify({ email, name: name || undefined, source: compact ? "hero" : "landing", company: company || undefined }),
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error ?? "failed");
@@ -36,7 +37,16 @@ export default function RequestAccess({ compact = false }: { compact?: boolean }
     );
 
   return (
-    <form onSubmit={submit} className="mx-auto flex max-w-xl flex-col gap-2 sm:flex-row">
+    <form onSubmit={submit} className="relative mx-auto flex max-w-xl flex-col gap-2 sm:flex-row">
+      <input
+        value={company}
+        onChange={(e) => setCompany(e.target.value)}
+        name="company"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        className="absolute -left-[9999px] h-0 w-0 opacity-0"
+      />
       {!compact && (
         <input
           value={name}
