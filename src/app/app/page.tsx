@@ -214,6 +214,15 @@ export default function AppPage() {
   const opt = result?.optimizer;
   const score = result?.score;
 
+  function shareWhatsApp() {
+    if (!state?.profile || !cmp) return;
+    const json = JSON.stringify(state.profile);
+    const b64 = btoa(unescape(encodeURIComponent(json))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    const url = `${window.location.origin}/s/${b64}`;
+    const text = `My tax under both regimes, computed by TaxSense AI 🧮\nOld: ${inr(cmp.old.totalTaxLiability)} · New: ${inr(cmp.new.totalTaxLiability)} → ${cmp.recommended} regime wins${cmp.savings > 0 ? ` (saves ${inr(cmp.savings)})` : ""}.\nSee the full breakdown: ${url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener");
+  }
+
   function pasteForm16() {
     setMessages((m) => [
       ...m,
@@ -397,6 +406,17 @@ export default function AppPage() {
                 ))}
               </div>
 
+              {state?.profile?.taxesPaid > 0 && (() => {
+                const bal = cmp[cmp.recommended].totalTaxLiability - state.profile.taxesPaid;
+                return (
+                  <div className={"rounded-lg border p-3 text-sm font-semibold " + (bal <= 0 ? "border-green-200 bg-green-50 text-green-800" : "border-amber-200 bg-amber-50 text-amber-800")}>
+                    {bal <= 0
+                      ? `💰 Refund due: ${inr(-bal)} — you've already paid ${inr(state.profile.taxesPaid)} in TDS/advance tax.`
+                      : `⚠️ Still payable: ${inr(bal)} after ${inr(state.profile.taxesPaid)} already paid — see the advance-tax calendar in Planner.`}
+                  </div>
+                );
+              })()}
+
               {score && (
                 <div className="rounded-lg border border-stone-200 p-4">
                   <div className="flex items-center gap-4">
@@ -494,6 +514,9 @@ export default function AppPage() {
                 </button>
                 <button onClick={subscribeReminders} className="underline hover:text-brand-700">
                   🔔 Deadline reminders
+                </button>
+                <button onClick={shareWhatsApp} className="underline hover:text-brand-700">
+                  Share on WhatsApp
                 </button>
                 <button onClick={exportProfile} className="underline hover:text-brand-700">
                   Export profile (JSON)
