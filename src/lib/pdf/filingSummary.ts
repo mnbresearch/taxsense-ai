@@ -5,6 +5,8 @@
 import { PDFDocument, PDFFont, PDFPage, StandardFonts, rgb } from "pdf-lib";
 import type { ComparisonResult, TaxProfile } from "../tax-engine";
 import type { OptimizerReport } from "../optimizer";
+import { computeTaxScore } from "../tax-engine/score";
+import { upcomingDeadlines } from "../deadlines";
 
 const INK = rgb(0.13, 0.15, 0.19);
 const MUTE = rgb(0.45, 0.48, 0.53);
@@ -241,6 +243,24 @@ export async function generateFilingSummaryPdf(input: FilingSummaryInput): Promi
   if (input.estimates?.length) {
     text(ctx, "Estimated figures to verify before filing:", { size: 9, bold: true, color: WARN, dy: 4 });
     for (const e of input.estimates.slice(0, 6)) text(ctx, `- ${e}`, { size: 8.5, color: WARN, dy: 4 });
+  }
+
+  /* Tax Health Score (v3) */
+  sectionTitle(ctx, "Tax Health Score");
+  const score = computeTaxScore(profile, comparison);
+  text(ctx, `${score.score}/100 (grade ${score.grade}) — ${score.headline}`, { size: 10.5, bold: true, color: BRAND, dy: 6 });
+  for (const dim of score.dimensions.filter((d) => d.tip).slice(0, 3)) {
+    text(ctx, `- [${dim.earned}/${dim.max}] ${dim.tip}`, { size: 8.5, color: MUTE, dy: 4 });
+  }
+
+  /* Upcoming deadlines (v3) */
+  sectionTitle(ctx, "Your next deadlines");
+  for (const dl of upcomingDeadlines(new Date(), 3)) {
+    text(
+      ctx,
+      `${new Date(dl.date + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} — ${dl.label}`,
+      { size: 9.5, dy: 5 }
+    );
   }
 
   /* Document checklist */
