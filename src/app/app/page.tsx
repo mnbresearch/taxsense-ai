@@ -234,6 +234,16 @@ export default function AppPage() {
     ]);
   }
 
+  const [fbSent, setFbSent] = useState(false);
+  function sendFeedback(up: boolean) {
+    setFbSent(true);
+    fetch("/api/telemetry", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ type: up ? "feedback_up" : "feedback_down" }),
+    }).catch(() => {});
+  }
+
   async function subscribeReminders() {
     const email = window.prompt("Email for deadline reminders (7 days & 1 day before every due date):");
     if (!email) return;
@@ -518,6 +528,17 @@ export default function AppPage() {
                 <button onClick={shareWhatsApp} className="underline hover:text-brand-700">
                   Share on WhatsApp
                 </button>
+                <span className="ml-auto flex items-center gap-1.5">
+                  {fbSent ? (
+                    <span className="text-stone-400">Thanks for the feedback!</span>
+                  ) : (
+                    <>
+                      <span className="text-stone-400">Helpful?</span>
+                      <button onClick={() => sendFeedback(true)} className="hover:scale-110" title="Yes, helpful">👍</button>
+                      <button onClick={() => sendFeedback(false)} className="hover:scale-110" title="Not really">👎</button>
+                    </>
+                  )}
+                </span>
                 <button onClick={exportProfile} className="underline hover:text-brand-700">
                   Export profile (JSON)
                 </button>
