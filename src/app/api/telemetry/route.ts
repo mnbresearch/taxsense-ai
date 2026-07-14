@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     const { type, message } = await req.json();
     const t = String(type ?? "unknown").slice(0, 40);
     // product events vs client errors, both PII-free
-    const event = ["guide_complete", "share_created"].includes(t) ? t : `client_error:${t}`;
+    const event = ["guide_complete", "share_created", "feedback_up", "feedback_down"].includes(t) ? t : `client_error:${t}`;
     const meta = { message: String(message ?? "").slice(0, 300) };
     const sb = supabaseAdmin(); // service role — audit_events has no anon-insert policy by design
     if (sb) await sb.from("audit_events").insert({ event, meta });
