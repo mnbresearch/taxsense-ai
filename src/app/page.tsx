@@ -46,6 +46,9 @@ export default function Landing() {
         <p className="mt-4 text-sm text-stone-500">
           Free while in beta. No signup needed to try. Your numbers never train anyone&apos;s model.
         </p>
+        <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-stone-400">
+          🏆 Shark Tank India featured &nbsp;·&nbsp; 📋 DPIIT-recognised startup &nbsp;·&nbsp; MNB Research × Abrobot.ai
+        </p>
         <p className="mt-2 text-sm text-stone-500">
           Business owner or freelancer?{" "}
           <Link href="/guide" className="font-semibold text-brand-700 underline">
