@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { GLOSSARY } from "@/lib/glossary";
+import RemindMe from "../deadlines/RemindMe";
 
 export const metadata: Metadata = {
   title: "Indian Income-Tax Glossary FY 2025-26 — 87A, 80C, HRA, 44AD Explained | TaxSense AI",
@@ -47,6 +48,12 @@ export default function LearnPage() {
               <p className="mt-3 text-sm leading-relaxed text-stone-600">{g.answer}</p>
             </details>
           ))}
+        </div>
+
+        <div className="mt-12 rounded-2xl border border-brand-100 bg-brand-50/60 p-6 text-center">
+          <h2 className="text-lg font-bold">Knowledge is nice. Reminders are better.</h2>
+          <p className="mx-auto mt-1 max-w-md text-sm text-stone-600">Free email nudges 7 days and 1 day before every income-tax deadline.</p>
+          <div className="mt-4"><RemindMe /></div>
         </div>
 
         <div className="mt-12 rounded-2xl bg-brand-700 p-8 text-center">
