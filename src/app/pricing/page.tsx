@@ -43,6 +43,10 @@ export default function Pricing() {
           </p>
         </div>
 
+        <p className="mt-4 text-center text-xs font-semibold uppercase tracking-wide text-stone-400">
+          🏆 Shark Tank India featured &nbsp;·&nbsp; 📋 DPIIT-recognised startup &nbsp;·&nbsp; MNB Research × Abrobot.ai
+        </p>
+
         <div className="mt-12 grid gap-6 lg:grid-cols-4">
           {/* Free */}
           <div className="flex flex-col rounded-2xl border border-stone-200 bg-white p-6">
