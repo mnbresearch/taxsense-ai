@@ -15,7 +15,7 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 const RESEND_URL = "https://api.resend.com/emails";
 const FROM = "AbroBot <hello@updates.mnbresearch.com>";
 const REPLY_TO = "mnbgotyou@gmail.com";
-const ADMIN_EMAIL = "mnbgotyou@gmail.com";
+export const ADMIN_EMAIL = "mnbgotyou@gmail.com";
 const APP_NAME = "TaxSense AI";
 const CONTACT_LINE = "AbroBot · MNB Research · +91 97114 88480 · abrobot.ai";
 
