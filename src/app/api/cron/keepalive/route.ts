@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { computeBoth, emptyProfile } from "@/lib/tax-engine";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { deadlinesInDays } from "@/lib/deadlines";
-import { brandedShell, sendOne } from "@/lib/email";
+import { ADMIN_EMAIL, brandedShell, sendOne } from "@/lib/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -92,7 +92,45 @@ export async function GET(req: NextRequest) {
     out.reminders = String(e).slice(0, 120);
   }
 
-  // 5. Log the run so the admin panel can display "last keep-alive"
+  // 5. Founder daily digest: last-24h activity straight to the admin inbox
+  try {
+    const since = new Date(Date.now() - 86_400_000).toISOString();
+    const cnt = async (table: string, extra?: (q: any) => any) => {
+      let q: any = sb.from(table).select("*", { count: "exact", head: true }).gte("created_at", since);
+      if (extra) q = extra(q);
+      const { count } = await q;
+      return count ?? 0;
+    };
+    const [leads24, plans24, emails24, subs24] = await Promise.all([
+      cnt("access_requests"),
+      cnt("access_requests", (q) => q.not("plan", "is", null)),
+      cnt("email_log"),
+      cnt("tax_reminders"),
+    ]);
+    if (leads24 + emails24 + subs24 > 0) {
+      const row = (k: string, v: number) =>
+        `<tr><td style="padding:7px 0;color:#78716c;border-bottom:1px solid #f5f5f4;">${k}</td><td style="padding:7px 0;color:#1c1917;font-weight:700;text-align:right;border-bottom:1px solid #f5f5f4;">${v}</td></tr>`;
+      await sendOne({
+        to: ADMIN_EMAIL,
+        subject: `📊 TaxSense daily: ${leads24} lead${leads24 === 1 ? "" : "s"}${plans24 ? `, ${plans24} plan request${plans24 === 1 ? "" : "s"} 💰` : ""}`,
+        kind: "admin_notify",
+        html: brandedShell(
+          "Your last 24 hours",
+          `<table style="width:100%;border-collapse:collapse;font-size:14px;">
+             ${row("New access requests", leads24)}${row("Plan requests (revenue!)", plans24)}${row("Emails sent by the system", emails24)}${row("New reminder subscribers", subs24)}
+           </table>
+           <p style="margin-top:16px;"><a href="https://taxsense-ai.vercel.app/admin" style="color:#0d5947;font-weight:600;">Open the admin panel →</a></p>`
+        ),
+      });
+      out.digest = `sent (${leads24} leads, ${plans24} plans)`;
+    } else {
+      out.digest = "no activity in 24h — skipped";
+    }
+  } catch (e) {
+    out.digest = String(e).slice(0, 120);
+  }
+
+  // 6. Log the run so the admin panel can display "last keep-alive"
   try {
     await sb.from("audit_events").insert({ event: "cron_keepalive", meta: out });
   } catch {
