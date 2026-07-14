@@ -126,7 +126,16 @@ export default function Pricing() {
           </div>
         </div>
 
-        <p className="mt-10 text-center text-xs text-stone-400">
+        <p className="mt-10 text-center">
+          <a
+            href="https://wa.me/919711488480?text=Hi%20MNB%20Research!%20I%20have%20a%20question%20about%20TaxSense%20AI%20plans."
+            target="_blank" rel="noopener"
+            className="inline-block rounded-full border border-green-500 px-5 py-2.5 text-sm font-semibold text-green-700 hover:bg-green-50"
+          >
+            💬 Questions? WhatsApp us — we reply fast
+          </a>
+        </p>
+        <p className="mt-6 text-center text-xs text-stone-400">
           Paid plans are activated personally during launch — request a plan and we contact you to complete setup and payment.
           Prices include GST. TaxSense AI + your CA, not instead of your CA. An MNB Research product, in collaboration with Abrobot.ai.
         </p>
