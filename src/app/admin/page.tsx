@@ -323,6 +323,28 @@ export default function AdminPage() {
             )}
           </div>
 
+          {leads && leads.some((l) => l.plan) && (() => {
+            let mrr = 0, oneTime = 0;
+            for (const l of leads) {
+              if (!l.plan) continue;
+              const mo = /₹([\d,]+)\/mo/.exec(l.plan);
+              const ret = /₹([\d,]+)\/return/.exec(l.plan);
+              const yr = /₹([\d,]+)\/yr\)/.exec(l.plan);
+              if (mo) mrr += Number(mo[1].replace(/,/g, ""));
+              else if (ret) oneTime += Number(ret[1].replace(/,/g, ""));
+              else if (yr) mrr += Math.round(Number(yr[1].replace(/,/g, "")) / 12);
+            }
+            return (
+              <div className="mt-6 rounded-xl border border-brand-200 bg-brand-50/60 p-5">
+                <h2 className="font-semibold">Revenue pipeline <span className="text-xs font-normal text-stone-500">from plan requests awaiting your call</span></h2>
+                <div className="mt-2 flex gap-8">
+                  <div><span className="text-2xl font-bold text-brand-700">₹{mrr.toLocaleString("en-IN")}</span><span className="ml-1 text-xs text-stone-500">potential MRR</span></div>
+                  <div><span className="text-2xl font-bold text-brand-700">₹{oneTime.toLocaleString("en-IN")}</span><span className="ml-1 text-xs text-stone-500">one-time (filings)</span></div>
+                </div>
+              </div>
+            );
+          })()}
+
           {subs && subs.length > 0 && (
             <div className="mt-6 rounded-xl border border-stone-200 bg-white p-5">
               <h2 className="font-semibold">
