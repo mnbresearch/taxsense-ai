@@ -49,6 +49,22 @@ export default function Landing() {
         <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-stone-400">
           🏆 Shark Tank India featured &nbsp;·&nbsp; 📋 DPIIT-recognised startup &nbsp;·&nbsp; MNB Research × Abrobot.ai
         </p>
+
+        {/* Live chat preview */}
+        <div className="mx-auto mt-10 max-w-lg rounded-2xl bg-stone-900 p-5 text-left shadow-2xl">
+          <div className="mb-3 flex items-center gap-2 border-b border-white/10 pb-3">
+            <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-emerald-400"></span>
+            <span className="text-xs font-semibold text-emerald-100">TaxSense AI — live session</span>
+          </div>
+          <div className="ml-auto max-w-[85%] rounded-2xl rounded-br-sm bg-brand-600 px-4 py-2.5 text-sm text-white">
+            I make around <strong>80k a month</strong>, pay 25k rent in Pune, put 1.5L in PPF.
+          </div>
+          <div className="mt-2.5 max-w-[85%] rounded-2xl rounded-bl-sm bg-white/95 px-4 py-2.5 text-sm text-stone-800">
+            Got it — salary ₹9.6L annualised, HRA under Rule 2A, 80C at cap.{" "}
+            <strong className="text-brand-700">Old: ₹58,240 · New: ₹42,900 → new regime saves ₹15,340.</strong>{" "}
+            And I found 2 more moves worth ₹18,700. Want the PDF?
+          </div>
+        </div>
         <p className="mt-2 text-sm text-stone-500">
           Business owner or freelancer?{" "}
           <Link href="/guide" className="font-semibold text-brand-700 underline">
