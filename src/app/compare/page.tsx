@@ -14,7 +14,7 @@ const rows: [string, string, string, string][] = [
   ["Salary-structure advice (CTC design)", "Not offered", "Rarely offered", "Built in — the structure to ask HR for"],
   ["Business-owner guidance (44AD/ADA, GST)", "Separate paid products", "Yes, at consulting rates", "Built in, with advance-tax calendar and Tax Jar"],
   ["Year-round deadline reminders", "Marketing emails", "If your CA remembers you", "Automatic — 7 days and 1 day before every date, free"],
-  ["Typical cost", "₹0–2,000 per filing + upsells", "₹1,500–10,000+ per year", "Free to start · Pro ₹299/mo · experts from ₹4,999/return"],
+  ["Typical cost", "₹0–2,000 per filing + upsells", "₹1,500–10,000+ per year", "Free to start · Pro ₹399/mo · experts from ₹4,999/return"],
   ["Where it wins", "Simple, single-source salary returns", "Complex cases: audits, notices, foreign income", "Optimisation + understanding + speed, then hand a clean file to a CA if needed"],
 ];
 
