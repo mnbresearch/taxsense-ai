@@ -73,8 +73,8 @@ export default function Pricing() {
             <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-600 px-3 py-0.5 text-xs font-bold text-white">Most popular</span>
             <h2 className="text-lg font-bold">Pro</h2>
             <p className="mt-1 text-sm text-stone-500">For salaried professionals who optimise.</p>
-            <div className="mt-4 text-4xl font-bold">₹299<span className="text-base font-medium text-stone-400"> / month</span></div>
-            <p className="mt-1 text-xs text-stone-500">or ₹2,999/year — 2 months free</p>
+            <div className="mt-4 text-4xl font-bold">₹399<span className="text-base font-medium text-stone-400"> / month</span></div>
+            <p className="mt-1 text-xs text-stone-500">or ₹3,999/year — 2 months free</p>
             <Feat items={[
               "Everything in Starter",
               "Unlimited filing-summary PDFs",
@@ -84,15 +84,15 @@ export default function Pricing() {
               "Email-me-my-results snapshots",
               "Saved profiles across devices (secure account)",
             ]} />
-            <div className="mt-auto pt-6"><PlanRequest plan="Pro (₹299/mo or ₹2,999/yr)" /></div>
+            <div className="mt-auto pt-6"><PlanRequest plan="Pro (₹399/mo or ₹3,999/yr)" /></div>
           </div>
 
           {/* Business */}
           <div className="flex flex-col rounded-2xl border border-stone-200 bg-white p-6">
             <h2 className="text-lg font-bold">Business</h2>
             <p className="mt-1 text-sm text-stone-500">Freelancers, consultants & business owners.</p>
-            <div className="mt-4 text-4xl font-bold">₹699<span className="text-base font-medium text-stone-400"> / month</span></div>
-            <p className="mt-1 text-xs text-stone-500">or ₹6,999/year — 2 months free</p>
+            <div className="mt-4 text-4xl font-bold">₹999<span className="text-base font-medium text-stone-400"> / month</span></div>
+            <p className="mt-1 text-xs text-stone-500">or ₹9,999/year — 2 months free</p>
             <Feat items={[
               "Everything in Pro",
               "44AD / 44ADA presumptive taxation guidance",
@@ -102,7 +102,7 @@ export default function Pricing() {
               "Rent-receipt generator (12 months, PAN-ready)",
               "ITR form recommendation with reasons",
             ]} />
-            <div className="mt-auto pt-6"><PlanRequest plan="Business (₹699/mo or ₹6,999/yr)" /></div>
+            <div className="mt-auto pt-6"><PlanRequest plan="Business (₹999/mo or ₹9,999/yr)" /></div>
           </div>
 
           {/* Filed For You */}
@@ -127,6 +127,28 @@ export default function Pricing() {
               ))}
             </ul>
             <div className="mt-auto pt-6"><PlanRequest plan="Filed For You (₹4,999/return)" cta="Request expert filing" /></div>
+          </div>
+        </div>
+
+        {/* Concierge anchor tier */}
+        <div className="mt-10 overflow-hidden rounded-2xl bg-gradient-to-r from-brand-900 via-brand-700 to-brand-900 p-8 text-white">
+          <div className="flex flex-wrap items-center justify-between gap-6">
+            <div className="max-w-xl">
+              <div className="flex items-center gap-2">
+                <h2 className="text-2xl font-bold">Concierge</h2>
+                <span className="rounded-full bg-emerald-400/20 px-2.5 py-0.5 text-xs font-bold text-emerald-200">Limited seats</span>
+              </div>
+              <p className="mt-2 text-sm text-brand-100">
+                A dedicated tax expert on WhatsApp, all year. Quarterly planning reviews, advance-tax managed for you,
+                up to <strong className="text-white">4 family PANs</strong>, every return filed, and any notice handled end-to-end —
+                on top of everything in Business.
+              </p>
+            </div>
+            <div className="text-right">
+              <div className="text-4xl font-bold">₹2,499<span className="text-base font-medium text-brand-100"> / month</span></div>
+              <p className="mt-1 text-xs text-brand-100">or ₹24,999/year — billed annually</p>
+              <div className="mt-4 w-56"><PlanRequest plan="Concierge (₹2,499/mo or ₹24,999/yr)" cta="Request a seat" /></div>
+            </div>
           </div>
         </div>
 
