@@ -22,9 +22,39 @@ function Feat({ items }: { items: string[] }) {
   );
 }
 
+const FAQ: [string, string][] = [
+  ["Why pay when the Starter plan is free?", "Starter computes your tax honestly and always will. Paid plans exist for people optimising all year: unlimited PDFs, the CTC Designer, saved profiles, business tooling, and — on Concierge — a human expert managing everything. One found deduction typically pays for a year of Pro."],
+  ["How do I pay?", "During launch, plans are activated personally: request a plan, we call you, set you up and take payment by UPI or bank transfer with a GST invoice. Online self-serve payments are coming."],
+  ["Can I cancel anytime?", "Yes. Monthly plans stop at the end of the paid month, no questions. Annual plans are refunded pro-rata in the first 30 days."],
+  ["Is my financial data safe?", "Your numbers are isolated per-user with database row-level security, encrypted in transit, and never used to train any model. You can export or delete everything, any time."],
+  ["Do you replace my CA?", "No — we do the tedious 90% (intake, regime math, optimisation, document prep) and pair you with a professional when it matters. Filed For You and Concierge include one."],
+];
+
 export default function Pricing() {
+  const faqLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQ.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })),
+  };
+  const productLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "TaxSense AI",
+    applicationCategory: "FinanceApplication",
+    operatingSystem: "Web",
+    url: "https://taxsense-ai.vercel.app",
+    offers: [
+      { "@type": "Offer", name: "Starter", price: "0", priceCurrency: "INR" },
+      { "@type": "Offer", name: "Pro", price: "399", priceCurrency: "INR", description: "per month" },
+      { "@type": "Offer", name: "Business", price: "999", priceCurrency: "INR", description: "per month" },
+      { "@type": "Offer", name: "Filed For You", price: "4999", priceCurrency: "INR", description: "per return" },
+      { "@type": "Offer", name: "Concierge", price: "2499", priceCurrency: "INR", description: "per month" },
+    ],
+  };
   return (
     <main>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productLd) }} />
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
         <Link href="/" className="text-lg font-bold text-brand-700">TaxSense <span className="font-normal text-stone-400">AI</span></Link>
         <div className="flex items-center gap-6 text-sm">
@@ -149,6 +179,19 @@ export default function Pricing() {
               <p className="mt-1 text-xs text-brand-100">or ₹24,999/year — billed annually</p>
               <div className="mt-4 w-56"><PlanRequest plan="Concierge (₹2,499/mo or ₹24,999/yr)" cta="Request a seat" /></div>
             </div>
+          </div>
+        </div>
+
+        {/* FAQ */}
+        <div className="mx-auto mt-14 max-w-3xl">
+          <h2 className="text-center text-2xl font-bold">Fair questions</h2>
+          <div className="mt-6 space-y-3">
+            {FAQ.map(([q, a]) => (
+              <details key={q} className="group rounded-xl border border-stone-200 bg-white p-5 open:border-brand-600">
+                <summary className="cursor-pointer list-none font-semibold group-open:text-brand-700">{q}</summary>
+                <p className="mt-2 text-sm leading-relaxed text-stone-600">{a}</p>
+              </details>
+            ))}
           </div>
         </div>
 
