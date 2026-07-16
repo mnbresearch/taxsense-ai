@@ -490,6 +490,17 @@ export default function AppPage() {
                 </div>
               )}
 
+              <Link
+                href="/pricing"
+                className="block rounded-lg border border-brand-200 bg-gradient-to-r from-brand-50 to-emerald-50 p-3 text-sm transition hover:border-brand-600"
+              >
+                <span className="font-semibold text-brand-700">Want this working for you all year?</span>{" "}
+                <span className="text-stone-600">
+                  Pro (₹299/mo) adds unlimited PDFs, the CTC Designer and saved profiles — or let an expert file it for you.
+                </span>{" "}
+                <span className="font-semibold text-brand-700">See plans →</span>
+              </Link>
+
               {state?.estimates?.length > 0 && (
                 <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
                   <strong>Estimates to verify:</strong> {state.estimates.join(" · ")}
