@@ -8,6 +8,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Planner from "./Planner";
+import InstallApp from "../InstallApp";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -273,6 +274,7 @@ export default function AppPage() {
           {provider && <span className="rounded bg-stone-100 px-2 py-1">intake: {provider}</span>}
           <Link href="/guide" className="hover:text-brand-700">Tax Guide</Link>
           <Link href="/admin" className="hover:text-brand-700">Admin</Link>
+          <InstallApp compact />
         </div>
       </header>
 
