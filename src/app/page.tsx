@@ -176,7 +176,9 @@ export default function Landing() {
             </div>
           </div>
           <div className="mt-8 border-t border-stone-100 pt-4 text-center text-xs text-stone-400">
-            © {new Date().getFullYear()} MNB Research · Computations per the Income-tax Act, 1961 (Finance Act 2025) · Not a substitute for professional advice
+            © {new Date().getFullYear()} MNB Research · Computations per the Income-tax Act, 1961 (Finance Act 2025) · Not a substitute for professional advice ·{" "}
+            <Link href="/privacy" className="underline hover:text-brand-700">Privacy</Link> ·{" "}
+            <Link href="/terms" className="underline hover:text-brand-700">Terms</Link>
           </div>
         </div>
       </footer>
