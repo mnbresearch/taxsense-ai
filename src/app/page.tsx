@@ -150,9 +150,34 @@ export default function Landing() {
 
       {/* Footer */}
       <footer className="border-t border-stone-200 bg-white">
-        <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-3 px-6 py-8 text-sm text-stone-500 sm:flex-row">
-          <span>© {new Date().getFullYear()} MNB Research · TaxSense AI</span>
-          <span>Computations per Income-tax Act, 1961 (Finance Act 2025). Not a substitute for professional advice.</span>
+        <div className="mx-auto max-w-5xl px-6 py-10">
+          <div className="grid gap-8 sm:grid-cols-3">
+            <div>
+              <div className="text-sm font-bold text-brand-700">TaxSense <span className="font-normal text-stone-400">AI</span></div>
+              <p className="mt-2 text-xs text-stone-500">Your taxes, figured out in one conversation. An MNB Research product, in collaboration with Abrobot.ai.</p>
+            </div>
+            <div className="text-sm">
+              <div className="text-xs font-semibold uppercase tracking-wide text-stone-400">Product</div>
+              <div className="mt-2 flex flex-col gap-1.5 text-stone-600">
+                <Link href="/app" className="hover:text-brand-700">Open the app</Link>
+                <Link href="/pricing" className="hover:text-brand-700">Pricing</Link>
+                <Link href="/guide" className="hover:text-brand-700">60-second Tax Guide</Link>
+                <Link href="/compare" className="hover:text-brand-700">vs DIY portals &amp; CAs</Link>
+              </div>
+            </div>
+            <div className="text-sm">
+              <div className="text-xs font-semibold uppercase tracking-wide text-stone-400">Resources</div>
+              <div className="mt-2 flex flex-col gap-1.5 text-stone-600">
+                <Link href="/deadlines" className="hover:text-brand-700">Deadline calendar + reminders</Link>
+                <Link href="/learn" className="hover:text-brand-700">Tax glossary (FY 2025-26)</Link>
+                <a href="https://www.mnbresearch.com/taxsense-ai" className="hover:text-brand-700">About this product</a>
+                <a href="https://www.mnbresearch.com" className="hover:text-brand-700">MNB Research</a>
+              </div>
+            </div>
+          </div>
+          <div className="mt-8 border-t border-stone-100 pt-4 text-center text-xs text-stone-400">
+            © {new Date().getFullYear()} MNB Research · Computations per the Income-tax Act, 1961 (Finance Act 2025) · Not a substitute for professional advice
+          </div>
         </div>
       </footer>
     </main>
