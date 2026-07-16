@@ -496,7 +496,7 @@ export default function AppPage() {
               >
                 <span className="font-semibold text-brand-700">Want this working for you all year?</span>{" "}
                 <span className="text-stone-600">
-                  Pro (₹299/mo) adds unlimited PDFs, the CTC Designer and saved profiles — or let an expert file it for you.
+                  Pro (₹399/mo) adds unlimited PDFs, the CTC Designer and saved profiles — or let an expert file it for you.
                 </span>{" "}
                 <span className="font-semibold text-brand-700">See plans →</span>
               </Link>
