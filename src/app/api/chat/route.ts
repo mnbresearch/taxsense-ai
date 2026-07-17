@@ -34,7 +34,8 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const turn = await runIntakeTurn(state, history, message);
+    const lang = body.lang === "hi" ? "hi" : "en";
+    const turn = await runIntakeTurn(state, history, message, lang);
 
     // best-effort persistence of the transcript (never blocks the reply)
     const sb = supabaseServer();
