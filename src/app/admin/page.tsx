@@ -37,6 +37,13 @@ export default function AdminPage() {
       .catch(() => {});
   }
 
+  async function activateLead(email: string) {
+    if (!window.confirm(`Mark ${email} as PAID & ACTIVE?\n\nThis sends them the activation email immediately.`)) return;
+    await fetch(`/api/admin/access-requests?email=${encodeURIComponent(email)}`, { method: "PATCH" }).catch(() => {});
+    loadLeads();
+    loadEmails();
+  }
+
   async function deleteLead(email: string) {
     if (!window.confirm(`Remove ${email} from the access-request list?`)) return;
     await fetch(`/api/admin/access-requests?email=${encodeURIComponent(email)}`, { method: "DELETE" }).catch(() => {});
@@ -204,12 +211,21 @@ export default function AdminPage() {
                       <td className="py-1.5 font-medium">{l.email}</td>
                       <td className="text-stone-600">{l.name ?? "—"}</td>
                       <td className="text-stone-600">{l.phone ?? "—"}</td>
-                      <td className="text-stone-600">{l.plan ? <span className="rounded bg-brand-50 px-1.5 py-0.5 text-xs font-semibold text-brand-700">{l.plan}</span> : "—"}</td>
+                      <td className="text-stone-600">
+                        {l.status === "active" ? (
+                          <span className="rounded bg-green-100 px-1.5 py-0.5 text-xs font-bold text-green-700">✓ ACTIVE{l.plan ? ` · ${l.plan}` : ""}</span>
+                        ) : l.plan ? (
+                          <span className="rounded bg-brand-50 px-1.5 py-0.5 text-xs font-semibold text-brand-700">{l.plan}</span>
+                        ) : "—"}
+                      </td>
                       <td className="text-stone-500">{l.source}</td>
                       <td className="text-right text-xs text-stone-500">
                         {new Date(l.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                       </td>
-                      <td className="pl-2 text-right">
+                      <td className="whitespace-nowrap pl-2 text-right">
+                        {l.status !== "active" && (
+                          <button onClick={() => activateLead(l.email)} title="Mark paid & activate (sends email)" className="mr-2 rounded bg-green-600 px-2 py-0.5 text-xs font-bold text-white hover:bg-green-700">₹ Paid</button>
+                        )}
                         <button onClick={() => deleteLead(l.email)} title="Remove lead" className="text-xs text-stone-400 hover:text-red-600">✕</button>
                       </td>
                     </tr>
