@@ -8,6 +8,9 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Planner from "./Planner";
+import { AccountControl, UpsellModal, useEntitlements } from "./Account";
+import { HINDI_OPENER, quickChips, t, type Lang } from "@/lib/i18n";
+import PdfHistory from "./PdfHistory";
 import InstallApp from "../InstallApp";
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -27,6 +30,26 @@ export default function AppPage() {
   const [saved, setSaved] = useState<string>("");
   const [tab, setTab] = useState<"results" | "planner">("results");
   const [scenarios, setScenarios] = useState<any[]>([]);
+  const ent = useEntitlements();
+  const [upsell, setUpsell] = useState<string | null>(null);
+  const scenarioCap = ent?.features.scenarios ?? 3;
+  const [lang, setLang] = useState<Lang>("en");
+
+  // Batch 29 — bilingual UI. Restore preference; swap the opener if the
+  // conversation hasn't started yet.
+  useEffect(() => {
+    const saved = (localStorage.getItem("ts_lang") as Lang) ?? "en";
+    if (saved === "hi") switchLang("hi", true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function switchLang(next: Lang, silent = false) {
+    setLang(next);
+    localStorage.setItem("ts_lang", next);
+    setMessages((m) =>
+      m.length <= 1 ? [{ role: "assistant", content: next === "hi" ? HINDI_OPENER : OPENER }] : m
+    );
+  }
   const importRef = useRef<HTMLInputElement>(null);
   const bottom = useRef<HTMLDivElement>(null);
 
@@ -64,7 +87,12 @@ export default function AppPage() {
   }, []);
 
   function saveScenario() {
-    if (!state?.profile || !cmp || scenarios.length >= 3) return;
+    if (!state?.profile || !cmp) return;
+    if (scenarios.length >= scenarioCap) {
+      setUpsell(`The free plan keeps ${scenarioCap} saved scenario — Pro lets you compare 3 side by side.`);
+      return;
+    }
+    if (scenarios.length >= 3) return;
     const name = ["A", "B", "C"][scenarios.length];
     setScenarios([...scenarios, {
       name: `Scenario ${name}`,
@@ -110,7 +138,7 @@ export default function AppPage() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ message, state, history: messages.slice(-10) }),
+        body: JSON.stringify({ message, state, history: messages.slice(-10), lang }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
@@ -134,6 +162,15 @@ export default function AppPage() {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ profile: state.profile, estimates: state.estimates }),
     });
+    if (res.status === 402) {
+      const d = await res.json().catch(() => ({}));
+      setUpsell(d.error ?? "Free plan PDF limit reached for today — Pro removes the limit.");
+      return;
+    }
+    if (!res.ok) {
+      setSaved("PDF generation failed — try again.");
+      return;
+    }
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -269,10 +306,18 @@ export default function AppPage() {
         </Link>
         <div className="flex items-center gap-3 text-xs text-stone-500">
           <span className="rounded-full bg-amber-100 px-2.5 py-1 font-semibold text-amber-800">
-            {Math.max(0, Math.ceil((new Date("2026-07-31T23:59:59+05:30").getTime() - Date.now()) / 86400000))} days to file
+            {Math.max(0, Math.ceil((new Date("2026-07-31T23:59:59+05:30").getTime() - Date.now()) / 86400000))} {t("daysToFile", lang)}
           </span>
+          <button
+            onClick={() => switchLang(lang === "en" ? "hi" : "en")}
+            className="rounded-full border border-stone-300 px-2.5 py-1 font-semibold text-stone-600 hover:border-brand-600 hover:text-brand-700"
+            title={lang === "en" ? "हिंदी में देखें" : "Switch to English"}
+          >
+            {lang === "en" ? "हिंदी" : "EN"}
+          </button>
           {provider && <span className="rounded bg-stone-100 px-2 py-1">intake: {provider}</span>}
-          <Link href="/guide" className="hover:text-brand-700">Tax Guide</Link>
+          <AccountControl ent={ent} />
+          <Link href="/guide" className="hover:text-brand-700">{t("taxGuide", lang)}</Link>
           <Link href="/admin" className="hover:text-brand-700">Admin</Link>
           <InstallApp compact />
         </div>
@@ -296,7 +341,7 @@ export default function AppPage() {
                 </div>
               </div>
             ))}
-            {busy && <div className="px-2 text-sm text-stone-400">TaxSense is thinking…</div>}
+            {busy && <div className="px-2 text-sm text-stone-400">{t("thinking", lang)}</div>}
             <div ref={bottom} />
           </div>
           <div className="border-t border-stone-200 p-3">
@@ -306,15 +351,9 @@ export default function AppPage() {
                   onClick={pasteForm16}
                   className="rounded-full border border-brand-600 bg-brand-50 px-3 py-1.5 text-xs font-semibold text-brand-700 hover:bg-brand-100"
                 >
-                  📄 Paste my Form 16
+                  {t("pasteForm16", lang)}
                 </button>
-                {[
-                  "I'm salaried — around 80k a month",
-                  "I run a small business",
-                  "I freelance",
-                  "What is 87A?",
-                  "Old vs new regime?",
-                ].map((q) => (
+                {quickChips(lang).map((q) => (
                   <button
                     key={q}
                     onClick={() => send(q)}
@@ -330,7 +369,7 @@ export default function AppPage() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && send()}
-                placeholder='e.g. "I earn around 80k a month plus a bonus sometimes"'
+                placeholder={t("placeholder", lang)}
                 className="flex-1 rounded-lg border border-stone-300 px-3 py-2.5 text-sm outline-none focus:border-brand-600"
               />
               <button
@@ -338,7 +377,7 @@ export default function AppPage() {
                 disabled={busy}
                 className="rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
               >
-                Send
+                {t("send", lang)}
               </button>
             </div>
           </div>
@@ -366,16 +405,16 @@ export default function AppPage() {
           )}
           {cmp && (
             <div className="mb-4 flex gap-1 rounded-lg bg-stone-100 p-1 text-sm font-medium">
-              {(["results", "planner"] as const).map((t) => (
+              {(["results", "planner"] as const).map((k) => (
                 <button
-                  key={t}
-                  onClick={() => setTab(t)}
+                  key={k}
+                  onClick={() => setTab(k)}
                   className={
                     "flex-1 rounded-md py-1.5 capitalize " +
-                    (tab === t ? "bg-white text-brand-700 shadow-sm" : "text-stone-500 hover:text-stone-700")
+                    (tab === k ? "bg-white text-brand-700 shadow-sm" : "text-stone-500 hover:text-stone-700")
                   }
                 >
-                  {t}
+                  {t(k, lang)}
                 </button>
               ))}
             </div>
@@ -386,16 +425,16 @@ export default function AppPage() {
             <div className="flex h-full flex-col items-center justify-center text-center text-stone-400">
               <div className="text-4xl">🧮</div>
               <p className="mt-3 max-w-xs text-sm">
-                Your live tax computation appears here the moment I know enough about your income.
+                {t("emptyState", lang)}
               </p>
             </div>
           ) : (
             <div className="space-y-5">
               <div className="rounded-lg bg-brand-50 p-4">
-                <div className="text-xs font-semibold uppercase tracking-wide text-brand-600">Recommendation</div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-brand-600">{t("recommendation", lang)}</div>
                 <div className="mt-1 text-xl font-bold text-brand-700">
                   {cmp.recommended === "new" ? "New" : "Old"} regime
-                  {cmp.savings > 0 && <span className="font-medium text-stone-600"> — saves {inr(cmp.savings)}</span>}
+                  {cmp.savings > 0 && <span className="font-medium text-stone-600"> — {t("saves", lang)} {inr(cmp.savings)}</span>}
                 </div>
                 {opt?.headline && <p className="mt-1 text-sm text-stone-600">{opt.headline}</p>}
               </div>
@@ -409,10 +448,10 @@ export default function AppPage() {
                       (cmp.recommended === k ? "border-brand-600 bg-brand-50/50" : "border-stone-200")
                     }
                   >
-                    <div className="text-xs uppercase text-stone-500">{k} regime</div>
+                    <div className="text-xs uppercase text-stone-500">{t(k === "old" ? "oldRegime" : "newRegime", lang)}</div>
                     <div className="mt-1 text-2xl font-bold">{inr(cmp[k].totalTaxLiability)}</div>
                     <div className="mt-1 text-xs text-stone-500">
-                      on {inr(cmp[k].totalIncome)} · {cmp[k].effectiveRatePct}% effective
+                      {t("on", lang)} {inr(cmp[k].totalIncome)} · {cmp[k].effectiveRatePct}% {t("effective", lang)}
                     </div>
                   </div>
                 ))}
@@ -449,7 +488,7 @@ export default function AppPage() {
                       </div>
                     </div>
                     <div className="min-w-0">
-                      <div className="text-sm font-semibold">Tax Health Score</div>
+                      <div className="text-sm font-semibold">{t("taxHealthScore", lang)}</div>
                       <p className="text-xs text-stone-600">{score.headline}</p>
                     </div>
                   </div>
@@ -466,7 +505,7 @@ export default function AppPage() {
 
               {opt?.suggestions?.length > 0 && (
                 <div>
-                  <div className="mb-2 text-sm font-semibold">Moves that lower your tax</div>
+                  <div className="mb-2 text-sm font-semibold">{t("movesTitle", lang)}</div>
                   <ul className="space-y-2">
                     {opt.suggestions.slice(0, 4).map((s: any) => (
                       <li key={s.id} className="flex items-start justify-between gap-3 rounded-lg border border-stone-200 p-3 text-sm">
@@ -480,7 +519,7 @@ export default function AppPage() {
 
               {result?.insights?.length > 0 && (
                 <div>
-                  <div className="mb-2 text-sm font-semibold">Smart insights</div>
+                  <div className="mb-2 text-sm font-semibold">{t("insightsTitle", lang)}</div>
                   <ul className="space-y-2">
                     {result.insights.map((ins: any) => (
                       <li key={ins.kind} className="rounded-lg border border-brand-100 bg-brand-50/60 p-3">
@@ -514,19 +553,19 @@ export default function AppPage() {
                   onClick={downloadPdf}
                   className="flex-1 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700"
                 >
-                  Download filing summary (PDF)
+                  {t("downloadPdf", lang)}
                 </button>
                 <button
                   onClick={saveProfile}
                   className="rounded-lg border border-stone-300 px-4 py-2.5 text-sm font-semibold text-stone-700 hover:border-brand-600"
                 >
-                  Save
+                  {t("save", lang)}
                 </button>
               </div>
               <div className="flex gap-3 text-xs text-stone-500">
                 {scenarios.length < 3 && (
                   <button onClick={saveScenario} className="underline hover:text-brand-700">
-                    Save as scenario ({scenarios.length}/3)
+                    Save as scenario ({scenarios.length}/{scenarioCap})
                   </button>
                 )}
                 <button onClick={shareResults} className="underline hover:text-brand-700">
@@ -566,11 +605,13 @@ export default function AppPage() {
                   onChange={(e) => e.target.files?.[0] && importProfile(e.target.files[0])}
                 />
               </div>
+              <PdfHistory signedIn={!!ent?.signedIn} />
               {saved && <p className="text-xs text-stone-500">{saved}</p>}
             </div>
           )}
         </section>
       </div>
+      <UpsellModal message={upsell} onClose={() => setUpsell(null)} />
     </main>
   );
 }
