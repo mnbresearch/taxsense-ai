@@ -10,6 +10,7 @@ import { emptyProfile } from "../tax-engine";
 import type { TaxProfile } from "../tax-engine";
 import { ExtractionSchema, type Extraction } from "./schema";
 import { EXTRACTION_SYSTEM_PROMPT, QUESTION_PLAN, RESPONDER_SYSTEM_PROMPT } from "./prompts";
+import { HINDI_RESPONDER_NOTE } from "@/lib/i18n";
 import { getProvider, type ChatMessage } from "./provider";
 
 export interface IntakeState {
@@ -125,7 +126,8 @@ export interface IntakeTurn {
 export async function runIntakeTurn(
   state: IntakeState,
   history: ChatMessage[],
-  userMessage: string
+  userMessage: string,
+  lang: "en" | "hi" = "en"
 ): Promise<IntakeTurn> {
   const provider = getProvider();
 
@@ -163,7 +165,7 @@ export async function runIntakeTurn(
   let reply: string;
   try {
     reply = await provider.completeText([
-      { role: "system", content: RESPONDER_SYSTEM_PROMPT },
+      { role: "system", content: lang === "hi" ? RESPONDER_SYSTEM_PROMPT + "\n\n" + HINDI_RESPONDER_NOTE : RESPONDER_SYSTEM_PROMPT },
       ...history.slice(-8),
       { role: "user", content: userMessage },
       { role: "system", content: contextBlock },
