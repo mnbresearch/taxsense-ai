@@ -11,6 +11,7 @@ import Planner from "./Planner";
 import { AccountControl, UpsellModal, useEntitlements } from "./Account";
 import { HINDI_OPENER, quickChips, t, type Lang } from "@/lib/i18n";
 import PdfHistory from "./PdfHistory";
+import { SAMPLES } from "./samples";
 import InstallApp from "../InstallApp";
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -42,6 +43,37 @@ export default function AppPage() {
     if (saved === "hi") switchLang("hi", true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Batch 31 — welcome back: offer to restore the saved profile.
+  const [savedRec, setSavedRec] = useState<any>(null);
+  const [restoreDismissed, setRestoreDismissed] = useState(false);
+  useEffect(() => {
+    fetch("/api/profile")
+      .then((r) => r.json())
+      .then((d) => d?.record?.profile && setSavedRec(d.record))
+      .catch(() => {});
+  }, []);
+
+  function restoreSaved() {
+    if (!savedRec) return;
+    const st = savedRec.intake_state?.profile
+      ? savedRec.intake_state
+      : { profile: savedRec.profile, notApplicable: [], estimates: [], covered: [], complete: false };
+    setState(st);
+    setRestoreDismissed(true);
+    setMessages((m) => [
+      ...m,
+      { role: "assistant", content: "Welcome back! I've restored your saved profile — the computation on the right is live again. What's changed since last time?" },
+    ]);
+  }
+
+  // Batch 32 — one-click sample profiles for an instant demo.
+  function loadSample(id: string) {
+    const smp = SAMPLES.find((x) => x.id === id);
+    if (!smp) return;
+    setState({ profile: JSON.parse(JSON.stringify(smp.profile)), notApplicable: [], estimates: ["Sample data — replace with your real numbers"], covered: [], complete: false });
+    setMessages((m) => [...m, { role: "assistant", content: smp.message }]);
+  }
 
   function switchLang(next: Lang, silent = false) {
     setLang(next);
@@ -323,6 +355,18 @@ export default function AppPage() {
         </div>
       </header>
 
+      {savedRec && !restoreDismissed && !result && messages.length <= 1 && (
+        <div className="mb-3 flex items-center justify-between rounded-lg border border-brand-200 bg-brand-50 px-4 py-2.5 text-sm">
+          <span className="text-stone-700">
+            👋 Welcome back — you have a saved profile
+            {savedRec.updated_at && <span className="text-stone-500"> (updated {new Date(savedRec.updated_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })})</span>}.
+          </span>
+          <span className="flex gap-2">
+            <button onClick={restoreSaved} className="rounded-md bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700">Restore it</button>
+            <button onClick={() => setRestoreDismissed(true)} className="rounded-md px-2 py-1.5 text-xs text-stone-500 hover:text-stone-700">Start fresh</button>
+          </span>
+        </div>
+      )}
       <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[1.2fr_1fr]">
         {/* Chat panel */}
         <section className="flex min-h-0 flex-col rounded-xl border border-stone-200 bg-white">
@@ -427,6 +471,19 @@ export default function AppPage() {
               <p className="mt-3 max-w-xs text-sm">
                 {t("emptyState", lang)}
               </p>
+              <div className="mt-5 w-full max-w-xs space-y-2 text-left">
+                <p className="text-center text-[11px] font-semibold uppercase tracking-wide text-stone-400">or explore with a sample</p>
+                {SAMPLES.map((smp) => (
+                  <button
+                    key={smp.id}
+                    onClick={() => loadSample(smp.id)}
+                    className="block w-full rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-left transition hover:border-brand-600 hover:bg-brand-50"
+                  >
+                    <span className="block text-sm font-semibold text-stone-700">▶ {smp.label}</span>
+                    <span className="block text-[11px] text-stone-500">{smp.blurb}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           ) : (
             <div className="space-y-5">
