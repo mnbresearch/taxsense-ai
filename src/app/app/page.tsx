@@ -45,9 +45,31 @@ export default function AppPage() {
   }, []);
 
   // Batch 31 — welcome back: offer to restore the saved profile.
+  // Batch 38 — ?client=<label> loads a specific Client Workbook profile.
   const [savedRec, setSavedRec] = useState<any>(null);
   const [restoreDismissed, setRestoreDismissed] = useState(false);
+  const [profileLabel, setProfileLabel] = useState("My profile");
   useEffect(() => {
+    const client = new URLSearchParams(window.location.search).get("client");
+    if (client) {
+      setProfileLabel(client);
+      setRestoreDismissed(true);
+      fetch(`/api/profile?label=${encodeURIComponent(client)}`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (!d?.record?.profile) return;
+          const st = d.record.intake_state?.profile
+            ? d.record.intake_state
+            : { profile: d.record.profile, notApplicable: [], estimates: [], covered: [], complete: false };
+          setState(st);
+          setMessages((m) => [
+            ...m,
+            { role: "assistant", content: `Opened client "${client}" from your workbook. Update anything in conversation — Save writes it back to their row.` },
+          ]);
+        })
+        .catch(() => {});
+      return;
+    }
     fetch("/api/profile")
       .then((r) => r.json())
       .then((d) => d?.record?.profile && setSavedRec(d.record))
@@ -217,7 +239,7 @@ export default function AppPage() {
     const res = await fetch("/api/profile", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ profile: state.profile, intakeState: state }),
+      body: JSON.stringify({ profile: state.profile, intakeState: state, label: profileLabel }),
     });
     const d = await res.json();
     setSaved(d.saved ? (d.mode === "demo" ? "Saved (demo mode — sign in to persist)" : "Saved to your account") : d.error);
@@ -348,7 +370,11 @@ export default function AppPage() {
             {lang === "en" ? "हिंदी" : "EN"}
           </button>
           {provider && <span className="rounded bg-stone-100 px-2 py-1">intake: {provider}</span>}
+          {profileLabel !== "My profile" && (
+            <span className="rounded-full bg-stone-100 px-2.5 py-1 font-semibold text-stone-600" title="Saving under this client">🗂 {profileLabel}</span>
+          )}
           <AccountControl ent={ent} />
+          <Link href="/professional" className="font-semibold text-brand-700 hover:underline">For professionals</Link>
           <Link href="/guide" className="hover:text-brand-700">{t("taxGuide", lang)}</Link>
           <Link href="/admin" className="hover:text-brand-700">Admin</Link>
           <InstallApp compact />

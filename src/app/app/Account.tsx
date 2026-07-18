@@ -12,7 +12,7 @@ export interface Ent {
   email: string | null;
   plan: string;
   active: boolean;
-  features: { ctcDesigner: boolean; scenarios: number; pdfPerDay: number | null; label: string };
+  features: { ctcDesigner: boolean; proTools: boolean; clientWorkbook: boolean; scenarios: number; pdfPerDay: number | null; label: string };
 }
 
 export function useEntitlements(): Ent | null {
