@@ -10,6 +10,10 @@ export type PlanId = "free" | "pro" | "business" | "concierge" | "filed";
 export interface Features {
   /** CTC Designer (salary-structure optimizer) */
   ctcDesigner: boolean;
+  /** Practitioner tools — 234 interest calculator, regime breakeven matrix */
+  proTools: boolean;
+  /** Multi-client workbook for firms */
+  clientWorkbook: boolean;
   /** Max saved what-if scenarios in the workspace */
   scenarios: number;
   /** PDF filing summaries per day (null = unlimited) */
@@ -19,11 +23,11 @@ export interface Features {
 }
 
 export const PLAN_FEATURES: Record<PlanId, Features> = {
-  free:      { ctcDesigner: false, scenarios: 1, pdfPerDay: 2,    label: "Starter (free)" },
-  pro:       { ctcDesigner: true,  scenarios: 3, pdfPerDay: null, label: "Pro" },
-  business:  { ctcDesigner: true,  scenarios: 3, pdfPerDay: null, label: "Business" },
-  concierge: { ctcDesigner: true,  scenarios: 3, pdfPerDay: null, label: "Concierge" },
-  filed:     { ctcDesigner: true,  scenarios: 3, pdfPerDay: null, label: "Filed For You" },
+  free:      { ctcDesigner: false, proTools: false, clientWorkbook: false, scenarios: 1, pdfPerDay: 2,    label: "Starter (free)" },
+  pro:       { ctcDesigner: true,  proTools: true,  clientWorkbook: false, scenarios: 3, pdfPerDay: null, label: "Pro" },
+  business:  { ctcDesigner: true,  proTools: true,  clientWorkbook: true,  scenarios: 3, pdfPerDay: null, label: "Business" },
+  concierge: { ctcDesigner: true,  proTools: true,  clientWorkbook: true,  scenarios: 3, pdfPerDay: null, label: "Concierge" },
+  filed:     { ctcDesigner: true,  proTools: true,  clientWorkbook: false, scenarios: 3, pdfPerDay: null, label: "Filed For You" },
 };
 
 /**
