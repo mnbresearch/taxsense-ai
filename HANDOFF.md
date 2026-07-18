@@ -1,6 +1,6 @@
 # TaxSense AI — Handoff & Continuation Guide
 
-Built across 27 feature batches by MNB Research × Abrobot.ai. Live at **https://taxsense-ai.vercel.app**.
+Built across 39 feature batches by MNB Research × Abrobot.ai. Live at **https://taxsense-ai.vercel.app**.
 Marketing: **mnbresearch.com/taxsense-ai** (+ portfolio card, 2 blog posts, Services & main nav entries — all on the Odoo site).
 
 ## Stack & infrastructure
@@ -43,3 +43,14 @@ Marketing: **mnbresearch.com/taxsense-ai** (+ portfolio card, 2 blog posts, Serv
 - **Rotate the Groq key** (was pasted in chat) → console.groq.com → update Vercel env → redeploy.
 - Delete test leads (`testlead@example.com`, `mridulnanda2004+plantest@gmail.com`) via ✕ in admin.
 - Have a lawyer review `/privacy` and `/terms` before serious revenue.
+
+
+## Batches 28-39 (second marathon session)
+- **Plan gating (28)**: `src/lib/entitlements.ts` (plan ids, feature flags: ctcDesigner/proTools/clientWorkbook/scenarios/pdfPerDay), `/api/entitlements`, magic-link sign-in (`/api/auth/signin` + AccountControl in workspace header), server-gated CTC Designer (teaser for free) and PDF daily cap (in-memory, per instance), UpsellModal.
+- **Hindi (29)**: `src/lib/i18n.ts` dict + workspace toggle; intake responder replies in Hindi via lang flag through `/api/chat`.
+- **PDF history (30)**: `pdf_history` table (migration 0007, applied), snapshot on generate, `/api/pdf/history`, re-download UI.
+- **Welcome-back (31)** + **sample profiles (32)** (`src/app/app/samples.ts`) + **/tools/hra (33)** + **admin active-vs-pipeline MRR (34)**.
+- **Professional suite (35-38)**: catalog `src/lib/pro.ts` + `/professional` (3 segments: students free / practitioners Pro / firms Business; all visible, gated execution). Tools: `/tools/interest` (s.234A/B/C engine `src/lib/tax-engine/interest.ts`, Rule 119A, safe harbour, presumptive), `/tools/breakeven` (regime crossover via binary search), `/tools/slabs` (engine-plotted curve), `/tools/sections` (24-section quick-ref `src/lib/sections.ts`). **Client Workbook** `/pro/clients`: label-keyed tax_profiles, server-enforced Business via `/api/profile/list` (402), `?client=` round trip in workspace, save-by-label.
+- **Auto-update (39)**: `/api/health` exposes `build` (VERCEL_GIT_COMMIT_SHA); `src/app/UpdateWatcher.tsx` polls 10-min + on focus → reload (toast on /app to protect chat). SW cache v2.
+- Tests: 17 files / 133. Push method that works: GitHub web upload + **JS form submit** (`input[name=message]` + click Commit via javascript_tool — coordinate/ref clicks are flaky). ALWAYS checksum-verify via raw.githubusercontent.
+- Known debts: PDF cap is per-serverless-instance; package-lock.json out of sync with package.json (use `npm install`, not `npm ci`); free PDF/scenario caps client-visible via /api/entitlements.
