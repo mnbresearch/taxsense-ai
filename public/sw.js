@@ -5,7 +5,7 @@
  *  2. Only the static shell is cached, in a versioned cache that is wiped on update.
  *  3. Same-origin only — no third-party requests are ever handled or stored.
  */
-const CACHE = "taxsense-shell-v1";
+const CACHE = "taxsense-shell-v2";
 const SHELL = ["/", "/app", "/pricing", "/deadlines", "/learn", "/guide", "/icon-192.png", "/icon-512.png"];
 
 self.addEventListener("install", (e) => {
