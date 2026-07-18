@@ -25,6 +25,15 @@ describe("PLAN_FEATURES", () => {
       expect(PLAN_FEATURES[p].ctcDesigner).toBe(true)
     );
   });
+  it("practitioner tools are Pro+, client workbook is Business/Concierge only", () => {
+    expect(PLAN_FEATURES.free.proTools).toBe(false);
+    expect(PLAN_FEATURES.pro.proTools).toBe(true);
+    expect(PLAN_FEATURES.pro.clientWorkbook).toBe(false);
+    expect(PLAN_FEATURES.business.clientWorkbook).toBe(true);
+    expect(PLAN_FEATURES.concierge.clientWorkbook).toBe(true);
+    expect(PLAN_FEATURES.filed.clientWorkbook).toBe(false);
+  });
+
   it("limits free PDFs and scenarios, unlimited on paid", () => {
     expect(PLAN_FEATURES.free.pdfPerDay).toBe(2);
     expect(PLAN_FEATURES.free.scenarios).toBe(1);
