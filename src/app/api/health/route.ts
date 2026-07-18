@@ -24,6 +24,7 @@ export async function GET() {
         supabase: supabaseConfigured() ? "configured" : "demo-mode",
         email: process.env.RESEND_API_KEY ? "resend" : "not configured",
       },
+      build: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) ?? "dev",
       time: new Date().toISOString(),
     },
     { status: engineOk ? 200 : 500 }
