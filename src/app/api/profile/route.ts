@@ -42,8 +42,8 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ saved: true, mode: "supabase" });
 }
 
-/** Load the user's latest profile. */
-export async function GET() {
+/** Load the user's latest profile — or a specific one via ?label= (Batch 38). */
+export async function GET(req: NextRequest) {
   const sb = supabaseServer();
   if (!sb) {
     const rec = demoStore.get("demo-user");
@@ -51,12 +51,12 @@ export async function GET() {
   }
   const { data: auth } = await sb.auth.getUser();
   if (!auth.user) return NextResponse.json({ record: null, mode: "anonymous" });
-  const { data } = await sb
+  const label = req.nextUrl.searchParams.get("label");
+  let q = sb
     .from("tax_profiles")
     .select("profile, computation, intake_state, updated_at, label")
-    .eq("fy", "FY2025-26")
-    .order("updated_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .eq("fy", "FY2025-26");
+  if (label) q = q.eq("label", label.slice(0, 120));
+  const { data } = await q.order("updated_at", { ascending: false }).limit(1).maybeSingle();
   return NextResponse.json({ record: data ?? null, mode: "supabase" });
 }
