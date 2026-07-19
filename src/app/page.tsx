@@ -16,6 +16,7 @@ export default function Landing() {
           <Link href="/pricing" className="text-stone-600 hover:text-brand-700">Pricing</Link>
           <Link href="/deadlines" className="text-stone-600 hover:text-brand-700">Deadlines</Link>
           <Link href="/learn" className="text-stone-600 hover:text-brand-700">Learn</Link>
+          <Link href="/professional" className="text-stone-600 hover:text-brand-700">For professionals</Link>
           <InstallApp />
           <a href="#how" className="text-stone-600 hover:text-brand-700">How it works</a>
           <Link href="/app" className="rounded-lg bg-brand-600 px-4 py-2 font-medium text-white hover:bg-brand-700">
@@ -45,6 +46,11 @@ export default function Landing() {
             See how it works
           </a>
         </div>
+        <p className="mt-6 text-sm text-stone-500">
+          ⚖️ Lawyer, CA or law student? Explore the{" "}
+          <Link href="/professional" className="font-semibold text-brand-700 underline hover:no-underline">Professional Suite</Link>
+          {" "}— s.234 interest, 26AS reconciliation, regime breakevens, statute quick-reference and a client workbook.
+        </p>
         <p className="mt-4 text-sm text-stone-500">
           Free while in beta. No signup needed to try. Your numbers never train anyone&apos;s model.
         </p>
