@@ -59,6 +59,11 @@ export const PRO_TOOLS: ProTool[] = [
     href: "/tools/quiz", segment: "student", tier: "free",
   },
   {
+    id: "80gg", title: "80GG Rent Calculator", icon: "🏘️",
+    desc: "No HRA in the salary? The least-of-three 80GG deduction, with the Form 10BA checklist that CPC actually enforces.",
+    href: "/tools/80gg", segment: "student", tier: "free",
+  },
+  {
     id: "glossary", title: "Tax Glossary", icon: "🔤",
     desc: "Every term the Act throws at you, explained like a human.",
     href: "/learn", segment: "student", tier: "free",
