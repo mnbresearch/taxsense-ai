@@ -34,6 +34,20 @@ describe("professional suite catalog (Batch 36)", () => {
   });
 });
 
+describe("tax-law quiz (Batch 40)", async () => {
+  const { QUIZ } = await import("@/lib/quiz");
+  it("has 12 fully-formed questions with valid answers", () => {
+    expect(QUIZ.length).toBe(12);
+    for (const q of QUIZ) {
+      expect(q.options.length).toBe(4);
+      expect(q.answer).toBeGreaterThanOrEqual(0);
+      expect(q.answer).toBeLessThan(4);
+      expect(q.explain.length).toBeGreaterThan(30);
+      expect(q.sec.length).toBeGreaterThan(0);
+    }
+  });
+});
+
 describe("section quick-reference (Batch 37)", () => {
   it("has at least 20 sections, each fully written", () => {
     expect(SECTIONS.length).toBeGreaterThanOrEqual(20);
