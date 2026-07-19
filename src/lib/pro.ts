@@ -59,6 +59,11 @@ export const PRO_TOOLS: ProTool[] = [
     href: "/tools/quiz", segment: "student", tier: "free",
   },
   {
+    id: "gratuity", title: "Gratuity Calculator", icon: "🎁",
+    desc: "The 15/26 formula plus the s.10(10) exemption — least of formula, ₹20L lifetime cap, and amount received.",
+    href: "/tools/gratuity", segment: "student", tier: "free",
+  },
+  {
     id: "80gg", title: "80GG Rent Calculator", icon: "🏘️",
     desc: "No HRA in the salary? The least-of-three 80GG deduction, with the Form 10BA checklist that CPC actually enforces.",
     href: "/tools/80gg", segment: "student", tier: "free",
