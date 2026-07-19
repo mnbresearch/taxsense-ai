@@ -49,6 +49,11 @@ export const PRO_TOOLS: ProTool[] = [
     href: "/tools/hra", segment: "student", tier: "free",
   },
   {
+    id: "quiz", title: "The Tax-Law Quiz", icon: "🎓",
+    desc: "12 questions from real practice — 87A, Rule 2A, 44ADA, 234C safe harbour. Every miss teaches the section.",
+    href: "/tools/quiz", segment: "student", tier: "free",
+  },
+  {
     id: "glossary", title: "Tax Glossary", icon: "🔤",
     desc: "Every term the Act throws at you, explained like a human.",
     href: "/learn", segment: "student", tier: "free",
@@ -63,6 +68,11 @@ export const PRO_TOOLS: ProTool[] = [
     id: "breakeven", title: "Regime Breakeven Matrix", icon: "🎯",
     desc: "At what deduction level does the old regime beat the new — across an income grid. Advise in seconds, not spreadsheets.",
     href: "/tools/breakeven", segment: "practitioner", tier: "pro",
+  },
+  {
+    id: "tds", title: "26AS TDS Reconciliation", icon: "🧾",
+    desc: "Paste the 26AS, get every credit extracted, de-duped, totalled by section and matched against the return — without the statement leaving the browser.",
+    href: "/tools/tds", segment: "practitioner", tier: "pro",
   },
   {
     id: "ctc", title: "CTC Designer", icon: "🧩",
