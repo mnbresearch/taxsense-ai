@@ -44,6 +44,11 @@ export const PRO_TOOLS: ProTool[] = [
     href: "/tools/sections", segment: "student", tier: "free",
   },
   {
+    id: "harvest", title: "LTCG Harvesting Planner", icon: "🌾",
+    desc: "The ₹1.25L s.112A exemption is use-it-or-lose-it — compute what to book before 31 March and the 12.5% you avoid.",
+    href: "/tools/harvest", segment: "student", tier: "free",
+  },
+  {
     id: "hra", title: "HRA Exemption Calculator", icon: "🏠",
     desc: "Rule 2A's min-of-three, with the binding limb highlighted — exam answer and client answer in one.",
     href: "/tools/hra", segment: "student", tier: "free",
@@ -68,6 +73,16 @@ export const PRO_TOOLS: ProTool[] = [
     id: "breakeven", title: "Regime Breakeven Matrix", icon: "🎯",
     desc: "At what deduction level does the old regime beat the new — across an income grid. Advise in seconds, not spreadsheets.",
     href: "/tools/breakeven", segment: "practitioner", tier: "pro",
+  },
+  {
+    id: "notices", title: "Notice Helper", icon: "📨",
+    desc: "143(1), 139(9), 143(2), 148A, 245, demand notices — what each means, the clock it starts, and the response checklist.",
+    href: "/tools/notices", segment: "practitioner", tier: "pro",
+  },
+  {
+    id: "calendar", title: "Deadline Calendar (.ics)", icon: "📅",
+    desc: "Every due date into Google/Apple/Outlook Calendar in one click, day-before alarms included.",
+    href: "/tools/calendar", segment: "practitioner", tier: "free",
   },
   {
     id: "tds", title: "26AS TDS Reconciliation", icon: "🧾",
