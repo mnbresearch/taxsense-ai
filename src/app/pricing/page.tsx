@@ -107,6 +107,7 @@ export default function Pricing() {
             <p className="mt-1 text-xs text-stone-500">or ₹3,999/year — 2 months free</p>
             <Feat items={[
               "Everything in Starter",
+              "Practitioner tools: 234A/B/C interest, regime breakeven, 26AS reconciliation",
               "Unlimited filing-summary PDFs",
               "₹-quantified deduction insights, ranked by savings",
               "CTC Designer — the salary structure to ask HR for",
@@ -125,6 +126,7 @@ export default function Pricing() {
             <p className="mt-1 text-xs text-stone-500">or ₹9,999/year — 2 months free</p>
             <Feat items={[
               "Everything in Pro",
+              "Client Workbook — your whole client book, one table",
               "44AD / 44ADA presumptive taxation guidance",
               "Advance-tax calendar with 234B/234C interest",
               "Tax Jar — how much to set aside every month",
