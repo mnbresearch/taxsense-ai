@@ -9,6 +9,14 @@ export default function AdminPage() {
   const [leads, setLeads] = useState<any[] | null>(null);
   const [err, setErr] = useState<string>("");
   const [emails, setEmails] = useState<any[] | null>(null);
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [activeTpl, setActiveTpl] = useState<string | null>(null);
+  function loadTemplates() {
+    fetch("/api/admin/emails/templates")
+      .then((r) => r.json())
+      .then((d) => !d.error && setTemplates(d.templates ?? []))
+      .catch(() => {});
+  }
   const [to, setTo] = useState("");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
@@ -51,6 +59,7 @@ export default function AdminPage() {
   }
 
   function loadEmails() {
+    loadTemplates();
     fetch("/api/admin/emails")
       .then((r) => r.json())
       .then((d) => !d.error && setEmails(d.emails ?? []))
@@ -71,6 +80,34 @@ export default function AdminPage() {
       .catch(() => {});
   }, []);
 
+  async function saveTemplate() {
+    if (!subject.trim() || !body.trim()) { setSendMsg("Write the subject and body first, then save."); return; }
+    const name = window.prompt("Template name (existing name = overwrite):", activeTpl ?? "");
+    if (!name?.trim()) return;
+    const res = await fetch("/api/admin/emails/templates", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ name: name.trim(), subject, body }),
+    });
+    const d = await res.json();
+    setSendMsg(res.ok ? `✓ Template "${d.name}" saved` : d.error ?? "save failed");
+    if (res.ok) { setActiveTpl(d.name); loadTemplates(); }
+  }
+
+  function applyTemplate(t: any) {
+    setSubject(t.subject);
+    setBody(t.body);
+    setActiveTpl(t.name);
+    setSendMsg(`Template "${t.name}" loaded — sends will be tracked under it.`);
+  }
+
+  async function deleteTemplate(name: string) {
+    if (!window.confirm(`Delete template "${name}"? Past analytics keep the name.`)) return;
+    await fetch(`/api/admin/emails/templates?name=${encodeURIComponent(name)}`, { method: "DELETE" });
+    if (activeTpl === name) setActiveTpl(null);
+    loadTemplates();
+  }
+
   async function sendCampaign() {
     const recipients = to.split(/[\s,;]+/).map((x) => x.trim()).filter(Boolean);
     if (recipients.length === 0 || !subject.trim() || !body.trim()) {
@@ -84,7 +121,7 @@ export default function AdminPage() {
       const res = await fetch("/api/admin/emails", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ subject, body, recipients }),
+        body: JSON.stringify({ subject, body, recipients, templateName: activeTpl ?? undefined }),
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error ?? "send failed");
@@ -241,6 +278,25 @@ export default function AdminPage() {
               Sends live via Resend from <code>hello@updates.mnbresearch.com</code>. Use <code>{"{name}"}</code> anywhere to personalise per recipient.
             </p>
             <div className="mt-3 flex flex-col gap-2">
+              {/* Batch 48 — template library */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-stone-400">Templates:</span>
+                {templates.length === 0 && <span className="text-xs text-stone-400">none yet — write an email and hit 💾</span>}
+                {templates.map((t) => (
+                  <span key={t.name} className={"group flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold " + (activeTpl === t.name ? "border-brand-600 bg-brand-50 text-brand-700" : "border-stone-300 text-stone-600 hover:border-brand-600")}>
+                    <button onClick={() => applyTemplate(t)} title={t.subject}>{t.name}</button>
+                    <button onClick={() => deleteTemplate(t.name)} className="text-stone-300 hover:text-red-600" title="Delete template">✕</button>
+                  </span>
+                ))}
+                <button onClick={saveTemplate} className="rounded-full border border-stone-300 px-2.5 py-1 text-xs font-semibold text-stone-600 hover:border-brand-600 hover:text-brand-700" title="Save current subject+body as a template">
+                  💾 Save as template
+                </button>
+                {activeTpl && (
+                  <button onClick={() => { setActiveTpl(null); setSendMsg("Detached from template — send will be untracked."); }} className="text-[11px] text-stone-400 underline">
+                    detach
+                  </button>
+                )}
+              </div>
               <div className="flex flex-wrap items-center gap-2">
                 <input
                   value={to}
@@ -249,12 +305,26 @@ export default function AdminPage() {
                   className="min-w-0 flex-1 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-600"
                 />
                 {leads && leads.length > 0 && (
-                  <button
-                    onClick={() => setTo(Array.from(new Set(leads.map((l) => String(l.email).toLowerCase()))).join(", "))}
-                    className="rounded-lg border border-brand-600 px-3 py-2 text-xs font-semibold text-brand-700 hover:bg-brand-50"
-                  >
-                    Use all leads ({new Set(leads.map((l) => String(l.email).toLowerCase())).size})
-                  </button>
+                  <>
+                    <button
+                      onClick={() => setTo(Array.from(new Set(leads.map((l) => String(l.email).toLowerCase()))).join(", "))}
+                      className="rounded-lg border border-brand-600 px-3 py-2 text-xs font-semibold text-brand-700 hover:bg-brand-50"
+                    >
+                      All ({new Set(leads.map((l) => String(l.email).toLowerCase())).size})
+                    </button>
+                    <button
+                      onClick={() => setTo(Array.from(new Set(leads.filter((l) => l.status === "active").map((l) => String(l.email).toLowerCase()))).join(", "))}
+                      className="rounded-lg border border-green-600 px-3 py-2 text-xs font-semibold text-green-700 hover:bg-green-50"
+                    >
+                      Active ({new Set(leads.filter((l) => l.status === "active").map((l) => String(l.email).toLowerCase())).size})
+                    </button>
+                    <button
+                      onClick={() => setTo(Array.from(new Set(leads.filter((l) => l.status !== "active").map((l) => String(l.email).toLowerCase()))).join(", "))}
+                      className="rounded-lg border border-amber-500 px-3 py-2 text-xs font-semibold text-amber-700 hover:bg-amber-50"
+                    >
+                      Unconverted ({new Set(leads.filter((l) => l.status !== "active").map((l) => String(l.email).toLowerCase())).size})
+                    </button>
+                  </>
                 )}
               </div>
               <input
@@ -282,6 +352,57 @@ export default function AdminPage() {
               </div>
             </div>
           </div>
+
+          {emails && emails.some((m) => m.template_name) && (() => {
+            // Batch 48 — per-template performance from the live log.
+            const byTpl = new Map<string, { sent: number; opened: number; failed: number; last: string }>();
+            for (const m of emails) {
+              if (!m.template_name) continue;
+              const b = byTpl.get(m.template_name) ?? { sent: 0, opened: 0, failed: 0, last: m.created_at };
+              if (m.status === "sent") b.sent += 1; else if (m.status === "failed") b.failed += 1;
+              if (m.opened_at) b.opened += 1;
+              if (m.created_at > b.last) b.last = m.created_at;
+              byTpl.set(m.template_name, b);
+            }
+            const rows = [...byTpl.entries()].sort((a, b) => b[1].sent - a[1].sent);
+            return (
+              <div className="mt-6 rounded-xl border border-stone-200 bg-white p-5">
+                <h2 className="font-semibold">Template performance <span className="text-xs font-normal text-stone-500">opens via tracking pixel — undercounts (image-blocking clients), never overcounts</span></h2>
+                <table className="mt-3 w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-xs uppercase text-stone-400">
+                      <th className="py-1 font-medium">Template</th>
+                      <th className="text-right font-medium">Sent</th>
+                      <th className="text-right font-medium">Opened</th>
+                      <th className="w-1/3 font-medium pl-4">Open rate</th>
+                      <th className="text-right font-medium">Last used</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map(([name, b]) => {
+                      const rate = b.sent > 0 ? Math.round((b.opened / b.sent) * 100) : 0;
+                      return (
+                        <tr key={name} className="border-t border-stone-100">
+                          <td className="py-1.5 font-semibold text-stone-700">{name}{b.failed > 0 && <span className="ml-1.5 text-xs text-red-600">({b.failed} failed)</span>}</td>
+                          <td className="text-right">{b.sent}</td>
+                          <td className="text-right font-semibold text-brand-700">{b.opened}</td>
+                          <td className="pl-4">
+                            <div className="flex items-center gap-2">
+                              <div className="h-2 flex-1 overflow-hidden rounded-full bg-stone-100">
+                                <div className="h-full rounded-full bg-brand-600" style={{ width: `${rate}%` }} />
+                              </div>
+                              <span className="w-9 text-right text-xs font-bold text-stone-600">{rate}%</span>
+                            </div>
+                          </td>
+                          <td className="text-right text-xs text-stone-500">{new Date(b.last).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            );
+          })()}
 
           <div className="mt-6 rounded-xl border border-stone-200 bg-white p-5">
             <div className="flex items-center justify-between">
@@ -315,6 +436,7 @@ export default function AdminPage() {
                     <th className="font-medium">Subject</th>
                     <th className="font-medium">Kind</th>
                     <th className="font-medium">Status</th>
+                    <th className="font-medium">Opened</th>
                     <th className="text-right font-medium">When</th>
                   </tr>
                 </thead>
@@ -328,6 +450,11 @@ export default function AdminPage() {
                         <span className={m.status === "sent" ? "rounded bg-green-50 px-1.5 py-0.5 text-xs font-semibold text-green-700" : "rounded bg-red-50 px-1.5 py-0.5 text-xs font-semibold text-red-700"} title={m.error ?? ""}>
                           {m.status}
                         </span>
+                      </td>
+                      <td>
+                        {m.opened_at
+                          ? <span className="text-xs font-semibold text-green-700" title={new Date(m.opened_at).toLocaleString("en-IN")}>✓ {new Date(m.opened_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</span>
+                          : <span className="text-xs text-stone-300">—</span>}
                       </td>
                       <td className="text-right text-xs text-stone-500">
                         {new Date(m.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
