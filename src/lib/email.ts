@@ -45,7 +45,7 @@ export function brandedShell(title: string, body: string): string {
 </body></html>`;
 }
 
-async function logEmail(entry: { to_email: string; subject: string; kind: EmailKind; status: "sent" | "failed" | "skipped"; error?: string }): Promise<void> {
+async function logEmail(entry: { to_email: string; subject: string; kind: EmailKind; status: "sent" | "failed" | "skipped"; error?: string; track_id?: string; template_name?: string | null }): Promise<void> {
   try {
     const sb = supabaseAdmin();
     if (sb) await sb.from("email_log").insert(entry);
@@ -55,15 +55,18 @@ async function logEmail(entry: { to_email: string; subject: string; kind: EmailK
 }
 
 /** Sends one email via Resend and logs the outcome. Never throws. */
-export async function sendOne(payload: { to: string; subject: string; html: string; kind: EmailKind }): Promise<SendResult> {
-  const { to, subject, html, kind } = payload;
+const SITE = "https://taxsense-ai.vercel.app";
+
+export async function sendOne(payload: { to: string; subject: string; html: string; kind: EmailKind; trackId?: string; templateName?: string | null }): Promise<SendResult> {
+  const { to, subject, html, kind, trackId, templateName } = payload;
+  const meta = trackId ? { track_id: trackId, template_name: templateName ?? null } : {};
   try {
     if (!EMAIL_RE.test(to)) {
       return { to, ok: false, error: "invalid email" };
     }
     const key = process.env.RESEND_API_KEY;
     if (!key) {
-      await logEmail({ to_email: to, subject, kind, status: "skipped", error: "RESEND_API_KEY not configured" });
+      await logEmail({ to_email: to, subject, kind, status: "skipped", error: "RESEND_API_KEY not configured", ...meta });
       return { to, ok: false, error: "RESEND_API_KEY not configured" };
     }
     const res = await fetch(RESEND_URL, {
@@ -74,13 +77,13 @@ export async function sendOne(payload: { to: string; subject: string; html: stri
     if (!res.ok) {
       const err = (await res.text()).slice(0, 300);
       console.error("resend error", res.status, err);
-      await logEmail({ to_email: to, subject, kind, status: "failed", error: `${res.status}: ${err}` });
+      await logEmail({ to_email: to, subject, kind, status: "failed", error: `${res.status}: ${err}`, ...meta });
       return { to, ok: false, error: `resend ${res.status}` };
     }
-    await logEmail({ to_email: to, subject, kind, status: "sent" });
+    await logEmail({ to_email: to, subject, kind, status: "sent", ...meta });
     return { to, ok: true };
   } catch (e: any) {
-    await logEmail({ to_email: to, subject, kind, status: "failed", error: String(e).slice(0, 300) });
+    await logEmail({ to_email: to, subject, kind, status: "failed", error: String(e).slice(0, 300), ...meta });
     return { to, ok: false, error: String(e).slice(0, 120) };
   }
 }
@@ -152,6 +155,8 @@ export async function sendCampaign(opts: {
   subject: string;
   body: string;
   recipients: { email: string; name?: string | null }[];
+  /** Batch 48 — attributes sends to a template for open-rate analytics. */
+  templateName?: string | null;
 }): Promise<SendResult[]> {
   const results: SendResult[] = [];
   const seen = new Set<string>();
@@ -166,12 +171,15 @@ export async function sendCampaign(opts: {
       .split(/\n{2,}/)
       .map((p) => `<p style="color:#44403c;font-size:14.5px;line-height:1.7;margin:0 0 14px;">${esc(p).replace(/\n/g, "<br/>")}</p>`)
       .join("");
+    // Batch 48 — open tracking: unguessable pixel per send.
+    const trackId = crypto.randomUUID();
     const html = brandedShell(
       esc(personalSubject),
       `${paragraphs}
-       <p style="color:#78716c;font-size:12px;line-height:1.6;margin-top:20px;">Questions? Just reply to this email.<br/>${CONTACT_LINE}</p>`
+       <p style="color:#78716c;font-size:12px;line-height:1.6;margin-top:20px;">Questions? Just reply to this email.<br/>${CONTACT_LINE}</p>
+       <img src="${SITE}/api/e/o/${trackId}" width="1" height="1" alt="" style="display:block;" />`
     );
-    results.push(await sendOne({ to: email, subject: personalSubject, html, kind: "custom" }));
+    results.push(await sendOne({ to: email, subject: personalSubject, html, kind: "custom", trackId, templateName: opts.templateName ?? null }));
   }
   return results;
 }
