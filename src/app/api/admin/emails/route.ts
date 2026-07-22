@@ -24,9 +24,9 @@ export async function GET() {
   if ("error" in g) return g.error;
   const { data, error } = await g.admin
     .from("email_log")
-    .select("to_email, subject, kind, status, error, created_at")
+    .select("to_email, subject, kind, status, error, created_at, template_name, opened_at")
     .order("created_at", { ascending: false })
-    .limit(200);
+    .limit(500);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ emails: data });
 }
@@ -35,6 +35,7 @@ const ComposeInput = z.object({
   subject: z.string().min(1).max(200),
   body: z.string().min(1).max(10000),
   recipients: z.array(z.string().email().max(120)).min(1).max(200),
+  templateName: z.string().max(60).optional(),
 });
 
 /** Admin-only: compose + send a campaign email to selected recipients. */
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
   const parsed = ComposeInput.safeParse(await req.json().catch(() => null));
   if (!parsed.success)
     return NextResponse.json({ error: "need subject, body and 1–200 valid recipient emails" }, { status: 400 });
-  const { subject, body, recipients } = parsed.data;
+  const { subject, body, recipients, templateName } = parsed.data;
 
   // Personalise with lead names where we know them.
   const { data: leads } = await g.admin.from("access_requests").select("email, name").limit(1000);
@@ -53,6 +54,7 @@ export async function POST(req: NextRequest) {
   const results = await sendCampaign({
     subject,
     body,
+    templateName: templateName ?? null,
     recipients: recipients.map((email) => ({ email, name: nameByEmail.get(email.toLowerCase()) ?? null })),
   });
   const sent = results.filter((r) => r.ok).length;
