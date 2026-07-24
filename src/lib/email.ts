@@ -16,6 +16,14 @@ const RESEND_URL = "https://api.resend.com/emails";
 const FROM = "TaxSense AI · MNB Research <hello@updates.mnbresearch.com>";
 /** Batch 49 — real-time copy of every campaign send to the founder. */
 export const FOUNDER_CC = "mridulnanda2004@gmail.com";
+
+/** Batch 50 — HMAC-signed unsubscribe token (secret = service key, server-only). */
+export function unsubToken(email: string): string {
+  const secret = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "dev-secret";
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { createHmac } = require("crypto") as typeof import("crypto");
+  return createHmac("sha256", secret).update(email.trim().toLowerCase()).digest("hex").slice(0, 20);
+}
 const REPLY_TO = "mnbgotyou@gmail.com";
 export const ADMIN_EMAIL = "mnbgotyou@gmail.com";
 const APP_NAME = "TaxSense AI";
@@ -173,10 +181,23 @@ export async function sendCampaign(opts: {
 }): Promise<SendResult[]> {
   const results: SendResult[] = [];
   const seen = new Set<string>();
+  // Batch 50 — suppression list: never email someone who unsubscribed.
+  const suppressed = new Set<string>();
+  try {
+    const admin = supabaseAdmin();
+    if (admin) {
+      const { data } = await admin.from("email_suppressions").select("email").limit(10000);
+      for (const row of data ?? []) suppressed.add(String(row.email).toLowerCase());
+    }
+  } catch { /* fail open on read errors — logged sends still record outcomes */ }
   for (const r of opts.recipients) {
     const email = r.email.trim().toLowerCase();
     if (seen.has(email)) continue;
     seen.add(email);
+    if (suppressed.has(email)) {
+      results.push({ to: email, ok: false, error: "unsubscribed — skipped" });
+      continue;
+    }
     const first = (r.name ?? "").trim().split(" ")[0];
     const personalBody = opts.body.replace(/\{name\}/g, first || "there");
     const personalSubject = opts.subject.replace(/\{name\}/g, first || "there");
@@ -190,6 +211,7 @@ export async function sendCampaign(opts: {
       esc(personalSubject),
       `${paragraphs}
        <p style="color:#78716c;font-size:12px;line-height:1.6;margin-top:20px;">Questions? Just reply to this email.<br/>${CONTACT_LINE}</p>
+       <p style="color:#a8a29e;font-size:10px;margin-top:8px;"><a href="${SITE}/api/unsubscribe?e=${encodeURIComponent(email)}&t=${unsubToken(email)}" style="color:#a8a29e;">Unsubscribe from these updates</a></p>
        <img src="${SITE}/api/e/o/${trackId}" width="1" height="1" alt="" style="display:block;" />`
     );
     results.push(await sendOne({
