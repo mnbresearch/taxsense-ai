@@ -13,11 +13,13 @@
 import { supabaseAdmin } from "@/lib/supabase/server";
 
 const RESEND_URL = "https://api.resend.com/emails";
-const FROM = "AbroBot <hello@updates.mnbresearch.com>";
+const FROM = "TaxSense AI · MNB Research <hello@updates.mnbresearch.com>";
+/** Batch 49 — real-time copy of every campaign send to the founder. */
+export const FOUNDER_CC = "mridulnanda2004@gmail.com";
 const REPLY_TO = "mnbgotyou@gmail.com";
 export const ADMIN_EMAIL = "mnbgotyou@gmail.com";
 const APP_NAME = "TaxSense AI";
-const CONTACT_LINE = "AbroBot · MNB Research · +91 97114 88480 · abrobot.ai";
+const CONTACT_LINE = "TaxSense AI · an MNB Research product · +91 97114 88480";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -40,7 +42,18 @@ export function brandedShell(title: string, body: string): string {
       <h1 style="margin:0 0 14px;font-size:20px;color:#1c1917;">${title}</h1>
       ${body}
     </div>
-    <p style="text-align:center;color:#a8a29e;font-size:11px;margin-top:16px;">${CONTACT_LINE}</p>
+    <div style="text-align:center;margin-top:18px;">
+      <p style="color:#57534e;font-size:12px;font-weight:700;margin:0 0 4px;">TaxSense <span style="font-weight:400;">AI</span> — by MNB Research</p>
+      <p style="margin:0 0 8px;font-size:11px;">
+        <a href="https://taxsense-ai.vercel.app/app" style="color:#0d5947;text-decoration:none;font-weight:600;">Open the app</a>
+        &nbsp;·&nbsp;<a href="https://taxsense-ai.vercel.app/professional" style="color:#0d5947;text-decoration:none;font-weight:600;">Professional Suite</a>
+        &nbsp;·&nbsp;<a href="https://taxsense-ai.vercel.app/pricing" style="color:#0d5947;text-decoration:none;font-weight:600;">Plans</a>
+        &nbsp;·&nbsp;<a href="https://taxsense-ai.vercel.app/deadlines" style="color:#0d5947;text-decoration:none;font-weight:600;">Deadlines</a>
+      </p>
+      <p style="color:#a8a29e;font-size:11px;margin:0 0 4px;">Visit <a href="https://mnbresearch.com" style="color:#78716c;font-weight:600;text-decoration:underline;">MNB Research</a> for more details on everything we build.</p>
+      <p style="color:#a8a29e;font-size:11px;margin:0;">${CONTACT_LINE}</p>
+      <p style="color:#d6d3d1;font-size:10px;margin:6px 0 0;">You're receiving this because you signed up at taxsense-ai.vercel.app. Reply to this email to reach us directly.</p>
+    </div>
   </div>
 </body></html>`;
 }
@@ -57,8 +70,8 @@ async function logEmail(entry: { to_email: string; subject: string; kind: EmailK
 /** Sends one email via Resend and logs the outcome. Never throws. */
 const SITE = "https://taxsense-ai.vercel.app";
 
-export async function sendOne(payload: { to: string; subject: string; html: string; kind: EmailKind; trackId?: string; templateName?: string | null }): Promise<SendResult> {
-  const { to, subject, html, kind, trackId, templateName } = payload;
+export async function sendOne(payload: { to: string; subject: string; html: string; kind: EmailKind; trackId?: string; templateName?: string | null; cc?: string[] }): Promise<SendResult> {
+  const { to, subject, html, kind, trackId, templateName, cc } = payload;
   const meta = trackId ? { track_id: trackId, template_name: templateName ?? null } : {};
   try {
     if (!EMAIL_RE.test(to)) {
@@ -72,7 +85,7 @@ export async function sendOne(payload: { to: string; subject: string; html: stri
     const res = await fetch(RESEND_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-      body: JSON.stringify({ from: FROM, reply_to: REPLY_TO, to: [to], subject, html }),
+      body: JSON.stringify({ from: FROM, reply_to: REPLY_TO, to: [to], subject, html, ...(cc && cc.length ? { cc } : {}) }),
     });
     if (!res.ok) {
       const err = (await res.text()).slice(0, 300);
@@ -179,7 +192,12 @@ export async function sendCampaign(opts: {
        <p style="color:#78716c;font-size:12px;line-height:1.6;margin-top:20px;">Questions? Just reply to this email.<br/>${CONTACT_LINE}</p>
        <img src="${SITE}/api/e/o/${trackId}" width="1" height="1" alt="" style="display:block;" />`
     );
-    results.push(await sendOne({ to: email, subject: personalSubject, html, kind: "custom", trackId, templateName: opts.templateName ?? null }));
+    results.push(await sendOne({
+      to: email, subject: personalSubject, html, kind: "custom", trackId,
+      templateName: opts.templateName ?? null,
+      // real-time copy of every campaign email to the founder (skip self-sends)
+      cc: email === FOUNDER_CC ? undefined : [FOUNDER_CC],
+    }));
   }
   return results;
 }
