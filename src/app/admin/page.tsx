@@ -10,6 +10,7 @@ export default function AdminPage() {
   const [err, setErr] = useState<string>("");
   const [emails, setEmails] = useState<any[] | null>(null);
   const [templates, setTemplates] = useState<any[]>([]);
+  const [suppressions, setSuppressions] = useState<any[]>([]);
   const [activeTpl, setActiveTpl] = useState<string | null>(null);
   function loadTemplates() {
     fetch("/api/admin/emails/templates")
@@ -62,7 +63,7 @@ export default function AdminPage() {
     loadTemplates();
     fetch("/api/admin/emails")
       .then((r) => r.json())
-      .then((d) => !d.error && setEmails(d.emails ?? []))
+      .then((d) => { if (!d.error) { setEmails(d.emails ?? []); setSuppressions(d.suppressions ?? []); } })
       .catch(() => {});
   }
 
@@ -106,6 +107,25 @@ export default function AdminPage() {
     await fetch(`/api/admin/emails/templates?name=${encodeURIComponent(name)}`, { method: "DELETE" });
     if (activeTpl === name) setActiveTpl(null);
     loadTemplates();
+  }
+
+  async function sendTest() {
+    if (!subject.trim() || !body.trim()) { setSendMsg("Write the subject and body first."); return; }
+    setSending(true);
+    setSendMsg("");
+    try {
+      const res = await fetch("/api/admin/emails", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ subject: `[TEST] ${subject}`, body, recipients: ["mridulnanda2004@gmail.com"], templateName: activeTpl ?? undefined }),
+      });
+      const d = await res.json();
+      setSendMsg(res.ok ? "🧪 Test sent to your inbox — check it before the real send." : d.error ?? "test failed");
+    } catch (e: any) {
+      setSendMsg(e.message ?? "test failed");
+    } finally {
+      setSending(false);
+    }
   }
 
   async function sendCampaign() {
@@ -348,6 +368,14 @@ export default function AdminPage() {
                 >
                   {sending ? "Sending…" : "Send email"}
                 </button>
+                <button
+                  onClick={sendTest}
+                  disabled={sending}
+                  title="Send the current draft only to your own inbox"
+                  className="rounded-lg border border-stone-300 px-4 py-2.5 text-sm font-semibold text-stone-700 hover:border-brand-600 disabled:opacity-50"
+                >
+                  🧪 Test to me
+                </button>
                 {sendMsg && <span className="text-sm text-stone-600">{sendMsg}</span>}
               </div>
             </div>
@@ -498,6 +526,22 @@ export default function AdminPage() {
               </div>
             );
           })()}
+
+          {suppressions.length > 0 && (
+            <div className="mt-6 rounded-xl border border-stone-200 bg-white p-5">
+              <h2 className="font-semibold">
+                Unsubscribed <span className="ml-1 rounded bg-red-50 px-2 py-0.5 text-xs font-bold text-red-700">{suppressions.length}</span>
+                <span className="ml-2 text-xs font-normal text-stone-500">campaigns skip these addresses automatically</span>
+              </h2>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {suppressions.map((u) => (
+                  <span key={u.email} className="rounded-full bg-stone-100 px-2.5 py-1 text-xs text-stone-600" title={new Date(u.created_at).toLocaleString("en-IN")}>
+                    {u.email}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           {subs && subs.length > 0 && (
             <div className="mt-6 rounded-xl border border-stone-200 bg-white p-5">
