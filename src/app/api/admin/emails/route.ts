@@ -28,7 +28,13 @@ export async function GET() {
     .order("created_at", { ascending: false })
     .limit(500);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ emails: data });
+  // Batch 52 — surface the unsubscribe list alongside the log.
+  const { data: sup } = await g.admin
+    .from("email_suppressions")
+    .select("email, reason, created_at")
+    .order("created_at", { ascending: false })
+    .limit(200);
+  return NextResponse.json({ emails: data, suppressions: sup ?? [] });
 }
 
 const ComposeInput = z.object({
