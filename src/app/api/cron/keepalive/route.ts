@@ -101,12 +101,33 @@ export async function GET(req: NextRequest) {
       const { count } = await q;
       return count ?? 0;
     };
-    const [leads24, plans24, emails24, subs24] = await Promise.all([
+    const [leads24, plans24, emails24, subs24, opens24, unsubs24, activations24] = await Promise.all([
       cnt("access_requests"),
       cnt("access_requests", (q) => q.not("plan", "is", null)),
       cnt("email_log"),
       cnt("tax_reminders"),
+      // Batch 56 — email intelligence: opens are stamped on the log row
+      (async () => {
+        const { count } = await sb.from("email_log").select("*", { count: "exact", head: true }).gte("opened_at", since);
+        return count ?? 0;
+      })(),
+      cnt("email_suppressions"),
+      (async () => {
+        const { count } = await sb.from("audit_events").select("*", { count: "exact", head: true }).eq("event", "admin_lead_activated").gte("created_at", since);
+        return count ?? 0;
+      })(),
     ]);
+    // Revenue snapshot (all-time, not 24h): active vs pipeline MRR from plan text
+    let activeMrr = 0, pipeMrr = 0;
+    try {
+      const { data: allLeads } = await sb.from("access_requests").select("plan, status").not("plan", "is", null).limit(1000);
+      for (const l of allLeads ?? []) {
+        const mo = /₹([\d,]+)\/mo/.exec(l.plan ?? "");
+        const yr = /₹([\d,]+)\/yr\)/.exec(l.plan ?? "");
+        const val = mo ? Number(mo[1].replace(/,/g, "")) : yr ? Math.round(Number(yr[1].replace(/,/g, "")) / 12) : 0;
+        if (l.status === "active") activeMrr += val; else pipeMrr += val;
+      }
+    } catch { /* revenue rows are optional in the digest */ }
     if (leads24 + emails24 + subs24 > 0) {
       const row = (k: string, v: number) =>
         `<tr><td style="padding:7px 0;color:#78716c;border-bottom:1px solid #f5f5f4;">${k}</td><td style="padding:7px 0;color:#1c1917;font-weight:700;text-align:right;border-bottom:1px solid #f5f5f4;">${v}</td></tr>`;
@@ -117,8 +138,12 @@ export async function GET(req: NextRequest) {
         html: brandedShell(
           "Your last 24 hours",
           `<table style="width:100%;border-collapse:collapse;font-size:14px;">
-             ${row("New access requests", leads24)}${row("Plan requests (revenue!)", plans24)}${row("Emails sent by the system", emails24)}${row("New reminder subscribers", subs24)}
+             ${row("New access requests", leads24)}${row("Plan requests (revenue!)", plans24)}${row("Leads activated (₹ Paid)", activations24)}${row("Emails sent by the system", emails24)}${row("Emails opened (24h)", opens24)}${row("New unsubscribes", unsubs24)}${row("New reminder subscribers", subs24)}
            </table>
+           <p style="margin:14px 0 0;font-size:13px;color:#57534e;">
+             <strong style="color:#166534;">Active MRR ₹${activeMrr.toLocaleString("en-IN")}</strong>
+             &nbsp;·&nbsp; Pipeline ₹${pipeMrr.toLocaleString("en-IN")} waiting on your calls
+           </p>
            <p style="margin-top:16px;"><a href="https://taxsense-ai.vercel.app/admin" style="color:#0d5947;font-weight:600;">Open the admin panel →</a></p>`
         ),
       });
