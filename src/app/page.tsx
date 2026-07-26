@@ -1,9 +1,13 @@
 import Link from "next/link";
 import RequestAccess from "./RequestAccess";
 import InstallApp from "./InstallApp";
+import { PRO_TOOLS } from "@/lib/pro";
 
 /** Landing page (Session 8 copy) — MNB Research / founder-building-in-public voice. */
+export const revalidate = 3600; // hourly — keeps the deadline countdown honest
+
 export default function Landing() {
+  const daysToFile = Math.max(0, Math.ceil((new Date("2026-07-31T23:59:59+05:30").getTime() - Date.now()) / 86400000));
   return (
     <main>
       {/* Nav */}
@@ -30,6 +34,11 @@ export default function Landing() {
         <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-brand-600">
           An MNB Research product · FY 2025-26 ready
         </p>
+        {daysToFile > 0 && (
+          <p className="mx-auto mb-4 inline-block rounded-full bg-amber-100 px-4 py-1.5 text-sm font-bold text-amber-800">
+            ⏳ {daysToFile} day{daysToFile === 1 ? "" : "s"} left to file ITR without late fees
+          </p>
+        )}
         <h1 className="mx-auto max-w-3xl text-4xl font-bold leading-tight sm:text-5xl">
           Your taxes, figured out in one conversation.
         </h1>
@@ -108,6 +117,40 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Batch 54 — who it's for */}
+      <section className="mx-auto max-w-5xl px-6 py-14">
+        <h2 className="text-center text-2xl font-bold text-stone-800">Built for how you earn</h2>
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          <div className="flex flex-col rounded-2xl border border-stone-200 bg-white p-6">
+            <div className="text-3xl">💼</div>
+            <h3 className="mt-2 font-bold text-stone-800">Salaried</h3>
+            <p className="mt-1 flex-1 text-sm text-stone-600">
+              Paste your Form 16, see both regimes in seconds, and learn the salary structure to ask HR for.
+              Most people under ₹12L discover they owe <strong>zero</strong> under the new regime — and exactly why.
+            </p>
+            <Link href="/app" className="mt-4 text-sm font-semibold text-brand-700 hover:underline">Compute mine free →</Link>
+          </div>
+          <div className="flex flex-col rounded-2xl border border-stone-200 bg-white p-6">
+            <div className="text-3xl">🚀</div>
+            <h3 className="mt-2 font-bold text-stone-800">Freelancers & business</h3>
+            <p className="mt-1 flex-1 text-sm text-stone-600">
+              44ADA presumptive maths, the advance-tax calendar that saves you 234C interest, a Tax Jar that
+              tells you what to set aside monthly — no TDS cushion needed.
+            </p>
+            <Link href="/guide" className="mt-4 text-sm font-semibold text-brand-700 hover:underline">Start with the Tax Guide →</Link>
+          </div>
+          <div className="flex flex-col rounded-2xl border border-stone-200 bg-white p-6">
+            <div className="text-3xl">⚖️</div>
+            <h3 className="mt-2 font-bold text-stone-800">Lawyers, CAs & students</h3>
+            <p className="mt-1 flex-1 text-sm text-stone-600">
+              s.234 interest, 26AS reconciliation, notice playbooks, a client workbook — the calculations you
+              redo every season, done once and done right.
+            </p>
+            <Link href="/professional" className="mt-4 text-sm font-semibold text-brand-700 hover:underline">Explore the Professional Suite →</Link>
+          </div>
+        </div>
+      </section>
+
       {/* How it works */}
       <section id="how" className="mx-auto max-w-5xl px-6 py-16">
         <h2 className="text-center text-3xl font-bold">How it works</h2>
@@ -143,12 +186,114 @@ export default function Landing() {
         </p>
       </section>
 
+      {/* Batch 53 — free tools showcase (rendered from the live catalog) */}
+      <section className="mx-auto max-w-5xl px-6 py-14">
+        <h2 className="text-center text-2xl font-bold text-stone-800">Free tools, no signup</h2>
+        <p className="mx-auto mt-2 max-w-xl text-center text-sm text-stone-600">
+          Every calculator runs the same deterministic FY 2025-26 engine as the app — used by students, salaried folks and practitioners alike.
+        </p>
+        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {PRO_TOOLS.filter((t) => t.tier === "free" && t.href.startsWith("/tools")).map((t) => (
+            <Link key={t.id} href={t.href} className="rounded-xl border border-stone-200 bg-white p-4 transition hover:border-brand-600 hover:shadow-sm">
+              <span className="text-xl">{t.icon}</span>
+              <span className="mt-1 block text-sm font-semibold text-stone-800">{t.title}</span>
+              <span className="mt-0.5 block text-xs text-stone-500 line-clamp-2">{t.desc}</span>
+            </Link>
+          ))}
+        </div>
+        <p className="mt-6 text-center text-sm">
+          <Link href="/professional" className="font-semibold text-brand-700 underline hover:no-underline">
+            See the full Professional Suite — including the practitioner tools →
+          </Link>
+        </p>
+      </section>
+
+      {/* Batch 54 — pricing teaser */}
+      <section className="border-y border-stone-200 bg-white">
+        <div className="mx-auto max-w-5xl px-6 py-14">
+          <h2 className="text-center text-2xl font-bold text-stone-800">Start free. Upgrade when it pays for itself.</h2>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            <div className="rounded-2xl border border-stone-200 p-6 text-center">
+              <div className="text-sm font-bold uppercase tracking-wide text-stone-500">Starter</div>
+              <div className="mt-2 text-3xl font-bold text-stone-800">₹0</div>
+              <p className="mt-2 text-sm text-stone-600">Full both-regime computation, optimizer preview, 2 PDFs a day, every free tool.</p>
+            </div>
+            <div className="relative rounded-2xl border-2 border-brand-600 p-6 text-center shadow-md">
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-600 px-3 py-0.5 text-xs font-bold text-white">Most popular</span>
+              <div className="text-sm font-bold uppercase tracking-wide text-brand-700">Pro</div>
+              <div className="mt-2 text-3xl font-bold text-stone-800">₹399<span className="text-base font-medium text-stone-400">/mo</span></div>
+              <p className="mt-2 text-sm text-stone-600">CTC Designer, unlimited PDFs, practitioner tools — one avoided 234C mistake pays the year.</p>
+            </div>
+            <div className="rounded-2xl border border-stone-200 p-6 text-center">
+              <div className="text-sm font-bold uppercase tracking-wide text-stone-500">Business</div>
+              <div className="mt-2 text-3xl font-bold text-stone-800">₹999<span className="text-base font-medium text-stone-400">/mo</span></div>
+              <p className="mt-2 text-sm text-stone-600">Everything in Pro plus the Client Workbook — run your whole book through the engine.</p>
+            </div>
+          </div>
+          <p className="mt-6 text-center text-sm text-stone-600">
+            Prefer it done for you? <strong>Filed For You</strong> — ₹4,999 per return.{" "}
+            <Link href="/pricing" className="font-semibold text-brand-700 underline hover:no-underline">See all plans →</Link>
+          </p>
+        </div>
+      </section>
+
+      {/* Batch 54 — FAQ */}
+      <section className="mx-auto max-w-3xl px-6 py-14">
+        <h2 className="text-center text-2xl font-bold text-stone-800">Fair questions</h2>
+        <div className="mt-6 space-y-3">
+          {[
+            ["How do I know the numbers are right?", "The engine is deterministic — same input, same answer, every section cited. It ships with 147 automated checks against hand-computed anchor cases (slabs, 87A with marginal relief, HRA Rule 2A, 234 interest), and a live self-test runs on every deployment."],
+            ["Is my financial data safe?", "Computation happens per-request and chats are retention-limited. Saved profiles are protected by row-level security — only your login can read them. Tools like 26AS reconciliation run entirely in your browser; the statement never reaches our servers."],
+            ["How does paying work?", "No card forms. Request a plan, we call you, you pay by UPI or bank transfer, and your email unlocks everything within minutes. Cancel any time by telling us."],
+            ["Can it actually file my return?", "TaxSense prepares everything — computation, regime call, ITR form recommendation, filing-summary PDF. You (or your CA) file on the income-tax portal, or choose Filed For You and an expert handles it end to end."],
+            ["What if I'm not in India / use the old regime?", "TaxSense is built specifically for Indian residents, FY 2025-26, and computes BOTH regimes every time — that comparison is the whole point."],
+          ].map(([q, a]) => (
+            <details key={q} className="rounded-xl border border-stone-200 bg-white p-4">
+              <summary className="cursor-pointer text-sm font-semibold text-stone-800">{q}</summary>
+              <p className="mt-2 text-sm text-stone-600">{a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: [
+              { "@type": "Question", name: "How do I know TaxSense AI's numbers are right?", acceptedAnswer: { "@type": "Answer", text: "The engine is deterministic and section-cited, with 147 automated checks against hand-computed anchor cases and a live self-test on every deployment." } },
+              { "@type": "Question", name: "Is my financial data safe with TaxSense AI?", acceptedAnswer: { "@type": "Answer", text: "Saved profiles are protected by row-level security; chats are retention-limited; browser-side tools like 26AS reconciliation never upload your documents." } },
+              { "@type": "Question", name: "How does paying for TaxSense AI work?", acceptedAnswer: { "@type": "Answer", text: "Request a plan, receive a call, pay by UPI or bank transfer, and your email unlocks everything within minutes." } },
+            ],
+          }),
+        }}
+      />
+
+      {/* Batch 53 — structured data for search engines */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            name: "TaxSense AI",
+            applicationCategory: "FinanceApplication",
+            operatingSystem: "Web",
+            url: "https://taxsense-ai.vercel.app",
+            description: "Conversational Indian income-tax copilot for FY 2025-26 — both-regime computation, optimizer, filing summary PDFs and a professional suite for lawyers, CAs and students.",
+            offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
+            author: { "@type": "Organization", name: "MNB Research", url: "https://mnbresearch.com" },
+          }),
+        }}
+      />
+
       {/* Access CTA */}
       <section className="bg-brand-700">
         <div className="mx-auto max-w-3xl px-6 py-14 text-center">
-          <h2 className="text-3xl font-bold text-white">Be first in line.</h2>
+          <h2 className="text-3xl font-bold text-white">Your taxes, sorted before the deadline.</h2>
           <p className="mx-auto mt-2 max-w-xl text-sm text-brand-100">
-            We launch Monday, 13 July. Request access now and your invite — with a free month — lands the moment we go live.
+            We're live. Drop your email and we'll set you up — free to start, and the July 31 clock is ticking.
           </p>
           <div className="mt-6">
             <RequestAccess />
