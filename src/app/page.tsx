@@ -91,10 +91,10 @@ export default function Landing() {
         </p>
         <div className="mx-auto mt-8 max-w-xl rounded-2xl border border-brand-100 bg-brand-50/60 p-5">
           <p className="mb-3 text-sm font-semibold text-brand-700">
-            🚀 Launching Monday, 13 July — request early access
+            ✅ Live now — drop your email and start in minutes
           </p>
           <RequestAccess compact />
-          <p className="mt-2 text-xs text-stone-500">No spam. One email with your access details at launch.</p>
+          <p className="mt-2 text-xs text-stone-500">No spam — a welcome email with your access details, and that's it.</p>
         </div>
       </section>
 
