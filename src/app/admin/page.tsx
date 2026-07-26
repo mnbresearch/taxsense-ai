@@ -230,6 +230,18 @@ export default function AdminPage() {
                   Export CSV
                 </button>
               )}
+              {leads && leads.length > 0 && (
+                <button
+                  onClick={() => {
+                    const all = Array.from(new Set(leads.map((l) => String(l.email).toLowerCase()))).join(", ");
+                    navigator.clipboard?.writeText(all);
+                  }}
+                  className="ml-3 text-xs text-brand-700 underline"
+                  title="Copy every lead email, comma-separated — paste straight into the composer"
+                >
+                  📋 Copy emails
+                </button>
+              )}
             </div>
             {leads && leads.length > 1 && (() => {
               const days: string[] = [];
@@ -267,7 +279,11 @@ export default function AdminPage() {
                     <tr key={i} className="border-t border-stone-100">
                       <td className="py-1.5 font-medium">{l.email}</td>
                       <td className="text-stone-600">{l.name ?? "—"}</td>
-                      <td className="text-stone-600">{l.phone ?? "—"}</td>
+                      <td className="text-stone-600">
+                        {l.phone
+                          ? <a href={`tel:${String(l.phone).replace(/[^+\d]/g, "")}`} className="font-semibold text-brand-700 hover:underline" title="Tap to call">📞 {l.phone}</a>
+                          : "—"}
+                      </td>
                       <td className="text-stone-600">
                         {l.status === "active" ? (
                           <span className="rounded bg-green-100 px-1.5 py-0.5 text-xs font-bold text-green-700">✓ ACTIVE{l.plan ? ` · ${l.plan}` : ""}</span>
