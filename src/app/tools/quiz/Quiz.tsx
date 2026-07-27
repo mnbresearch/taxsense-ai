@@ -4,9 +4,21 @@
 import { useState } from "react";
 import Link from "next/link";
 import { QUIZ } from "@/lib/quiz";
+import { useMemo } from "react";
+
+/** Batch 61 — each attempt draws a random 12 from the 24-question bank. */
+function draw12(): typeof QUIZ {
+  const a = [...QUIZ];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a.slice(0, 12);
+}
 
 export default function Quiz() {
-  const [picked, setPicked] = useState<(number | null)[]>(QUIZ.map(() => null));
+  const qs = useMemo(() => draw12(), []);
+  const [picked, setPicked] = useState<(number | null)[]>(qs.map(() => null));
   const [done, setDone] = useState(false);
   const [email, setEmail] = useState("");
   const [capState, setCapState] = useState<"idle" | "busy" | "done" | "error">("idle");
@@ -29,10 +41,10 @@ export default function Quiz() {
   }
 
   const answered = picked.filter((p) => p !== null).length;
-  const score = picked.reduce((acc: number, p, i) => acc + (p === QUIZ[i].answer ? 1 : 0), 0);
+  const score = picked.reduce((acc: number, p, i) => acc + (p === qs[i].answer ? 1 : 0), 0);
 
   function grade(): string {
-    const pct = score / QUIZ.length;
+    const pct = score / qs.length;
     if (pct >= 0.9) return "Senior counsel material 🥇";
     if (pct >= 0.7) return "Ready for the tax bench 🥈";
     if (pct >= 0.5) return "Solid junior — keep reading 🥉";
@@ -40,7 +52,7 @@ export default function Quiz() {
   }
 
   function share() {
-    const text = `I scored ${score}/${QUIZ.length} on the TaxSense AI tax-law quiz (${grade().replace(/[^\w\s-]/g, "").trim()}). Try beating me: https://taxsense-ai.vercel.app/tools/quiz`;
+    const text = `I scored ${score}/${qs.length} on the TaxSense AI tax-law quiz (${grade().replace(/[^\w\s-]/g, "").trim()}). Try beating me: https://taxsense-ai.vercel.app/tools/quiz`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener");
   }
 
@@ -56,7 +68,7 @@ export default function Quiz() {
       </header>
 
       <div className="space-y-5">
-        {QUIZ.map((item, qi) => {
+        {qs.map((item, qi) => {
           const p = picked[qi];
           return (
             <div key={qi} className="rounded-xl border border-stone-200 bg-white p-4">
@@ -96,10 +108,10 @@ export default function Quiz() {
       <div className="sticky bottom-4 mt-8 rounded-xl border border-brand-200 bg-white p-4 shadow-lg">
         {!done ? (
           <div className="flex items-center justify-between">
-            <span className="text-sm text-stone-600">{answered}/{QUIZ.length} answered · running score {score}</span>
+            <span className="text-sm text-stone-600">{answered}/{qs.length} answered · running score {score}</span>
             <button
               onClick={() => setDone(true)}
-              disabled={answered < QUIZ.length}
+              disabled={answered < qs.length}
               className="rounded-lg bg-brand-600 px-5 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-40"
             >
               Finish
@@ -108,7 +120,7 @@ export default function Quiz() {
         ) : (
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="text-xl font-bold text-brand-700">{score}/{QUIZ.length} — {grade()}</div>
+              <div className="text-xl font-bold text-brand-700">{score}/{qs.length} — {grade()}</div>
               <div className="text-xs text-stone-500">Every explanation above is now visible — worth a scroll.</div>
             </div>
             <div className="flex gap-2">
