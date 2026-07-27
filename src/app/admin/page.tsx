@@ -536,6 +536,23 @@ export default function AdminPage() {
             </div>
           )}
 
+          {traffic && traffic.errorCount7d > 0 && (
+            <div className="mt-6 rounded-xl border border-red-200 bg-red-50/60 p-5">
+              <h2 className="font-semibold text-red-900">
+                Client errors — last 7 days
+                <span className="ml-2 rounded bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700">{traffic.errorCount7d}</span>
+              </h2>
+              <ul className="mt-2 space-y-1">
+                {traffic.errors.map((e: any) => (
+                  <li key={e.message} className="flex justify-between gap-3 text-xs text-red-900">
+                    <span className="truncate font-mono">{e.message}</span>
+                    <span className="font-bold">×{e.count}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {leads && leads.some((l) => l.plan) && (() => {
             // Batch 34 — split revenue: money in the bank (active) vs money on the phone (pipeline).
             const buckets = { active: { mrr: 0, oneTime: 0 }, lead: { mrr: 0, oneTime: 0 } };
