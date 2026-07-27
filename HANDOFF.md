@@ -1,6 +1,6 @@
 # TaxSense AI — Handoff & Continuation Guide
 
-Built across 39 feature batches by MNB Research × Abrobot.ai. Live at **https://taxsense-ai.vercel.app**.
+Built across 63 feature batches by MNB Research × Abrobot.ai. Live at **https://taxsense-ai.vercel.app**.
 Marketing: **mnbresearch.com/taxsense-ai** (+ portfolio card, 2 blog posts, Services & main nav entries — all on the Odoo site).
 
 ## Stack & infrastructure
@@ -54,3 +54,15 @@ Marketing: **mnbresearch.com/taxsense-ai** (+ portfolio card, 2 blog posts, Serv
 - **Auto-update (39)**: `/api/health` exposes `build` (VERCEL_GIT_COMMIT_SHA); `src/app/UpdateWatcher.tsx` polls 10-min + on focus → reload (toast on /app to protect chat). SW cache v2.
 - Tests: 17 files / 133. Push method that works: GitHub web upload + **JS form submit** (`input[name=message]` + click Commit via javascript_tool — coordinate/ref clicks are flaky). ALWAYS checksum-verify via raw.githubusercontent.
 - Known debts: PDF cap is per-serverless-instance; package-lock.json out of sync with package.json (use `npm install`, not `npm ci`); free PDF/scenario caps client-visible via /api/entitlements.
+
+
+## Batches 40-63 (third marathon session — launch week)
+- **Tools**: quiz (24-Q bank, random 12/attempt, lead capture source "quiz"), 26AS TDS reconciliation (`src/lib/tds.ts`, in-browser), notice helper (`src/lib/notices.ts`, 6 playbooks), deadline .ics calendar, LTCG harvest planner (`src/lib/harvest.ts`), 80GG (`src/lib/rent80gg.ts`), gratuity (inline). All in `src/lib/pro.ts` catalog.
+- **Email Studio (48-52)**: `email_templates` table (mig 0008) + track_id/template_name/opened_at on email_log; pixel `/api/e/o/[id]`; templates CRUD + 3 built-in starters; composer targeting (All/Active/Unconverted) + 🧪 test-send; per-template open rates; suppression list (mig 0009) + HMAC unsubscribe `/api/unsubscribe` (secret = SUPABASE_SERVICE_ROLE_KEY); sender "TaxSense AI · MNB Research"; campaigns CC FOUNDER_CC (mridulnanda2004@gmail.com).
+- **Landing (53-54)**: free-tools grid from catalog, who-it's-for, pricing teaser, FAQ + JSON-LD (FAQPage + SoftwareApplication), hourly-revalidated deadline badge; ALL stale "launching July 13" copy removed.
+- **Admin (55-57,60)**: tap-to-call tel: links, copy-emails; digest 2.0 (opens/unsubs/activations/MRR split); workbook client delete (`DELETE /api/profile?label=`); traffic panel + anonymous pageview beacon (`PageBeacon` in layout → audit_events "pageview", `/api/admin/traffic`).
+- **Public**: `/whats-new` changelog (`src/lib/changelog.ts` — UPDATE THIS when shipping features; the Monday digest reads CHANGELOG[0]).
+- **Weekly digest (63)**: cron sends "This week at TaxSense AI" every IST-Monday to all access_requests (≤500) — suppression-aware, template "weekly-digest".
+- **Ops facts**: ADMIN_EMAILS env = mridulnanda2004@gmail.com,mnbgotyou@gmail.com (fixed + redeployed after 403s; Sensitive, write-only in Vercel). LinkedIn launch posted 27 Jul from founder's profile. Real leads at that time: none (only founder's own emails) — growth = posting the launch kit (outputs/professional-suite-launch.md).
+- **Push method**: GitHub web upload; ONLY reliable commit = javascript_tool setting input[name=message] + clicking Commit button; verify EVERY file via raw.githubusercontent (bytes or md5, cache-bust). /tmp sandbox gets wiped — re-clone + `npm install --prefer-offline` (cache persists in /sessions/.npm). Supabase sessions expire — user must sign in.
+- Tests: 20 files / 147. Suite catalog = 17 tools.
