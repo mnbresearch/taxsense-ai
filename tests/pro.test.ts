@@ -36,8 +36,8 @@ describe("professional suite catalog (Batch 36)", () => {
 
 describe("tax-law quiz (Batch 40)", async () => {
   const { QUIZ } = await import("@/lib/quiz");
-  it("has 12 fully-formed questions with valid answers", () => {
-    expect(QUIZ.length).toBe(12);
+  it("has 24 fully-formed questions with valid answers", () => {
+    expect(QUIZ.length).toBe(24);
     for (const q of QUIZ) {
       expect(q.options.length).toBe(4);
       expect(q.answer).toBeGreaterThanOrEqual(0);
