@@ -11,6 +11,7 @@ export default function AdminPage() {
   const [emails, setEmails] = useState<any[] | null>(null);
   const [templates, setTemplates] = useState<any[]>([]);
   const [suppressions, setSuppressions] = useState<any[]>([]);
+  const [traffic, setTraffic] = useState<any>(null);
   const [activeTpl, setActiveTpl] = useState<string | null>(null);
   function loadTemplates() {
     fetch("/api/admin/emails/templates")
@@ -61,6 +62,7 @@ export default function AdminPage() {
 
   function loadEmails() {
     loadTemplates();
+    fetch("/api/admin/traffic").then((r) => r.json()).then((d) => !d.error && setTraffic(d)).catch(() => {});
     fetch("/api/admin/emails")
       .then((r) => r.json())
       .then((d) => { if (!d.error) { setEmails(d.emails ?? []); setSuppressions(d.suppressions ?? []); } })
@@ -509,6 +511,30 @@ export default function AdminPage() {
               </table>
             )}
           </div>
+
+          {traffic && traffic.total7d > 0 && (
+            <div className="mt-6 rounded-xl border border-stone-200 bg-white p-5">
+              <h2 className="font-semibold">
+                Traffic — last 7 days
+                <span className="ml-2 rounded bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-700">{traffic.total7d} views</span>
+                <span className="ml-1.5 rounded bg-stone-100 px-2 py-0.5 text-xs font-bold text-stone-600">{traffic.today} today</span>
+              </h2>
+              <div className="mt-3 space-y-1.5">
+                {traffic.paths.map((p: any) => {
+                  const max = traffic.paths[0]?.views ?? 1;
+                  return (
+                    <div key={p.path} className="flex items-center gap-3 text-sm">
+                      <span className="w-56 truncate font-mono text-xs text-stone-600">{p.path}</span>
+                      <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-stone-100">
+                        <div className="h-full rounded-full bg-brand-600" style={{ width: `${Math.max(3, Math.round((p.views / max) * 100))}%` }} />
+                      </div>
+                      <span className="w-10 text-right text-xs font-bold text-stone-700">{p.views}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {leads && leads.some((l) => l.plan) && (() => {
             // Batch 34 — split revenue: money in the bank (active) vs money on the phone (pipeline).
