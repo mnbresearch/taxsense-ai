@@ -60,3 +60,23 @@ export async function GET(req: NextRequest) {
   const { data } = await q.order("updated_at", { ascending: false }).limit(1).maybeSingle();
   return NextResponse.json({ record: data ?? null, mode: "supabase" });
 }
+
+/** Batch 57 — remove a saved profile/client by label. RLS scopes to the owner. */
+export async function DELETE(req: NextRequest) {
+  const sb = supabaseServer();
+  if (!sb) {
+    demoStore.delete("demo-user");
+    return NextResponse.json({ deleted: true, mode: "demo" });
+  }
+  const { data: auth } = await sb.auth.getUser();
+  if (!auth.user) return NextResponse.json({ error: "sign in required" }, { status: 401 });
+  const label = req.nextUrl.searchParams.get("label");
+  if (!label) return NextResponse.json({ error: "label required" }, { status: 400 });
+  const { error } = await sb
+    .from("tax_profiles")
+    .delete()
+    .eq("fy", "FY2025-26")
+    .eq("label", label.slice(0, 120));
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ deleted: true });
+}
