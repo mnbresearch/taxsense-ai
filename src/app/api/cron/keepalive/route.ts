@@ -1,8 +1,10 @@
+import { CHANGELOG } from "@/lib/changelog";
+import { upcomingDeadlines } from "@/lib/deadlines";
 import { NextRequest, NextResponse } from "next/server";
 import { computeBoth, emptyProfile } from "@/lib/tax-engine";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { deadlinesInDays } from "@/lib/deadlines";
-import { ADMIN_EMAIL, brandedShell, sendOne } from "@/lib/email";
+import { ADMIN_EMAIL, brandedShell, sendOne, sendCampaign } from "@/lib/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -153,6 +155,44 @@ export async function GET(req: NextRequest) {
     }
   } catch (e) {
     out.digest = String(e).slice(0, 120);
+  }
+
+  // 6b. Batch 63 — Monday weekly digest to the whole list (suppression-aware).
+  try {
+    const istNow = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+    if (istNow.getDay() === 1) {
+      const { data: list } = await sb
+        .from("access_requests")
+        .select("email, name")
+        .limit(500);
+      const recipients = (list ?? []).map((l: any) => ({ email: l.email, name: l.name }));
+      if (recipients.length > 0) {
+        const latest = CHANGELOG[0];
+        const dl = upcomingDeadlines(new Date(), 2);
+        const body = [
+          `Hi {name},`,
+          `Here's what shipped on TaxSense AI recently — ${latest.title.toLowerCase()}:`,
+          latest.items.map((i) => `• ${i}`).join("\n"),
+          dl.length
+            ? `⏳ Coming up:\n` + dl.map((d) => `• ${new Date(d.date + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short" })} — ${d.label}`).join("\n")
+            : "",
+          `Everything is live at taxsense-ai.vercel.app — the app updates itself, so you already have all of it.`,
+        ].filter(Boolean).join("\n\n");
+        const results = await sendCampaign({
+          subject: "This week at TaxSense AI — what's new & what's due",
+          body,
+          recipients,
+          templateName: "weekly-digest",
+        });
+        out.weekly = `sent ${results.filter((r) => r.ok).length}/${recipients.length}`;
+      } else {
+        out.weekly = "no recipients";
+      }
+    } else {
+      out.weekly = "not Monday — skipped";
+    }
+  } catch (e) {
+    out.weekly = String(e).slice(0, 120);
   }
 
   // 6. Log the run so the admin panel can display "last keep-alive"
