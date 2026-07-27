@@ -25,11 +25,12 @@ export const metadata: Metadata = {
 };
 
 import UpdateWatcher from "./UpdateWatcher";
+import PageBeacon from "./PageBeacon";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-stone-50 text-stone-900 antialiased">{children}<UpdateWatcher /></body>
+      <body className="min-h-screen bg-stone-50 text-stone-900 antialiased">{children}<UpdateWatcher /><PageBeacon /></body>
     </html>
   );
 }
