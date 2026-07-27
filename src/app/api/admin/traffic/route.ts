@@ -31,5 +31,20 @@ export async function GET() {
   }
   const paths = Object.entries(byPath).sort((a, b) => b[1] - a[1]).slice(0, 20)
     .map(([path, views]) => ({ path, views }));
-  return NextResponse.json({ total7d: (data ?? []).length, today, paths });
+  // Batch 65 — client errors from the same window, so problems surface fast.
+  const { data: errs } = await admin
+    .from("audit_events")
+    .select("event, meta, created_at")
+    .like("event", "client_error:%")
+    .gte("created_at", since)
+    .order("created_at", { ascending: false })
+    .limit(200);
+  const byMsg: Record<string, number> = {};
+  for (const e of errs ?? []) {
+    const m = ((e as any).meta?.message ?? "unknown").slice(0, 120);
+    byMsg[m] = (byMsg[m] ?? 0) + 1;
+  }
+  const errors = Object.entries(byMsg).sort((a, b) => b[1] - a[1]).slice(0, 10)
+    .map(([message, count]) => ({ message, count }));
+  return NextResponse.json({ total7d: (data ?? []).length, today, paths, errorCount7d: (errs ?? []).length, errors });
 }
