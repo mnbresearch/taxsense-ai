@@ -34,6 +34,13 @@ export default function Workbook() {
   }
   useEffect(() => { load(); }, []);
 
+  async function removeClient(label: string) {
+    if (!window.confirm(`Remove "${label}" from your workbook? Their saved profile is deleted — this can't be undone.`)) return;
+    const res = await fetch(`/api/profile?label=${encodeURIComponent(label)}`, { method: "DELETE" });
+    if (res.ok) await load();
+    else setMsg((await res.json().catch(() => ({})))?.error ?? "delete failed");
+  }
+
   async function addClient() {
     const label = name.trim().slice(0, 60);
     if (!label || busy) return;
@@ -137,10 +144,11 @@ export default function Workbook() {
                       <td className="text-right text-xs text-stone-400">
                         {new Date(c.updated_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
                       </td>
-                      <td className="pr-4 text-right">
+                      <td className="pr-4 text-right whitespace-nowrap">
                         <Link href={`/app?client=${encodeURIComponent(c.label)}`} className="text-xs font-semibold text-brand-700 underline hover:no-underline">
                           Open →
                         </Link>
+                        <button onClick={() => removeClient(c.label)} title="Remove client" className="ml-3 text-xs text-stone-300 hover:text-red-600">✕</button>
                       </td>
                     </tr>
                   ))}
