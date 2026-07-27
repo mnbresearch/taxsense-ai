@@ -8,6 +8,25 @@ import { QUIZ } from "@/lib/quiz";
 export default function Quiz() {
   const [picked, setPicked] = useState<(number | null)[]>(QUIZ.map(() => null));
   const [done, setDone] = useState(false);
+  const [email, setEmail] = useState("");
+  const [capState, setCapState] = useState<"idle" | "busy" | "done" | "error">("idle");
+
+  // Batch 58 — the quiz is the top of the funnel; give finishers a reason to stay.
+  async function joinList() {
+    const e = email.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) || capState === "busy") return;
+    setCapState("busy");
+    try {
+      const res = await fetch("/api/access-request", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email: e, source: "quiz" }),
+      });
+      setCapState(res.ok ? "done" : "error");
+    } catch {
+      setCapState("error");
+    }
+  }
 
   const answered = picked.filter((p) => p !== null).length;
   const score = picked.reduce((acc: number, p, i) => acc + (p === QUIZ[i].answer ? 1 : 0), 0);
@@ -100,6 +119,35 @@ export default function Quiz() {
                 Study the sections →
               </Link>
             </div>
+            {capState === "done" ? (
+              <p className="w-full rounded-lg bg-green-50 p-2.5 text-center text-sm font-semibold text-green-800">
+                ✓ You're on the list — watch your inbox.
+              </p>
+            ) : (
+              <div className="w-full">
+                <p className="mb-1.5 text-xs font-semibold text-stone-600">
+                  Liked this? Get product updates, new tools and deadline nudges — no spam, unsubscribe anytime.
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && joinList()}
+                    type="email"
+                    placeholder="you@example.com"
+                    className="min-w-0 flex-1 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-600"
+                  />
+                  <button
+                    onClick={joinList}
+                    disabled={capState === "busy"}
+                    className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+                  >
+                    {capState === "busy" ? "…" : "Keep me posted"}
+                  </button>
+                </div>
+                {capState === "error" && <p className="mt-1 text-xs text-red-600">That didn't go through — check the email and try again.</p>}
+              </div>
+            )}
           </div>
         )}
       </div>
