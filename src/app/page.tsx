@@ -20,6 +20,7 @@ export default function Landing() {
           <Link href="/pricing" className="text-stone-600 hover:text-brand-700">Pricing</Link>
           <Link href="/deadlines" className="text-stone-600 hover:text-brand-700">Deadlines</Link>
           <Link href="/learn" className="text-stone-600 hover:text-brand-700">Learn</Link>
+          <Link href="/tools" className="text-stone-600 hover:text-brand-700">Tools</Link>
           <Link href="/professional" className="text-stone-600 hover:text-brand-700">For professionals</Link>
           <InstallApp />
           <a href="#how" className="text-stone-600 hover:text-brand-700">How it works</a>
