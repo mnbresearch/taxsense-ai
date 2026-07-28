@@ -13,6 +13,7 @@ const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
 
 export default function InterestCalculator() {
   const ent = useEntitlements();
+  const [copied, setCopied] = useState(false);
   const unlocked = !!ent?.features.proTools;
   const [assessed, setAssessed] = useState(500_000);
   const [tds, setTds] = useState(100_000);
@@ -86,6 +87,34 @@ export default function InterestCalculator() {
             {!r.i234B_applicable && r.netTaxDue > 0 && (
               <p className="mt-2 text-[11px] text-green-700">✓ 234B not attracted — credits reach 90% of assessed tax.</p>
             )}
+            <button
+              onClick={() => {
+                const lines = [
+                  "COMPUTATION OF INTEREST UNDER SECTIONS 234A/234B/234C",
+                  "Income-tax Act, 1961 — FY 2025-26 / AY 2026-27",
+                  "",
+                  `Assessed tax (incl. cess): Rs. ${assessed.toLocaleString("en-IN")}`,
+                  `Less: TDS/TCS credits: Rs. ${tds.toLocaleString("en-IN")}`,
+                  `Net tax due: Rs. ${r.netTaxDue.toLocaleString("en-IN")}`,
+                  `Advance tax paid (cumulative by 15 Jun/15 Sep/15 Dec/15 Mar): Rs. ${q.map((x) => x.toLocaleString("en-IN")).join(" / ")}`,
+                  "",
+                  `s.234A (late filing, ${Math.max(0, Math.ceil(lateMonths))} month(s)): Rs. ${r.i234A.toLocaleString("en-IN")}`,
+                  `s.234B (${r.i234B_applicable ? `credits below 90% of assessed tax; ${Math.max(1, Math.ceil(months234B))} month(s) from 1 April` : "not attracted — credits reach 90% of assessed tax"}): Rs. ${r.i234B.toLocaleString("en-IN")}`,
+                  `s.234C (deferment${presumptive ? ", presumptive schedule" : ""}):`,
+                  ...r.i234C_rows.map((row) => `  ${row.due} — required ${row.requiredPct}%: shortfall Rs. ${row.shortfall.toLocaleString("en-IN")} x 1% x ${row.months} month(s) = Rs. ${row.interest.toLocaleString("en-IN")}`),
+                  "",
+                  `TOTAL INTEREST PAYABLE: Rs. ${r.total.toLocaleString("en-IN")}`,
+                  "",
+                  "Notes: interest at 1% per month or part thereof (s.234A/B/C); base rounded down to the nearest Rs. 100 (Rule 119A);",
+                  "12%/36% safe harbour applied to the June/September installments (proviso to s.234C(1)).",
+                  "Computed via TaxSense AI (taxsense-ai.vercel.app/tools/interest).",
+                ].join("\n");
+                navigator.clipboard?.writeText(lines).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2500); });
+              }}
+              className="mt-4 w-full rounded-lg border border-brand-600 py-2 text-xs font-semibold text-brand-700 hover:bg-brand-100"
+            >
+              {copied ? "✓ Copied — paste into your reply or annexure" : "📋 Copy as annexure text"}
+            </button>
             {r.i234C_rows.length > 0 && (
               <table className="mt-4 w-full text-xs">
                 <thead>
