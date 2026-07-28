@@ -374,6 +374,7 @@ export default function AppPage() {
             <span className="rounded-full bg-stone-100 px-2.5 py-1 font-semibold text-stone-600" title="Saving under this client">🗂 {profileLabel}</span>
           )}
           <AccountControl ent={ent} />
+          <Link href="/tools" className="hover:text-brand-700">Tools</Link>
           <Link href="/professional" className="font-semibold text-brand-700 hover:underline">For professionals</Link>
           <Link href="/guide" className="hover:text-brand-700">{t("taxGuide", lang)}</Link>
           <Link href="/admin" className="hover:text-brand-700">Admin</Link>
