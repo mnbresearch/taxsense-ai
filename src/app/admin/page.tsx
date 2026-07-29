@@ -47,6 +47,19 @@ export default function AdminPage() {
       .catch(() => {});
   }
 
+  async function setPlan(email: string, plan: string) {
+    const res = await fetch(`/api/admin/access-requests?email=${encodeURIComponent(email)}&action=setPlan&plan=${encodeURIComponent(plan)}`, { method: "PATCH" });
+    if (!res.ok) window.alert((await res.json().catch(() => ({})))?.error ?? "plan change failed");
+    loadLeads();
+  }
+
+  async function revokeAccess(email: string) {
+    if (!window.confirm(`REVOKE access for ${email}?\n\nTheir paid features lock immediately (billing record becomes a lead again). No email is sent.`)) return;
+    const res = await fetch(`/api/admin/access-requests?email=${encodeURIComponent(email)}&action=revoke`, { method: "PATCH" });
+    if (!res.ok) window.alert((await res.json().catch(() => ({})))?.error ?? "revoke failed");
+    loadLeads();
+  }
+
   async function activateLead(email: string) {
     if (!window.confirm(`Mark ${email} as PAID & ACTIVE?\n\nThis sends them the activation email immediately.`)) return;
     await fetch(`/api/admin/access-requests?email=${encodeURIComponent(email)}`, { method: "PATCH" }).catch(() => {});
@@ -287,19 +300,34 @@ export default function AdminPage() {
                           : "—"}
                       </td>
                       <td className="text-stone-600">
-                        {l.status === "active" ? (
-                          <span className="rounded bg-green-100 px-1.5 py-0.5 text-xs font-bold text-green-700">✓ ACTIVE{l.plan ? ` · ${l.plan}` : ""}</span>
-                        ) : l.plan ? (
-                          <span className="rounded bg-brand-50 px-1.5 py-0.5 text-xs font-semibold text-brand-700">{l.plan}</span>
-                        ) : "—"}
+                        <span className="flex items-center gap-1.5">
+                          {l.status === "active" && <span className="rounded bg-green-100 px-1.5 py-0.5 text-xs font-bold text-green-700">✓ ACTIVE</span>}
+                          <select
+                            value={l.plan ?? ""}
+                            onChange={(e) => setPlan(l.email, e.target.value)}
+                            title="Change plan — takes effect immediately for active users"
+                            className="rounded border border-stone-200 bg-white px-1 py-0.5 text-xs text-stone-700 outline-none hover:border-brand-600"
+                          >
+                            <option value="">no plan</option>
+                            <option value="Pro (₹399/mo or ₹3,999/yr)">Pro</option>
+                            <option value="Business (₹999/mo or ₹9,999/yr)">Business</option>
+                            <option value="Concierge (₹2,499/mo or ₹24,999/yr)">Concierge</option>
+                            <option value="Filed For You (₹4,999/return)">Filed For You</option>
+                            {l.plan && !["Pro (₹399/mo or ₹3,999/yr)", "Business (₹999/mo or ₹9,999/yr)", "Concierge (₹2,499/mo or ₹24,999/yr)", "Filed For You (₹4,999/return)"].includes(l.plan) && (
+                              <option value={l.plan}>{l.plan}</option>
+                            )}
+                          </select>
+                        </span>
                       </td>
                       <td className="text-stone-500">{l.source}</td>
                       <td className="text-right text-xs text-stone-500">
                         {new Date(l.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                       </td>
                       <td className="whitespace-nowrap pl-2 text-right">
-                        {l.status !== "active" && (
+                        {l.status !== "active" ? (
                           <button onClick={() => activateLead(l.email)} title="Mark paid & activate (sends email)" className="mr-2 rounded bg-green-600 px-2 py-0.5 text-xs font-bold text-white hover:bg-green-700">₹ Paid</button>
+                        ) : (
+                          <button onClick={() => revokeAccess(l.email)} title="Revoke access — locks paid features immediately" className="mr-2 rounded bg-amber-500 px-2 py-0.5 text-xs font-bold text-white hover:bg-amber-600">Revoke</button>
                         )}
                         <button onClick={() => deleteLead(l.email)} title="Remove lead" className="text-xs text-stone-400 hover:text-red-600">✕</button>
                       </td>
