@@ -374,6 +374,11 @@ export default function AppPage() {
             <span className="rounded-full bg-stone-100 px-2.5 py-1 font-semibold text-stone-600" title="Saving under this client">🗂 {profileLabel}</span>
           )}
           <AccountControl ent={ent} />
+          {!ent?.active && (
+            <Link href="/pricing" className="rounded-full bg-brand-600 px-2.5 py-1 font-semibold text-white hover:bg-brand-700" title="Request a plan — we call you, you pay by UPI, access unlocks in minutes">
+              🔑 Request access
+            </Link>
+          )}
           <Link href="/tools" className="hover:text-brand-700">Tools</Link>
           <Link href="/professional" className="font-semibold text-brand-700 hover:underline">For professionals</Link>
           <Link href="/guide" className="hover:text-brand-700">{t("taxGuide", lang)}</Link>
