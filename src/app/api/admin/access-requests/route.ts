@@ -37,8 +37,32 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   const admin = supabaseAdmin();
   if (!admin) return NextResponse.json({ error: "service key not configured" }, { status: 500 });
-  const email = new URL(req.url).searchParams.get("email")?.toLowerCase().slice(0, 120);
+  const url = new URL(req.url);
+  const email = url.searchParams.get("email")?.toLowerCase().slice(0, 120);
   if (!email) return NextResponse.json({ error: "email required" }, { status: 400 });
+  // Batch 70 — full lifecycle: activate (default) | revoke | setPlan.
+  const action = url.searchParams.get("action") ?? "activate";
+
+  if (action === "revoke") {
+    const { error: revErr } = await admin
+      .from("access_requests")
+      .update({ status: "lead" })
+      .eq("email", email);
+    if (revErr) return NextResponse.json({ error: revErr.message }, { status: 500 });
+    await admin.from("audit_events").insert({ event: "admin_access_revoked", meta: { email, by: auth.user.email } });
+    return NextResponse.json({ ok: true, revoked: true });
+  }
+
+  if (action === "setPlan") {
+    const plan = url.searchParams.get("plan")?.slice(0, 60) || null;
+    const { error: planErr } = await admin
+      .from("access_requests")
+      .update({ plan })
+      .eq("email", email);
+    if (planErr) return NextResponse.json({ error: planErr.message }, { status: 500 });
+    await admin.from("audit_events").insert({ event: "admin_plan_changed", meta: { email, plan, by: auth.user.email } });
+    return NextResponse.json({ ok: true, plan });
+  }
 
   const { data: lead, error } = await admin
     .from("access_requests")
