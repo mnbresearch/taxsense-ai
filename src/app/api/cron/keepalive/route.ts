@@ -79,7 +79,7 @@ export async function GET(req: NextRequest) {
             html: brandedShell(
               `${dl.label} is ${dl.when.toLowerCase()}`,
               `<p style="color:#44403c;font-size:14px;line-height:1.6;"><strong>${new Date(dl.date + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</strong> — ${dl.detail}</p>
-               <p style="margin:18px 0;"><a href="https://taxsense-ai.vercel.app/app" style="background:#0d5947;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;display:inline-block;">Compute what you owe →</a></p>
+               <p style="margin:18px 0;"><a href="https://taxsense.mnbresearch.com/app" style="background:#0d5947;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;display:inline-block;">Compute what you owe →</a></p>
                <p style="color:#78716c;font-size:12px;">Reply STOP to stop reminders.</p>`
             ),
           });
@@ -146,7 +146,7 @@ export async function GET(req: NextRequest) {
              <strong style="color:#166534;">Active MRR ₹${activeMrr.toLocaleString("en-IN")}</strong>
              &nbsp;·&nbsp; Pipeline ₹${pipeMrr.toLocaleString("en-IN")} waiting on your calls
            </p>
-           <p style="margin-top:16px;"><a href="https://taxsense-ai.vercel.app/admin" style="color:#0d5947;font-weight:600;">Open the admin panel →</a></p>`
+           <p style="margin-top:16px;"><a href="https://taxsense.mnbresearch.com/admin" style="color:#0d5947;font-weight:600;">Open the admin panel →</a></p>`
         ),
       });
       out.digest = `sent (${leads24} leads, ${plans24} plans)`;
@@ -176,7 +176,7 @@ export async function GET(req: NextRequest) {
           dl.length
             ? `⏳ Coming up:\n` + dl.map((d) => `• ${new Date(d.date + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short" })} — ${d.label}`).join("\n")
             : "",
-          `Everything is live at taxsense-ai.vercel.app — the app updates itself, so you already have all of it.`,
+          `Everything is live at taxsense.mnbresearch.com — the app updates itself, so you already have all of it.`,
         ].filter(Boolean).join("\n\n");
         const results = await sendCampaign({
           subject: "This week at TaxSense AI — what's new & what's due",
