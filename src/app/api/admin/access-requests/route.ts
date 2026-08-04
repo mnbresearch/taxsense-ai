@@ -80,7 +80,7 @@ export async function PATCH(req: NextRequest) {
     html: brandedShell(
       `Welcome aboard${first ? ", " + first : ""}!`,
       `<p style="color:#44403c;font-size:14px;line-height:1.6;">Your ${lead?.plan ? `<strong>${lead.plan}</strong> plan` : "access"} on <strong>TaxSense AI</strong> is now active. Sign in with this email address and everything is unlocked.</p>
-       <p style="margin:18px 0;"><a href="https://taxsense-ai.vercel.app/app" style="background:#0d5947;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;display:inline-block;">Open TaxSense AI →</a></p>
+       <p style="margin:18px 0;"><a href="https://taxsense.mnbresearch.com/app" style="background:#0d5947;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;display:inline-block;">Open TaxSense AI →</a></p>
        <p style="color:#78716c;font-size:12px;line-height:1.6;">Pro tip: tap "📲 Get the app" inside to install it on your phone. Questions? Just reply — a human reads this inbox.</p>`
     ),
   });
