@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
        <table style="width:100%;border-collapse:collapse;font-size:14px;margin-top:8px;">
          ${rows.map(([k, v]) => `<tr><td style="padding:8px 0;color:#78716c;border-bottom:1px solid #f5f5f4;">${k}</td><td style="padding:8px 0;color:#1c1917;font-weight:700;text-align:right;border-bottom:1px solid #f5f5f4;">${v}</td></tr>`).join("")}
        </table>
-       <p style="margin:20px 0 6px;"><a href="https://taxsense-ai.vercel.app/app" style="background:#0d5947;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;display:inline-block;">Continue in TaxSense AI →</a></p>
+       <p style="margin:20px 0 6px;"><a href="https://taxsense.mnbresearch.com/app" style="background:#0d5947;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;display:inline-block;">Continue in TaxSense AI →</a></p>
        <p style="color:#a8a29e;font-size:11px;line-height:1.6;margin-top:14px;">Figures are indicative, computed per the Income-tax Act, 1961 (Finance Act 2025). This snapshot was requested from the app; we did not store your data with this email.</p>`
     );
     const res = await sendOne({ to: parsed.data.email.toLowerCase(), subject: `Your TaxSense AI snapshot — ${winner} saves you ${inr(c.savings)}`, html, kind: "custom" });
