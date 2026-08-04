@@ -25,7 +25,7 @@ const STARTERS = [
   {
     name: "Suite launch (leads)",
     subject: "{name}, the tools tax professionals pay for — yours to explore",
-    body: "Hi {name},\n\nWe just shipped the TaxSense AI Professional Suite \u2014 16+ tools on the same engine that computed your taxes:\n\n\u2696\ufe0f 234A/B/C interest calculator \u2014 the notice-reply workhorse\n\ud83e\uddfe 26AS reconciliation \u2014 paste the statement, get every credit matched (nothing leaves your browser)\n\ud83d\udcc8 Regime breakeven matrix \u2014 the exact deduction level where old beats new\n\ud83d\udcc5 Deadline calendar for your phone \u2014 free\n\nExplore everything at taxsense-ai.vercel.app/professional \u2014 the student tools are free forever, and your Pro plan unlocks the rest the moment it's active.\n\nWant me to activate you? Just reply to this email.",
+    body: "Hi {name},\n\nWe just shipped the TaxSense AI Professional Suite \u2014 16+ tools on the same engine that computed your taxes:\n\n\u2696\ufe0f 234A/B/C interest calculator \u2014 the notice-reply workhorse\n\ud83e\uddfe 26AS reconciliation \u2014 paste the statement, get every credit matched (nothing leaves your browser)\n\ud83d\udcc8 Regime breakeven matrix \u2014 the exact deduction level where old beats new\n\ud83d\udcc5 Deadline calendar for your phone \u2014 free\n\nExplore everything at taxsense.mnbresearch.com/professional \u2014 the student tools are free forever, and your Pro plan unlocks the rest the moment it's active.\n\nWant me to activate you? Just reply to this email.",
   },
   {
     name: "Plan nudge (unconverted)",
@@ -35,7 +35,7 @@ const STARTERS = [
   {
     name: "Feature update (active)",
     subject: "New in your TaxSense AI: {name}, here's what just unlocked",
-    body: "Hi {name},\n\nYour plan just got more valuable \u2014 recent additions, all included:\n\n\ud83d\uddc2 Client Workbook \u2014 every client's regime call and liability in one table (Business)\n\ud83d\udce8 Notice Helper \u2014 143(1) to 148A playbooks with deadlines and checklists\n\ud83c\udf3e LTCG harvesting planner \u2014 use the \u20b91.25L exemption before 31 March\n\ud83c\udf81 Gratuity + s.10(10) exemption calculator\n\nIt's all live at taxsense-ai.vercel.app \u2014 sign in with this email address and everything's unlocked.\n\nQuestions? Just reply.",
+    body: "Hi {name},\n\nYour plan just got more valuable \u2014 recent additions, all included:\n\n\ud83d\uddc2 Client Workbook \u2014 every client's regime call and liability in one table (Business)\n\ud83d\udce8 Notice Helper \u2014 143(1) to 148A playbooks with deadlines and checklists\n\ud83c\udf3e LTCG harvesting planner \u2014 use the \u20b91.25L exemption before 31 March\n\ud83c\udf81 Gratuity + s.10(10) exemption calculator\n\nIt's all live at taxsense.mnbresearch.com \u2014 sign in with this email address and everything's unlocked.\n\nQuestions? Just reply.",
   },
 ];
 
