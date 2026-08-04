@@ -53,14 +53,14 @@ export function brandedShell(title: string, body: string): string {
     <div style="text-align:center;margin-top:18px;">
       <p style="color:#57534e;font-size:12px;font-weight:700;margin:0 0 4px;">TaxSense <span style="font-weight:400;">AI</span> — by MNB Research</p>
       <p style="margin:0 0 8px;font-size:11px;">
-        <a href="https://taxsense-ai.vercel.app/app" style="color:#0d5947;text-decoration:none;font-weight:600;">Open the app</a>
-        &nbsp;·&nbsp;<a href="https://taxsense-ai.vercel.app/professional" style="color:#0d5947;text-decoration:none;font-weight:600;">Professional Suite</a>
-        &nbsp;·&nbsp;<a href="https://taxsense-ai.vercel.app/pricing" style="color:#0d5947;text-decoration:none;font-weight:600;">Plans</a>
-        &nbsp;·&nbsp;<a href="https://taxsense-ai.vercel.app/deadlines" style="color:#0d5947;text-decoration:none;font-weight:600;">Deadlines</a>
+        <a href="https://taxsense.mnbresearch.com/app" style="color:#0d5947;text-decoration:none;font-weight:600;">Open the app</a>
+        &nbsp;·&nbsp;<a href="https://taxsense.mnbresearch.com/professional" style="color:#0d5947;text-decoration:none;font-weight:600;">Professional Suite</a>
+        &nbsp;·&nbsp;<a href="https://taxsense.mnbresearch.com/pricing" style="color:#0d5947;text-decoration:none;font-weight:600;">Plans</a>
+        &nbsp;·&nbsp;<a href="https://taxsense.mnbresearch.com/deadlines" style="color:#0d5947;text-decoration:none;font-weight:600;">Deadlines</a>
       </p>
       <p style="color:#a8a29e;font-size:11px;margin:0 0 4px;">Visit <a href="https://mnbresearch.com" style="color:#78716c;font-weight:600;text-decoration:underline;">MNB Research</a> for more details on everything we build.</p>
       <p style="color:#a8a29e;font-size:11px;margin:0;">${CONTACT_LINE}</p>
-      <p style="color:#d6d3d1;font-size:10px;margin:6px 0 0;">You're receiving this because you signed up at taxsense-ai.vercel.app. Reply to this email to reach us directly.</p>
+      <p style="color:#d6d3d1;font-size:10px;margin:6px 0 0;">You're receiving this because you signed up at taxsense.mnbresearch.com. Reply to this email to reach us directly.</p>
     </div>
   </div>
 </body></html>`;
@@ -76,7 +76,7 @@ async function logEmail(entry: { to_email: string; subject: string; kind: EmailK
 }
 
 /** Sends one email via Resend and logs the outcome. Never throws. */
-const SITE = "https://taxsense-ai.vercel.app";
+const SITE = "https://taxsense.mnbresearch.com";
 
 export async function sendOne(payload: { to: string; subject: string; html: string; kind: EmailKind; trackId?: string; templateName?: string | null; cc?: string[] }): Promise<SendResult> {
   const { to, subject, html, kind, trackId, templateName, cc } = payload;
@@ -142,7 +142,7 @@ export async function sendAccessRequestEmails(info: AccessRequestInfo): Promise<
        <table style="width:100%;border-collapse:collapse;font-size:14px;margin-top:8px;">
          ${rows.map(([k, v]) => `<tr><td style="padding:7px 0;color:#78716c;width:120px;border-bottom:1px solid #f5f5f4;">${esc(k)}</td><td style="padding:7px 0;color:#1c1917;font-weight:600;border-bottom:1px solid #f5f5f4;">${esc(v)}</td></tr>`).join("")}
        </table>
-       <p style="margin-top:16px;"><a href="https://taxsense-ai.vercel.app/admin" style="color:#0d5947;font-weight:600;">Open the admin panel →</a></p>`
+       <p style="margin-top:16px;"><a href="https://taxsense.mnbresearch.com/admin" style="color:#0d5947;font-weight:600;">Open the admin panel →</a></p>`
     );
 
     const plan = info.extra?.Plan;
@@ -154,7 +154,7 @@ export async function sendAccessRequestEmails(info: AccessRequestInfo): Promise<
           : `Your request for access to <strong>${APP_NAME}</strong> is in. The team will review it and get back to you soon — access details land in this inbox at launch.`
       }</p>
        <p style="color:#44403c;font-size:14px;line-height:1.6;">Meanwhile, you can already explore the live demo:</p>
-       <p style="margin:18px 0;"><a href="https://taxsense-ai.vercel.app/app" style="background:#0d5947;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;display:inline-block;">Try TaxSense AI →</a></p>
+       <p style="margin:18px 0;"><a href="https://taxsense.mnbresearch.com/app" style="background:#0d5947;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;display:inline-block;">Try TaxSense AI →</a></p>
        <p style="color:#78716c;font-size:12px;line-height:1.6;">Questions? Just reply to this email.<br/>${CONTACT_LINE}</p>`
     );
 
