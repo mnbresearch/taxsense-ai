@@ -281,7 +281,7 @@ export default function Landing() {
             name: "TaxSense AI",
             applicationCategory: "FinanceApplication",
             operatingSystem: "Web",
-            url: "https://taxsense-ai.vercel.app",
+            url: "https://taxsense.mnbresearch.com",
             description: "Conversational Indian income-tax copilot for FY 2025-26 — both-regime computation, optimizer, filing summary PDFs and a professional suite for lawyers, CAs and students.",
             offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
             author: { "@type": "Organization", name: "MNB Research", url: "https://mnbresearch.com" },

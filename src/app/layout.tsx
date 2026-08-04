@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://taxsense-ai.vercel.app"),
+  metadataBase: new URL("https://taxsense.mnbresearch.com"),
   title: "TaxSense AI — file smarter, not harder",
   description:
     "AI-native income-tax copilot for India. Old vs new regime optimisation, deduction discovery, and a filing-ready summary — from one conversation. FY 2025-26.",
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     title: "TaxSense AI — your taxes, figured out in one conversation",
     description:
       "Talk to it like a sharp CA. Both regimes computed section-by-section, deductions quantified in ₹, filing-ready PDF. By MNB Research × Abrobot.ai.",
-    url: "https://taxsense-ai.vercel.app",
+    url: "https://taxsense.mnbresearch.com",
     siteName: "TaxSense AI",
     images: [{ url: "/og.png", width: 1200, height: 630, alt: "TaxSense AI — income-tax copilot for India" }],
     locale: "en_IN",
