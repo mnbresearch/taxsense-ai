@@ -309,6 +309,7 @@ export default function Landing() {
             <div>
               <div className="text-sm font-bold text-brand-700">TaxSense <span className="font-normal text-stone-400">AI</span></div>
               <p className="mt-2 text-xs text-stone-500">Your taxes, figured out in one conversation. An MNB Research product, in collaboration with Abrobot.ai.</p>
+              <p className="mt-2 text-xs font-semibold text-stone-600">Operated by ABROBOT TECHNOLOGIES PRIVATE LIMITED</p>
             </div>
             <div className="text-sm">
               <div className="text-xs font-semibold uppercase tracking-wide text-stone-400">Product</div>
@@ -330,8 +331,7 @@ export default function Landing() {
             </div>
           </div>
           <div className="mt-8 border-t border-stone-100 pt-4 text-center text-xs text-stone-400">
-            © {new Date().getFullYear()} MNB Research · Computations per the Income-tax Act, 1961 (Finance Act 2025) · Not a substitute for professional advice ·{" "}
-            <Link href="/privacy" className="underline hover:text-brand-700">Privacy</Link> ·{" "}
+            © {new Date().getFullYear()} ABROBOT TECHNOLOGIES PRIVATE LIMITED · TaxSense AI, an MNB Research product<Link href="/privacy" className="underline hover:text-brand-700">Privacy</Link> ·{" "}
             <Link href="/terms" className="underline hover:text-brand-700">Terms</Link>
           </div>
         </div>
