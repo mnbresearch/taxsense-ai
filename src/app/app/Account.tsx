@@ -31,6 +31,28 @@ export function AccountControl({ ent }: { ent: Ent | null }) {
   const [email, setEmail] = useState("");
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [code, setCode] = useState("");
+
+  // Batch 74 — the 6-digit code works from ANY device, unlike the link.
+  async function verifyCode() {
+    if (!/^\d{6}$/.test(code.trim()) || busy) return;
+    setBusy(true);
+    try {
+      const res = await fetch("/api/auth/verify", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email, code: code.trim() }),
+      });
+      const d = await res.json();
+      if (res.ok) window.location.reload();
+      else setMsg(d.error ?? "code didn't match — try again");
+    } catch {
+      setMsg("verification failed — try again");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function sendLink() {
     if (!email.trim() || busy) return;
@@ -43,6 +65,7 @@ export function AccountControl({ ent }: { ent: Ent | null }) {
       });
       const d = await res.json();
       setMsg(res.ok ? d.message : d.error ?? "failed — try again");
+      if (res.ok) setSent(true);
     } catch {
       setMsg("failed — try again");
     } finally {
@@ -91,6 +114,29 @@ export function AccountControl({ ent }: { ent: Ent | null }) {
             {busy ? "Sending…" : "Email me a sign-in link"}
           </button>
           {msg && <span className="mt-1.5 block text-[11px] text-stone-500">{msg}</span>}
+          {sent && (
+            <span className="mt-2 block border-t border-stone-100 pt-2">
+              <span className="block text-[11px] font-semibold text-stone-600">Or type the 6-digit code from the email</span>
+              <span className="mt-1 flex gap-1.5">
+                <input
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  onKeyDown={(e) => e.key === "Enter" && verifyCode()}
+                  inputMode="numeric"
+                  placeholder="123456"
+                  className="w-24 rounded-md border border-stone-300 px-2 py-1.5 text-center text-sm tracking-widest outline-none focus:border-brand-600"
+                />
+                <button
+                  onClick={verifyCode}
+                  disabled={busy || code.length !== 6}
+                  className="flex-1 rounded-md bg-brand-600 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+                >
+                  Verify
+                </button>
+              </span>
+              <span className="mt-1 block text-[10px] text-stone-400">Works on any device — no need to open the link here.</span>
+            </span>
+          )}
         </span>
       )}
     </span>
