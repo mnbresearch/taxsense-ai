@@ -11,7 +11,7 @@ export default function Terms() {
     <main className="mx-auto max-w-3xl px-6 py-12">
       <Link href="/" className="text-sm font-bold text-brand-700">← TaxSense AI</Link>
       <h1 className="mt-6 text-3xl font-bold">Terms of Service</h1>
-      <p className="mt-1 text-sm text-stone-500">Effective 13 July 2026 · TaxSense AI is operated by MNB Research, New Delhi, India ("we").</p>
+      <p className="mt-1 text-sm text-stone-500">Effective 13 July 2026 · TaxSense AI is operated by ABROBOT TECHNOLOGIES PRIVATE LIMITED (brand: MNB Research), New Delhi, India ("we", "the Company").</p>
 
       <div className="mt-8 space-y-6 text-stone-700">
         <section>
@@ -56,14 +56,14 @@ export default function Terms() {
         <section>
           <h2 className="text-lg font-bold text-stone-900">6. Intellectual property, privacy & governing law</h2>
           <p className="mt-2 leading-relaxed">
-            The service, its engine and content are the property of MNB Research. Your data remains yours — our use of it is governed by the{" "}
+            The service, its engine and content are the property of ABROBOT TECHNOLOGIES PRIVATE LIMITED. Your data remains yours — our use of it is governed by the{" "}
             <Link href="/privacy" className="font-semibold text-brand-700 underline">Privacy Policy</Link>.
             These terms are governed by the laws of India with courts at New Delhi having exclusive jurisdiction.
             Questions: <a className="font-semibold text-brand-700" href="mailto:contact@mnbresearch.com">contact@mnbresearch.com</a>.
           </p>
         </section>
       </div>
-      <p className="mt-10 text-xs text-stone-400">© {new Date().getFullYear()} MNB Research · TaxSense AI, in collaboration with Abrobot.ai</p>
+      <p className="mt-10 text-xs text-stone-400">© {new Date().getFullYear()} ABROBOT TECHNOLOGIES PRIVATE LIMITED · TaxSense AI, an MNB Research brand</p>
     </main>
   );
 }
