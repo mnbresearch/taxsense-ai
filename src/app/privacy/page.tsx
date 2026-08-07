@@ -11,7 +11,7 @@ export default function Privacy() {
     <main className="mx-auto max-w-3xl px-6 py-12">
       <Link href="/" className="text-sm font-bold text-brand-700">← TaxSense AI</Link>
       <h1 className="mt-6 text-3xl font-bold">Privacy Policy</h1>
-      <p className="mt-1 text-sm text-stone-500">Effective 13 July 2026 · TaxSense AI is operated by MNB Research, New Delhi, India.</p>
+      <p className="mt-1 text-sm text-stone-500">Effective 13 July 2026 · TaxSense AI is operated by ABROBOT TECHNOLOGIES PRIVATE LIMITED (brand: MNB Research), New Delhi, India.</p>
 
       <div className="prose-sm mt-8 space-y-6 text-stone-700">
         <section>
@@ -56,7 +56,7 @@ export default function Privacy() {
           </p>
         </section>
       </div>
-      <p className="mt-10 text-xs text-stone-400">© {new Date().getFullYear()} MNB Research · See also our <Link href="/terms" className="underline">Terms of Service</Link>.</p>
+      <p className="mt-10 text-xs text-stone-400">© {new Date().getFullYear()} ABROBOT TECHNOLOGIES PRIVATE LIMITED · See also our <Link href="/terms" className="underline">Terms of Service</Link>.</p>
     </main>
   );
 }
