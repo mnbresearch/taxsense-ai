@@ -19,7 +19,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "valid email and 6-digit code required" }, { status: 400 });
   const sb = supabaseServer();
   if (!sb) return NextResponse.json({ error: "demo mode — sign-in unavailable" }, { status: 500 });
-  const { data, error } = await sb.auth.verifyOtp({ email: e, token, type: "email" });
+  // Batch 75 — the code may come from signInWithOtp ("email") or from
+  // admin.generateLink type "magiclink"; accept both token types.
+  let { data, error } = await sb.auth.verifyOtp({ email: e, token, type: "email" });
+  if (error || !data.session) {
+    const second = await sb.auth.verifyOtp({ email: e, token, type: "magiclink" });
+    data = second.data;
+    error = second.error;
+  }
   if (error || !data.session)
     return NextResponse.json({ error: error?.message ?? "invalid or expired code" }, { status: 401 });
   return NextResponse.json({ ok: true, email: e });
