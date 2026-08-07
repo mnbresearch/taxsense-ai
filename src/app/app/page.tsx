@@ -353,12 +353,12 @@ export default function AppPage() {
   }
 
   return (
-    <main className="mx-auto flex h-screen max-w-7xl flex-col px-4 py-4">
+    <main className="mx-auto flex min-h-screen max-w-7xl flex-col px-4 py-4 lg:h-screen">
       <header className="mb-3 flex items-center justify-between">
         <Link href="/" className="text-lg font-bold text-brand-700">
           TaxSense <span className="font-normal text-stone-400">AI</span>
         </Link>
-        <div className="flex items-center gap-3 text-xs text-stone-500">
+        <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1.5 text-xs text-stone-500">
           <span className="rounded-full bg-amber-100 px-2.5 py-1 font-semibold text-amber-800">
             {Math.max(0, Math.ceil((new Date("2026-07-31T23:59:59+05:30").getTime() - Date.now()) / 86400000))} {t("daysToFile", lang)}
           </span>
@@ -379,10 +379,10 @@ export default function AppPage() {
               🔑 Request access
             </Link>
           )}
-          <Link href="/tools" className="hover:text-brand-700">Tools</Link>
-          <Link href="/professional" className="font-semibold text-brand-700 hover:underline">For professionals</Link>
-          <Link href="/guide" className="hover:text-brand-700">{t("taxGuide", lang)}</Link>
-          <Link href="/admin" className="hover:text-brand-700">Admin</Link>
+          <Link href="/tools" className="hidden hover:text-brand-700 md:inline">Tools</Link>
+          <Link href="/professional" className="hidden font-semibold text-brand-700 hover:underline md:inline">For professionals</Link>
+          <Link href="/guide" className="hidden hover:text-brand-700 sm:inline">{t("taxGuide", lang)}</Link>
+          <Link href="/admin" className="hidden hover:text-brand-700 sm:inline">Admin</Link>
           <InstallApp compact />
         </div>
       </header>
@@ -401,7 +401,7 @@ export default function AppPage() {
       )}
       <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[1.2fr_1fr]">
         {/* Chat panel */}
-        <section className="flex min-h-0 flex-col rounded-xl border border-stone-200 bg-white">
+        <section className="flex h-[62vh] min-h-0 flex-col rounded-xl border border-stone-200 bg-white lg:h-auto">
           <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
             {messages.map((m, i) => (
               <div key={i} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
