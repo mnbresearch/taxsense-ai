@@ -7,6 +7,16 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    date: "2026-08-07",
+    title: "Sign in from any device + a phone-friendly workspace",
+    items: [
+      "Sign-in email now carries a 6-digit code you can type on ANY device — no more links that only work where you requested them",
+      "The sign-in email is fully TaxSense-branded, sent from updates.mnbresearch.com, with a one-tap fallback link",
+      "The workspace is mobile-first: responsive header, scrollable chat panel, and layouts that fit your phone",
+      "TaxSense now lives at taxsense.mnbresearch.com — the old address redirects automatically",
+    ],
+  },
+  {
     date: "2026-07-27",
     title: "Launch week — the Professional Suite goes public",
     items: [
