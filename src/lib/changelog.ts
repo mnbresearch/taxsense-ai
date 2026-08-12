@@ -7,6 +7,16 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    date: "2026-08-12",
+    title: "TaxSense starts acting like your CA",
+    items: [
+      "The ITR Filing Kit: which form applies to YOU, the exact documents to gather, and a portal-accurate e-filing walkthrough — free, at /tools/filing",
+      "Scrutiny Risk Radar: the mismatches that actually trigger 143(1) notices — AIS gaps, landlord-PAN rules, refund checks, 10-IEA timing — each with a fix",
+      "The chat now nudges like a CA: missed deductions with ₹ impact, AIS awareness, belated-return deadlines",
+      "Document checklist remembers what you've collected, on this device",
+    ],
+  },
+  {
     date: "2026-08-07",
     title: "Sign in from any device + a phone-friendly workspace",
     items: [

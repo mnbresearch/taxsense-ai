@@ -34,6 +34,11 @@ export const SEGMENT_META: Record<Segment, { title: string; tagline: string }> =
 export const PRO_TOOLS: ProTool[] = [
   // ---------- Law students (free) ----------
   {
+    id: "filing", title: "ITR Filing Kit", icon: "📋",
+    desc: "Which ITR form, the exact documents, the red flags that trigger notices, and a portal-accurate walkthrough — built from YOUR profile.",
+    href: "/tools/filing", segment: "practitioner", tier: "free",
+  },
+  {
     id: "slabs", title: "Slab & Rebate Explorer", icon: "📈",
     desc: "Watch tax curve vs income for both regimes — see the ₹12L 87A cliff and marginal relief with your own eyes.",
     href: "/tools/slabs", segment: "student", tier: "free",
