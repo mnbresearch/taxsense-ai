@@ -16,6 +16,7 @@ export default function NoticeHelper() {
   const ent = useEntitlements();
   const unlocked = !!ent?.features.proTools;
   const [sel, setSel] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const n = NOTICES.find((x) => x.id === sel);
 
   return (
@@ -64,6 +65,19 @@ export default function NoticeHelper() {
               ))}
             </ol>
             <p className="mt-4 rounded-lg bg-stone-50 p-3 text-xs text-stone-600"><strong>If it goes further:</strong> {n.escalation}</p>
+            <div className="mt-4 rounded-lg border border-stone-200 bg-stone-50 p-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-stone-800">✍️ Draft reply — skeleton</h3>
+                <button
+                  onClick={() => { navigator.clipboard?.writeText(n.draftReply); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+                  className="rounded-md border border-stone-300 bg-white px-2.5 py-1 text-xs font-semibold text-stone-700 hover:border-brand-600"
+                >
+                  {copied ? "Copied ✓" : "Copy draft"}
+                </button>
+              </div>
+              <pre className="mt-2 max-h-64 overflow-y-auto whitespace-pre-wrap font-sans text-xs leading-relaxed text-stone-600">{n.draftReply}</pre>
+              <p className="mt-1.5 text-[11px] text-stone-400">Replace every [BRACKET] with the client's facts; delete limbs that don't apply. A skeleton, not an opinion.</p>
+            </div>
           </div>
           {!unlocked && (
             <div className="absolute inset-0 flex flex-col items-center justify-center rounded-xl p-6 text-center">
