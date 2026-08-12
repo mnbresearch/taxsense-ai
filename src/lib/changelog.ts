@@ -14,6 +14,8 @@ export const CHANGELOG: ChangeEntry[] = [
       "Scrutiny Risk Radar: the mismatches that actually trigger 143(1) notices — AIS gaps, landlord-PAN rules, refund checks, 10-IEA timing — each with a fix",
       "The chat now nudges like a CA: missed deductions with ₹ impact, AIS awareness, belated-return deadlines",
       "Document checklist remembers what you've collected, on this device",
+      "Rent Receipt Generator: 12 print-ready HRA receipts in 30 seconds, compliance rules baked in — free",
+      "Notice Helper now includes copy-ready draft reply skeletons for all six notices (Pro)",
     ],
   },
   {

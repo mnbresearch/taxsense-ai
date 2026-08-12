@@ -54,6 +54,11 @@ export const PRO_TOOLS: ProTool[] = [
     href: "/tools/harvest", segment: "student", tier: "free",
   },
   {
+    id: "rent-receipts", title: "Rent Receipt Generator", icon: "🧾",
+    desc: "12 print-ready receipts for the HRA claim in 30 seconds — revenue-stamp and landlord-PAN rules baked in. Nothing leaves your browser.",
+    href: "/tools/rent-receipts", segment: "student", tier: "free",
+  },
+  {
     id: "hra", title: "HRA Exemption Calculator", icon: "🏠",
     desc: "Rule 2A's min-of-three, with the binding limb highlighted — exam answer and client answer in one.",
     href: "/tools/hra", segment: "student", tier: "free",

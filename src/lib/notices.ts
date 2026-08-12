@@ -13,6 +13,8 @@ export interface NoticeGuide {
   checklist: string[];
   escalation: string;
   tags: string[];
+  /** Batch 78 — a copy-ready skeleton reply; [BRACKETS] are fill-ins. */
+  draftReply: string;
 }
 
 export const NOTICES: NoticeGuide[] = [
@@ -33,6 +35,19 @@ export const NOTICES: NoticeGuide[] = [
     ],
     escalation: "Unresolved 154 → grievance on the e-filing portal → appeal u/s 246A to CIT(A) within 30 days of the 154 order.",
     tags: ["routine", "cpc", "demand"],
+    draftReply: `Subject: Response to intimation u/s 143(1) — PAN [PAN], AY 2026-27, DIN [DIN]
+
+To the Deputy Commissioner of Income-tax, CPC, Bengaluru
+
+1. The assessee has received the captioned intimation dated [DATE] proposing an adjustment of Rs. [AMOUNT] on account of [REASON STATED IN INTIMATION].
+2. The adjustment arises from [TDS credit mismatch with Form 26AS / arithmetic difference / disallowance of claim], which is factually incorrect for the following reasons:
+   (a) [Form 26AS as on date reflects TDS of Rs. X against the return figure of Rs. X — statement enclosed];
+   (b) [The claim u/s [SECTION] is supported by (document), enclosed].
+3. It is respectfully submitted that the proposed adjustment falls outside the scope of s.143(1)(a) and may be dropped. In the alternative, the assessee requests rectification u/s 154.
+4. Enclosures: [26AS extract / Form 16 / proof of claim].
+
+Filed online through the e-Proceedings tab within the 30-day window.
+[NAME], PAN [PAN], [DATE]`,
   },
   {
     id: "139-9",
@@ -51,6 +66,14 @@ export const NOTICES: NoticeGuide[] = [
     ],
     escalation: "Defect response rejected → file a fresh return if still within time; otherwise condonation u/s 119(2)(b).",
     tags: ["routine", "procedural"],
+    draftReply: `Subject: Response to defect notice u/s 139(9) — PAN [PAN], AY 2026-27, DIN [DIN]
+
+1. The return filed on [DATE] vide acknowledgement [ACK NO.] has been marked defective for: [DEFECT CODE + DESCRIPTION AS STATED].
+2. The defect has been cured as follows: [corrected schedule/detail filed — e.g., audit report attached / income-details schedule completed / tax paid and challan updated].
+3. The corrected return is being filed within the 15-day window (or the time as extended). It is prayed that the return be treated as valid from the original filing date u/s 139(9).
+
+Response filed via e-File → e-Proceedings → Defective Notice.
+[NAME], PAN [PAN], [DATE]`,
   },
   {
     id: "143-2",
@@ -70,6 +93,17 @@ export const NOTICES: NoticeGuide[] = [
     ],
     escalation: "Adverse order u/s 143(3) → appeal to CIT(A) u/s 246A within 30 days; stay of demand application u/s 220(6) alongside.",
     tags: ["serious", "scrutiny", "faceless"],
+    draftReply: `Subject: Preliminary submission — scrutiny notice u/s 143(2) — PAN [PAN], AY 2026-27, DIN [DIN]
+
+To the National Faceless Assessment Centre
+
+1. The assessee acknowledges the captioned notice dated [DATE] selecting the return for [complete / limited] scrutiny on the issue(s) of: [ISSUES LISTED].
+2. Authorisation: the assessee is represented by [NAME, CAPACITY], vide letter of authority enclosed.
+3. On the issues identified, the assessee submits the following at the outset: [one-paragraph position per issue, each anchored to the supporting document].
+4. Documents enclosed: [list — bank statements, ledgers, Form 16/26AS, agreements].
+5. The assessee requests that further requisitions, if any, be specific to the issues selected, and undertakes to respond within the time allowed through the faceless portal.
+
+[NAME], PAN [PAN], [DATE]`,
   },
   {
     id: "148a",
@@ -88,6 +122,17 @@ export const NOTICES: NoticeGuide[] = [
     ],
     escalation: "148A(d) order against you → writ petition (procedural defects) or contest in reassessment; adverse 147 order → CIT(A).",
     tags: ["serious", "reassessment"],
+    draftReply: `Subject: Reply to show-cause notice u/s 148A(b) — PAN [PAN], AY [YEAR], DIN [DIN]
+
+1. The notice alleges that income of Rs. [AMOUNT] has escaped assessment based on: [INFORMATION QUOTED IN NOTICE].
+2. Preliminary objections:
+   (a) The information relied upon is [incorrect / already disclosed in the return filed on DATE, at schedule X];
+   (b) [Limitation: the notice is beyond the period permissible u/s 149(1) since the alleged escapement is below Rs. 50 lakh];
+   (c) The mandatory conditions of s.148A [prior approval / opportunity / material] have not been satisfied to the extent of [SPECIFY].
+3. On merits: the transaction of Rs. [AMOUNT] is [explained — source, taxability, matching entry in return/AIS], as evidenced by the enclosed [DOCUMENTS].
+4. It is accordingly prayed that the proceedings be dropped and no order u/s 148A(d) be passed. The assessee requests to be heard before any adverse view.
+
+[NAME], PAN [PAN], [DATE]`,
   },
   {
     id: "245",
@@ -106,6 +151,14 @@ export const NOTICES: NoticeGuide[] = [
     ],
     escalation: "Set-off executed despite valid disagreement → grievance → jurisdictional AO letter → CIT(A) if a live appealable order exists.",
     tags: ["refund", "demand"],
+    draftReply: `Subject: Response to intimation u/s 245 — proposed adjustment of refund — PAN [PAN], DIN [DIN]
+
+1. The intimation proposes to adjust the refund of Rs. [AMOUNT] for AY 2026-27 against an outstanding demand of Rs. [AMOUNT] for AY [YEAR].
+2. The assessee DISAGREES with the adjustment because the demand is [incorrect / already paid vide challan (CIN) dated [DATE] / under rectification u/s 154 filed on [DATE] / stayed by order dated [DATE]].
+3. Supporting documents are enclosed: [challan copy / rectification acknowledgement / stay order].
+4. It is prayed that the refund be released without adjustment; response is being submitted within the 21-day window on the portal (Pending Actions → Response to Outstanding Demand).
+
+[NAME], PAN [PAN], [DATE]`,
   },
   {
     id: "234f",
@@ -124,5 +177,12 @@ export const NOTICES: NoticeGuide[] = [
     ],
     escalation: "Fee/interest wrongly levied and 154 fails → CIT(A); for pure 220(2) hardship, waiver petition u/s 220(2A).",
     tags: ["demand", "late-filing"],
+    draftReply: `Subject: Rectification request — late fee u/s 234F wrongly levied — PAN [PAN], AY 2026-27, DIN [DIN]
+
+1. The intimation levies a fee of Rs. [1,000/5,000] u/s 234F treating the return filed on [DATE] as belated.
+2. The levy is incorrect because: [the return was filed on or before the due date as extended by CBDT Circular No. [X] of [YEAR] / total income is below Rs. 2.5 lakh and filing was not mandatory u/s 139(1) / the fee has been computed at Rs. 5,000 although total income does not exceed Rs. 5 lakh].
+3. A rectification u/s 154 is accordingly sought; the acknowledgement and computation are enclosed.
+
+[NAME], PAN [PAN], [DATE]`,
   },
 ];
