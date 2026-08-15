@@ -164,7 +164,7 @@ export default function FilingKit() {
           <section className="rounded-xl border border-stone-200 bg-stone-50 p-4 text-sm text-stone-600">
             <strong className="text-stone-800">Update anything in conversation.</strong> Numbers changed? Head back to the{" "}
             <Link href="/app" className="font-semibold text-brand-700 underline">workspace</Link>, tell TaxSense what's new, hit Save — this kit rebuilds itself.
-            <span className="block pt-2 text-xs text-stone-500">TaxSense prepares and optimises; filing remains your (or your CA's) call. Engine-computed, section-cited, 158 automated checks.</span>
+            <span className="block pt-2 text-xs text-stone-500">TaxSense prepares and optimises; filing remains your (or your CA's) call. Engine-computed, section-cited, 160+ automated checks.</span>
           </section>
         </div>
       )}
