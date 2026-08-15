@@ -19,7 +19,7 @@ export default function ToolsHub() {
         <Link href="/" className="text-sm font-bold text-brand-700">TaxSense <span className="font-normal text-stone-400">AI</span></Link>
         <h1 className="mt-3 text-3xl font-bold text-stone-800">Tax tools & calculators — FY 2025-26</h1>
         <p className="mt-2 max-w-2xl text-sm text-stone-600">
-          Every tool runs the same deterministic engine as the main app — 147 automated checks, section-cited math,
+          Every tool runs the same deterministic engine as the main app — 160+ automated checks, section-cited math,
           no rules of thumb.
         </p>
       </header>
