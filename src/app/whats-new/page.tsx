@@ -5,7 +5,7 @@ import { CHANGELOG } from "@/lib/changelog";
 export const metadata: Metadata = {
   title: "What's new — the TaxSense AI build log | TaxSense AI",
   description: "Every feature we've shipped, dated and honest — from the conversational tax engine to the Professional Suite for lawyers, CAs and students.",
-  alternates: { canonical: "https://taxsense-ai.vercel.app/whats-new" },
+  alternates: { canonical: "https://taxsense.mnbresearch.com/whats-new" },
 };
 
 export default function WhatsNew() {
