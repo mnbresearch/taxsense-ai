@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "Free Indian Income-Tax Calculators & Tools FY 2025-26 | TaxSense AI",
   description:
     "Every TaxSense AI tool in one place: HRA, 80GG, gratuity, LTCG harvesting, slab explorer, tax-law quiz, s.234 interest, 26AS reconciliation, notice playbooks and more — all on one tested engine.",
-  alternates: { canonical: "https://taxsense-ai.vercel.app/tools" },
+  alternates: { canonical: "https://taxsense.mnbresearch.com/tools" },
 };
 
 /** Batch 66 — the tools hub: one canonical index for humans and crawlers. */
