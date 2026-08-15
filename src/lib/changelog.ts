@@ -16,6 +16,7 @@ export const CHANGELOG: ChangeEntry[] = [
       "Document checklist remembers what you've collected, on this device",
       "Rent Receipt Generator: 12 print-ready HRA receipts in 30 seconds, compliance rules baked in — free",
       "Notice Helper now includes copy-ready draft reply skeletons for all six notices (Pro)",
+      "In-Hand Salary Calculator: CTC → honest monthly take-home, both regimes, on the real engine — free",
     ],
   },
   {
