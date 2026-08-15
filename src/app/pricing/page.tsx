@@ -42,7 +42,7 @@ export default function Pricing() {
     name: "TaxSense AI",
     applicationCategory: "FinanceApplication",
     operatingSystem: "Web",
-    url: "https://taxsense-ai.vercel.app",
+    url: "https://taxsense.mnbresearch.com",
     offers: [
       { "@type": "Offer", name: "Starter", price: "0", priceCurrency: "INR" },
       { "@type": "Offer", name: "Pro", price: "399", priceCurrency: "INR", description: "per month" },
