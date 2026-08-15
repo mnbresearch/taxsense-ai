@@ -40,7 +40,7 @@ export default function OgImage() {
               fontWeight: 700, padding: "14px 28px", borderRadius: 999,
             }}
           >
-            taxsense-ai.vercel.app/professional
+            taxsense.mnbresearch.com/professional
           </div>
         </div>
       </div>
