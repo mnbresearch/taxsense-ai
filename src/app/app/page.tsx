@@ -621,6 +621,17 @@ export default function AppPage() {
               )}
 
               <Link
+                href="/tools/filing"
+                className="block rounded-lg border border-brand-600 bg-brand-50 p-3 text-sm transition hover:bg-brand-100"
+              >
+                <span className="font-semibold text-brand-700">📋 Ready to file? Get your Filing Kit</span>{" "}
+                <span className="text-stone-600">
+                  — the right ITR form, your document checklist, scrutiny red flags and a portal walkthrough, built from this profile.
+                </span>{" "}
+                <span className="font-semibold text-brand-700">Open →</span>
+              </Link>
+
+              <Link
                 href="/pricing"
                 className="block rounded-lg border border-brand-200 bg-gradient-to-r from-brand-50 to-emerald-50 p-3 text-sm transition hover:border-brand-600"
               >
