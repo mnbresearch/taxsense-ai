@@ -17,6 +17,7 @@ export const CHANGELOG: ChangeEntry[] = [
       "Rent Receipt Generator: 12 print-ready HRA receipts in 30 seconds, compliance rules baked in — free",
       "Notice Helper now includes copy-ready draft reply skeletons for all six notices (Pro)",
       "In-Hand Salary Calculator: CTC → honest monthly take-home, both regimes, on the real engine — free",
+      "Pay online: Cashfree checkout on the pricing page — UPI/cards/netbanking, plans activate automatically within seconds of payment",
     ],
   },
   {
