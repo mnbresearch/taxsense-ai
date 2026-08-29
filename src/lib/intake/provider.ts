@@ -23,9 +23,10 @@ export interface LlmProvider {
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 /** Batch 83 — model fallback: separate rate-limit pools, survives deprecations. */
+// 2026: Groq moved Llama models to Enterprise-only; GPT-OSS is the free tier.
 const GROQ_MODELS = [
-  process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile",
-  "llama-3.1-8b-instant",
+  process.env.GROQ_MODEL ?? "openai/gpt-oss-120b",
+  "openai/gpt-oss-20b",
 ].filter((v, i, a) => a.indexOf(v) === i);
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5";
@@ -88,6 +89,38 @@ function anthropicProvider(apiKey: string): LlmProvider {
   }
   return {
     name: `anthropic/${ANTHROPIC_MODEL}`,
+    completeJson: (m) => call(m, true),
+    completeText: (m) => call(m, false),
+  };
+}
+
+/**
+ * Batch 84 — bring-your-own free provider: any OpenAI-compatible endpoint.
+ * Set LLM_FALLBACK_URL (e.g. https://generativelanguage.googleapis.com/v1beta/openai
+ * for Gemini, https://openrouter.ai/api/v1 for OpenRouter, or
+ * https://api.cerebras.ai/v1 for Cerebras), LLM_FALLBACK_KEY and
+ * LLM_FALLBACK_MODEL — it slots into the chain automatically.
+ */
+function openAiCompatProvider(baseUrl: string, apiKey: string, model: string): LlmProvider {
+  const url = baseUrl.replace(/\/$/, "") + "/chat/completions";
+  async function call(messages: ChatMessage[], json: boolean): Promise<string> {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature: json ? 0 : 0.4,
+        max_tokens: 1024,
+        ...(json ? { response_format: { type: "json_object" } } : {}),
+      }),
+    });
+    if (!res.ok) throw new Error(`${model} ${res.status}: ${(await res.text()).slice(0, 200)}`);
+    const data = await res.json();
+    return data.choices[0].message.content as string;
+  }
+  return {
+    name: `openai-compat/${model}`,
     completeJson: (m) => call(m, true),
     completeText: (m) => call(m, false),
   };
@@ -246,6 +279,8 @@ export function getProvider(): LlmProvider {
     if (process.env.GROQ_API_KEY) chain.push(groqProvider(process.env.GROQ_API_KEY));
     if (process.env.ANTHROPIC_API_KEY) chain.push(anthropicProvider(process.env.ANTHROPIC_API_KEY));
   }
+  if (process.env.LLM_FALLBACK_URL && process.env.LLM_FALLBACK_KEY && process.env.LLM_FALLBACK_MODEL)
+    chain.push(openAiCompatProvider(process.env.LLM_FALLBACK_URL, process.env.LLM_FALLBACK_KEY, process.env.LLM_FALLBACK_MODEL));
   chain.push(mockProvider());
   return chain.length === 1 ? chain[0] : chainProvider(chain);
 }
