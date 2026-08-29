@@ -22,29 +22,42 @@ export interface LlmProvider {
 }
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
-const GROQ_MODEL = process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile";
+/** Batch 83 — model fallback: separate rate-limit pools, survives deprecations. */
+const GROQ_MODELS = [
+  process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile",
+  "llama-3.1-8b-instant",
+].filter((v, i, a) => a.indexOf(v) === i);
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5";
 
 function groqProvider(apiKey: string): LlmProvider {
   async function call(messages: ChatMessage[], json: boolean): Promise<string> {
-    const res = await fetch(GROQ_URL, {
-      method: "POST",
-      headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        messages,
-        temperature: json ? 0 : 0.4,
-        max_tokens: 1024,
-        ...(json ? { response_format: { type: "json_object" } } : {}),
-      }),
-    });
-    if (!res.ok) throw new Error(`Groq ${res.status}: ${await res.text()}`);
-    const data = await res.json();
-    return data.choices[0].message.content as string;
+    let lastErr: unknown = new Error("no groq models configured");
+    for (const model of GROQ_MODELS) {
+      try {
+        const res = await fetch(GROQ_URL, {
+          method: "POST",
+          headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
+          body: JSON.stringify({
+            model,
+            messages,
+            temperature: json ? 0 : 0.4,
+            max_tokens: 1024,
+            ...(json ? { response_format: { type: "json_object" } } : {}),
+          }),
+        });
+        if (!res.ok) throw new Error(`Groq ${model} ${res.status}: ${(await res.text()).slice(0, 200)}`);
+        const data = await res.json();
+        return data.choices[0].message.content as string;
+      } catch (e) {
+        lastErr = e;
+        console.error("[intake] groq model failed:", String((e as Error)?.message).slice(0, 200));
+      }
+    }
+    throw lastErr;
   }
   return {
-    name: `groq/${GROQ_MODEL}`,
+    name: `groq/${GROQ_MODELS[0]}`,
     completeJson: (m) => call(m, true),
     completeText: (m) => call(m, false),
   };
@@ -130,16 +143,52 @@ function mockProvider(): LlmProvider {
     name: "mock/deterministic",
     completeJson: async (m) => mockExtract(m[m.length - 1]?.content ?? ""),
     completeText: async () =>
-      "Got it — noted. (Demo mode: add a GROQ_API_KEY to enable the full conversational experience.) What else should I know — any deductions like PF, PPF or health insurance?",
+      "Got it — noted, and the numbers on the right update live. What else should I know — any deductions like PF, PPF or health insurance, or interest income?",
+  };
+}
+
+/**
+ * Batch 83 — resilient chain. A dead key, exhausted quota or deprecated
+ * model must NEVER silently lobotomise the product: each call walks the
+ * chain (Groq → Anthropic → deterministic mock extractor) and reports the
+ * provider that actually answered, so degradation is visible in telemetry.
+ */
+function chainProvider(providers: LlmProvider[]): LlmProvider {
+  let last = providers[0]?.name ?? "mock/deterministic";
+  async function tryAll(fn: (p: LlmProvider) => Promise<string>): Promise<string> {
+    let err: unknown = new Error("no providers");
+    for (const p of providers) {
+      try {
+        const out = await fn(p);
+        last = p.name;
+        return out;
+      } catch (e) {
+        err = e;
+        console.error(`[intake] provider ${p.name} failed:`, String((e as Error)?.message).slice(0, 200));
+      }
+    }
+    throw err;
+  }
+  return {
+    get name() {
+      return last;
+    },
+    completeJson: (m) => tryAll((p) => p.completeJson(m)),
+    completeText: (m) => tryAll((p) => p.completeText(m)),
   };
 }
 
 export function getProvider(): LlmProvider {
   const forced = process.env.INTAKE_PROVIDER;
   if (forced === "mock") return mockProvider();
-  if (forced === "anthropic" && process.env.ANTHROPIC_API_KEY)
-    return anthropicProvider(process.env.ANTHROPIC_API_KEY);
-  if (process.env.GROQ_API_KEY) return groqProvider(process.env.GROQ_API_KEY);
-  if (process.env.ANTHROPIC_API_KEY) return anthropicProvider(process.env.ANTHROPIC_API_KEY);
-  return mockProvider();
+  const chain: LlmProvider[] = [];
+  if (forced === "anthropic" && process.env.ANTHROPIC_API_KEY) {
+    chain.push(anthropicProvider(process.env.ANTHROPIC_API_KEY));
+    if (process.env.GROQ_API_KEY) chain.push(groqProvider(process.env.GROQ_API_KEY));
+  } else {
+    if (process.env.GROQ_API_KEY) chain.push(groqProvider(process.env.GROQ_API_KEY));
+    if (process.env.ANTHROPIC_API_KEY) chain.push(anthropicProvider(process.env.ANTHROPIC_API_KEY));
+  }
+  chain.push(mockProvider());
+  return chain.length === 1 ? chain[0] : chainProvider(chain);
 }

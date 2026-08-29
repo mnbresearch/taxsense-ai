@@ -171,7 +171,10 @@ export async function runIntakeTurn(
       { role: "system", content: contextBlock },
     ]);
   } catch {
-    reply = extraction.clarify ?? missing ?? "Great — I have everything. Ready to compute your taxes under both regimes?";
+    const captured = Object.keys(extraction.updates ?? {}).length > 0;
+    reply =
+      (captured ? "Noted — I've captured that; the computation updates live on the right. " : "") +
+      (extraction.clarify ?? missing ?? "Great — I have everything. Ready to compute your taxes under both regimes?");
   }
 
   return { reply, state: newState, extraction, providerName: provider.name };
