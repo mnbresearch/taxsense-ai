@@ -102,38 +102,95 @@ export function mockExtract(userMessage: string): string {
   const notApplicable: string[] = [];
   const estimates: string[] = [];
 
-  const amount = (raw: string, unit?: string): number => {
+  const toAmt = (raw: string, unit?: string): number => {
     let n = parseFloat(raw.replace(/,/g, ""));
-    if (!unit) return n;
-    if (/lpa|lakh|lac|l\b/.test(unit)) n *= 100_000;
-    else if (/cr|crore/.test(unit)) n *= 10_000_000;
-    else if (/k\b/.test(unit)) n *= 1_000;
+    if (!Number.isFinite(n)) return 0;
+    const u = (unit ?? "").trim();
+    if (/^(lpa|lakhs?|lacs?|l)$/.test(u)) n *= 100_000;
+    else if (/^(crores?|cr)$/.test(u)) n *= 10_000_000;
+    else if (/^k$/.test(u)) n *= 1_000;
+    return Math.round(n);
+  };
+  const NUM = "(?:₹|rs\\.?\\s*)?([\\d,]+(?:\\.\\d+)?)\\s*(lpa|lakhs?|lacs?|crores?|cr|k|l\\b)?";
+  const MONTHLY = "(?:per month|a month|\\/month|monthly|pm\\b)";
+  const grab = (re: RegExp): number => {
+    const m = msg.match(re);
+    if (!m) return 0;
+    let n = toAmt(m[1], m[2]);
+    if (m[3]) n *= 12; // explicit monthly
     return n;
   };
-  const re = /(?:₹|rs\.?\s*)?([\d,.]+)\s*(lpa|lakhs?|lacs?|crores?|cr|k|l)?\s*(?:per month|a month|\/month|monthly|pm)?/i;
 
-  const salaryMatch = msg.match(
-    /(?:salary|ctc|earn|package|gross)[^\d₹]*(?:₹|rs\.?\s*)?([\d,.]+)\s*(lpa|lakhs?|lacs?|crores?|cr|k|l)?\s*(per month|a month|\/month|monthly|pm)?/i
-  );
-  if (salaryMatch) {
-    let n = amount(salaryMatch[1], salaryMatch[2]);
-    if (salaryMatch[3]) n *= 12;
-    updates.salary = { grossSalary: Math.round(n) };
-    if (/around|about|roughly|approx|~/.test(msg)) estimates.push(`salary ≈ ₹${n}`);
+  // Salary — keyword before ("salary is 18 lakh") or after ("22 lpa package").
+  let salary =
+    grab(new RegExp(`(?:salary|ctc|package|gross|income|earn(?:ing)?s?)\\D{0,16}${NUM}\\s*(${MONTHLY})?`, "i")) ||
+    grab(new RegExp(`${NUM}\\s*(${MONTHLY})?\\s*(?:lpa|salary|ctc|package)`, "i"));
+  if (salary > 0 && salary < 300_000 && / (a month|per month|monthly|pm)/.test(msg)) salary *= 1; // already annualised by grab
+  if (salary > 0) {
+    updates.salary = { grossSalary: salary };
+    if (/around|about|roughly|approx|~/.test(msg)) estimates.push(`salary ≈ ₹${salary.toLocaleString("en-IN")} — parsed from your message`);
   }
-  const rentMatch = msg.match(/rent[^\d₹]*(?:₹|rs\.?\s*)?([\d,.]+)\s*(k|lakhs?|l)?\s*(per month|a month|\/month|monthly|pm)?/i);
-  if (rentMatch) {
-    let n = amount(rentMatch[1], rentMatch[2]);
-    if (rentMatch[3] || n < 100_000) n *= rentMatch[3] ? 12 : 12; // rent quoted monthly by default
-    updates.salary = { ...(updates.salary ?? {}), rentPaid: Math.round(n) };
+
+  // Rent — "rent 35k", "35k rent", "paying 30000 rent"; monthly by default when small.
+  let rent =
+    grab(new RegExp(`(?:rent(?:ing)?(?:\\s+of)?|pay(?:ing)?\\s+rent(?:\\s+of)?)\\D{0,10}${NUM}\\s*(${MONTHLY})?`, "i")) ||
+    grab(new RegExp(`${NUM}\\s*(${MONTHLY})?\\s*(?:as\\s+)?rent`, "i"));
+  if (rent > 0) {
+    if (rent < 100_000) rent *= 12; // quoted monthly
+    updates.salary = { ...(updates.salary ?? {}), rentPaid: rent };
   }
-  if (/(no|don'?t own a?) house/.test(msg)) notApplicable.push("houseProperty");
-  if (/(no|don'?t) (trade|stocks|shares|mutual funds)/.test(msg)) notApplicable.push("capitalGains");
-  // amount may come before OR after the 80C keyword
+  // HRA metro limb applies ONLY to Delhi/Mumbai/Kolkata/Chennai.
+  if (/(delhi|new delhi|mumbai|bombay|kolkata|calcutta|chennai|madras)/.test(msg))
+    updates.salary = { ...(updates.salary ?? {}), isMetroCity: true };
+  else if (/(bangalore|bengaluru|pune|hyderabad|gurgaon|gurugram|noida|ahmedabad|jaipur|kochi|indore)/.test(msg))
+    updates.salary = { ...(updates.salary ?? {}), isMetroCity: false };
+
+  // 80C — amount-first pattern is more precise, try it first; ignore < ₹1,000.
   const c80 =
-    msg.match(/(?:ppf|elss|80c|lic|epf|pf)[^\d₹]*(?:₹|rs\.?\s*)?([\d,.]+)\s*(lakhs?|lacs?|k|l)?/i) ??
-    msg.match(/(?:₹|rs\.?\s*)?([\d,.]+)\s*(lakhs?|lacs?|k|l)?\s*(?:in|into|to)?\s*(?:ppf|elss|80c|lic|epf)/i);
-  if (c80) updates.deductions = { section80C: Math.round(amount(c80[1], c80[2])) };
+    grab(new RegExp(`${NUM}\\s*()(?:in|into|to|towards)?\\s*(?:ppf|elss|lic|epf|nsc|80c)`, "i")) ||
+    grab(new RegExp(`(?:ppf|elss|lic|epf|nsc|80c)\\D{0,10}${NUM}()`, "i"));
+  if (c80 >= 1_000) updates.deductions = { ...(updates.deductions ?? {}), section80C: c80 };
+
+  // NPS beyond 80C.
+  const nps = grab(new RegExp(`${NUM}\\s*()(?:in|into|to)?\\s*nps`, "i")) || grab(new RegExp(`nps\\D{0,10}${NUM}()`, "i"));
+  if (nps >= 1_000) updates.deductions = { ...(updates.deductions ?? {}), section80CCD1B: Math.min(nps, 50_000) };
+
+  // Health insurance → 80D.
+  const d80 = grab(new RegExp(`(?:health insurance|mediclaim|80d)\\D{0,12}${NUM}()`, "i")) || grab(new RegExp(`${NUM}\\s*()(?:for|on|in)?\\s*(?:health insurance|mediclaim|80d)`, "i"));
+  if (d80 >= 500) updates.deductions = { ...(updates.deductions ?? {}), section80D_selfFamily: d80 };
+
+  // Interest income — FD and savings.
+  const fd = grab(new RegExp(`(?:fd|fixed deposit)s?\\s*interest\\D{0,10}${NUM}()`, "i")) || grab(new RegExp(`${NUM}\\s*()(?:of\\s+)?(?:fd|fixed deposit)s?\\s*interest`, "i"));
+  if (fd > 0) updates.otherSources = { ...(updates.otherSources ?? {}), fdInterest: fd };
+  const sav = grab(new RegExp(`savings\\s*(?:account\\s*)?interest\\D{0,10}${NUM}()`, "i")) || grab(new RegExp(`${NUM}\\s*()savings\\s*(?:account\\s*)?interest`, "i"));
+  if (sav > 0) updates.otherSources = { ...(updates.otherSources ?? {}), savingsInterest: sav };
+  const div = grab(new RegExp(`dividends?\\D{0,10}${NUM}()`, "i")) || grab(new RegExp(`${NUM}\\s*()(?:in|of|as)?\\s*dividends?`, "i"));
+  if (div > 0) updates.otherSources = { ...(updates.otherSources ?? {}), dividends: div };
+
+  // Capital gains — equity profit; holding period decides LTCG vs STCG.
+  if (/(shares?|stocks?|mutual funds?|equity)/.test(msg)) {
+    const gain =
+      grab(new RegExp(`(?:profit|gains?)\\s*(?:of)?\\D{0,6}${NUM}()`, "i")) ||
+      grab(new RegExp(`${NUM}\\s*()(?:profit|gains?)`, "i"));
+    if (gain > 0) {
+      const held = msg.match(/held\s*(?:for|over|more than)?\s*([\d.]+)\s*(year|yr|month|mo)/);
+      const longTerm = held ? (/year|yr/.test(held[2]) ? parseFloat(held[1]) >= 1 : parseFloat(held[1]) > 12) : /long[- ]?term|ltcg/.test(msg);
+      updates.capitalGains = longTerm ? { ltcg112A: gain } : { stcg111A: gain };
+    }
+  }
+
+  // Home-loan interest.
+  const hli = grab(new RegExp(`(?:home|housing)\\s*loan[^.]{0,25}?interest\\D{0,10}${NUM}()`, "i")) || grab(new RegExp(`${NUM}\\s*()(?:home|housing)\\s*loan\\s*interest`, "i"));
+  if (hli > 0) updates.houseProperty = { use: "self-occupied", homeLoanInterest: hli };
+
+  // TDS / taxes already paid.
+  const tds = grab(new RegExp(`(?:tds|advance tax|tax (?:deducted|paid))\\D{0,12}${NUM}()`, "i"));
+  if (tds > 0) updates.taxesPaid = tds;
+
+  // Explicit denials.
+  if (/(no|don'?t own a?|not own(?:ing)? a?) (house|property|flat)/.test(msg)) notApplicable.push("houseProperty");
+  if (/(no|don'?t|didn'?t) (trade|sell|stocks?|shares?|mutual funds?|capital gains?)/.test(msg)) notApplicable.push("capitalGains");
+  if (/no (other|interest|fd) income/.test(msg)) notApplicable.push("otherSources");
 
   return JSON.stringify({ updates, notApplicable, estimates, clarify: null });
 }
