@@ -163,7 +163,9 @@ export default function AppPage() {
     setMessages((m) => [...m, { role: "assistant", content: `Loaded ${s.name} — the computation on the right reflects it now.` }]);
   }
 
-  useEffect(() => bottom.current?.scrollIntoView({ behavior: "smooth" }), [messages, busy]);
+  useEffect(() => {
+    bottom.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, busy]);
 
   // recompute whenever the profile changes meaningfully
   useEffect(() => {
