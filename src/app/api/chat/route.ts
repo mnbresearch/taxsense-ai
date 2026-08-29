@@ -51,6 +51,13 @@ export async function POST(req: NextRequest) {
       demoEvents.push({ event: "chat_turn", at: new Date().toISOString() });
     }
 
+    // Batch 83 — degradation is a pageable event, not a silent shrug.
+    if (turn.providerName.startsWith("mock") && (process.env.GROQ_API_KEY || process.env.ANTHROPIC_API_KEY)) {
+      const { supabaseAdmin } = await import("@/lib/supabase/server");
+      const admin = supabaseAdmin();
+      if (admin) await admin.from("audit_events").insert({ event: "llm_degraded", meta: { provider: turn.providerName } });
+    }
+
     return NextResponse.json({
       reply: turn.reply,
       state: turn.state,
