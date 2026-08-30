@@ -7,6 +7,16 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    date: "2026-08-30",
+    title: "The Practice Suite — GST, TDS and audit move in",
+    items: [
+      "GST Toolkit: registration thresholds by state, composition eligibility + tax, GSTR late fees with turnover caps, s.50 interest on net cash liability, filing calendar — free",
+      "TDS Desk: every FY 2025-26 rate and post-Budget threshold (including the new s.194T on partner payments), 201(1A) interest both legs, 234E fees, deductor's calendar — free",
+      "Audit & Entity Desk: 44AB applicability with the presumptive traps (44AD(5), 5-year lock-in), s.40(b) partner remuneration ceiling + firm tax, 115BAA/115BAB company comparison — free",
+      "Pay online is live: Cashfree checkout with instant automatic plan activation",
+    ],
+  },
+  {
     date: "2026-08-12",
     title: "TaxSense starts acting like your CA",
     items: [

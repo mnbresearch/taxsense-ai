@@ -90,6 +90,21 @@ export const PRO_TOOLS: ProTool[] = [
   },
   // ---------- Practitioners (Pro) ----------
   {
+    id: "gst", title: "GST Toolkit", icon: "🛃",
+    desc: "Registration thresholds, composition math, GSTR late fees with caps, s.50 interest on cash liability, and the filing calendar.",
+    href: "/tools/gst", segment: "practitioner", tier: "free",
+  },
+  {
+    id: "tds-rates", title: "TDS Desk", icon: "📑",
+    desc: "FY 2025-26 rates & thresholds (incl. the new 194T), 201(1A) interest both legs, 234E fees, deductor's calendar.",
+    href: "/tools/tds-rates", segment: "practitioner", tier: "free",
+  },
+  {
+    id: "audit", title: "Audit & Entity Desk", icon: "⚖️",
+    desc: "44AB applicability with every presumptive trap, s.40(b) partner remuneration ceiling, firm tax, 115BAA/BAB comparison.",
+    href: "/tools/audit", segment: "practitioner", tier: "free",
+  },
+  {
     id: "interest", title: "Interest Calculator — 234A/B/C", icon: "⚖️",
     desc: "Late filing, advance-tax default and quarter-wise deferment — Rule 119A rounding, 12%/36% safe harbour, presumptive schedule. The notice-reply workhorse.",
     href: "/tools/interest", segment: "practitioner", tier: "pro",
