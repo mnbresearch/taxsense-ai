@@ -24,7 +24,7 @@ function Feat({ items }: { items: string[] }) {
 
 const FAQ: [string, string][] = [
   ["Why pay when the Starter plan is free?", "Starter computes your tax honestly and always will. Paid plans exist for people optimising all year: unlimited PDFs, the CTC Designer, saved profiles, business tooling, and — on Concierge — a human expert managing everything. One found deduction typically pays for a year of Pro."],
-  ["How do I pay?", "During launch, plans are activated personally: request a plan, we call you, set you up and take payment by UPI or bank transfer with a GST invoice. Online self-serve payments are coming."],
+  ["How do I pay?", "Pay online in seconds — UPI, cards or netbanking via secure Cashfree checkout, and your plan activates automatically. Prefer a human? Use 'Request a call' and we set you up personally with a GST invoice."],
   ["Can I cancel anytime?", "Yes. Monthly plans stop at the end of the paid month, no questions. Annual plans are refunded pro-rata in the first 30 days."],
   ["Is my financial data safe?", "Your numbers are isolated per-user with database row-level security, encrypted in transit, and never used to train any model. You can export or delete everything, any time."],
   ["Do you replace my CA?", "No — we do the tedious 90% (intake, regime math, optimisation, document prep) and pair you with a professional when it matters. Filed For You and Concierge include one."],
@@ -84,12 +84,12 @@ export default function Pricing() {
             <p className="mt-1 text-sm text-stone-500">Try the copilot. No signup needed.</p>
             <div className="mt-4 text-4xl font-bold">₹0<span className="text-base font-medium text-stone-400"> / forever</span></div>
             <Feat items={[
-              "Conversational tax intake (English + Hinglish)",
-              "Old vs new regime, computed live & section-cited",
-              "87A rebate, HRA, capital gains, surcharge — all handled",
-              "60-second Tax Guide for freelancers & business owners",
-              "Tax glossary & notice decoder",
-              "1 filing-summary PDF per month",
+              "Conversational AI intake (English + Hinglish) on a 200-test engine",
+              "Old vs new regime computed live, section-cited",
+              "ITR Filing Kit: your form, documents & scrutiny radar",
+              "GST, TDS, audit, property-sale & NRI-status desks",
+              "Rent receipts, in-hand salary & 15+ free tools",
+              "2 filing-summary PDFs per day",
             ]} />
             <div className="mt-auto pt-6">
               <Link href="/app" className="block w-full rounded-lg border border-brand-600 px-4 py-2.5 text-center text-sm font-semibold text-brand-700 hover:bg-brand-50">
@@ -107,7 +107,7 @@ export default function Pricing() {
             <p className="mt-1 text-xs text-stone-500">or ₹3,999/year — 2 months free</p>
             <Feat items={[
               "Everything in Starter",
-              "Practitioner tools: 234A/B/C interest, regime breakeven, 26AS reconciliation",
+              "Practitioner tools: 234A/B/C interest, regime breakeven, 26AS reconciliation, notice draft replies",
               "Unlimited filing-summary PDFs",
               "₹-quantified deduction insights, ranked by savings",
               "CTC Designer — the salary structure to ask HR for",
@@ -126,13 +126,13 @@ export default function Pricing() {
             <p className="mt-1 text-xs text-stone-500">or ₹9,999/year — 2 months free</p>
             <Feat items={[
               "Everything in Pro",
-              "Client Workbook — your whole client book, one table",
-              "44AD / 44ADA presumptive taxation guidance",
-              "Advance-tax calendar with 234B/234C interest",
+              "Client Workbook — your whole client book, one table, one click into each client's workspace",
+              "44AD / 44ADA presumptive guidance end to end",
+              "Advance-tax calendar with 234B/234C amounts per client",
               "Tax Jar — how much to set aside every month",
-              "GST registration & audit-trigger pointers",
-              "Rent-receipt generator (12 months, PAN-ready)",
-              "ITR form recommendation with reasons",
+              "s.40(b) partner remuneration + entity comparisons",
+              "Deadline reminder service for your clients (D-7 & D-1)",
+              "Priority WhatsApp support",
             ]} />
             <div className="mt-auto pt-6"><PlanRequest plan="Business (₹999/mo or ₹9,999/yr)" /></div>
           </div>
@@ -207,8 +207,8 @@ export default function Pricing() {
           </a>
         </p>
         <p className="mt-6 text-center text-xs text-stone-400">
-          Paid plans are activated personally during launch — request a plan and we contact you to complete setup and payment.
-          Prices include GST. TaxSense AI + your CA, not instead of your CA. An MNB Research product, in collaboration with Abrobot.ai.
+          Pay online for instant activation, or request a call and we set you up personally.
+          Prices include GST. TaxSense AI + your CA, not instead of your CA. An MNB Research product, in collaboration with Abrobot.ai — by ABROBOT TECHNOLOGIES PRIVATE LIMITED.
         </p>
       </section>
     </main>
