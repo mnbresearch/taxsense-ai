@@ -14,6 +14,10 @@ export const CHANGELOG: ChangeEntry[] = [
       "TDS Desk: every FY 2025-26 rate and post-Budget threshold (including the new s.194T on partner payments), 201(1A) interest both legs, 234E fees, deductor's calendar — free",
       "Audit & Entity Desk: 44AB applicability with the presumptive traps (44AD(5), 5-year lock-in), s.40(b) partner remuneration ceiling + firm tax, 115BAA/115BAB company comparison — free",
       "Pay online is live: Cashfree checkout with instant automatic plan activation",
+      "Property Sale Tax Planner: 12.5% vs grandfathered indexed 20%, with s.54/54F/54EC exemption planning to a final number — free",
+      "Status & Gifts Desk: s.6 residential status (ROR/RNOR/NR) with every relaxation + s.56(2)(x) gift taxability — free",
+      "Advance Tax Planner: the exact instalment calendar with 234B/234C rules — free",
+      "Pricing refreshed to match everything now inside the product",
     ],
   },
   {

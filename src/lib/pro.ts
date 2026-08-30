@@ -90,6 +90,21 @@ export const PRO_TOOLS: ProTool[] = [
   },
   // ---------- Practitioners (Pro) ----------
   {
+    id: "property", title: "Property Sale Tax Planner", icon: "🏘️",
+    desc: "12.5% vs grandfathered indexed 20%, then s.54/54F/54EC exemptions — reinvestment, bonds, CGAS — to one final number.",
+    href: "/tools/property", segment: "practitioner", tier: "free",
+  },
+  {
+    id: "residency", title: "Status & Gifts Desk", icon: "🌏",
+    desc: "s.6 residential status (ROR/RNOR/NR) with every day-count relaxation, plus the s.56(2)(x) gift-taxability checker.",
+    href: "/tools/residency", segment: "practitioner", tier: "free",
+  },
+  {
+    id: "advance-tax", title: "Advance Tax Planner", icon: "🗓️",
+    desc: "The 15/45/75/100 instalment calendar (one-shot 15 March for presumptive), with the 234B/234C rules that punish misses.",
+    href: "/tools/advance-tax", segment: "practitioner", tier: "free",
+  },
+  {
     id: "gst", title: "GST Toolkit", icon: "🛃",
     desc: "Registration thresholds, composition math, GSTR late fees with caps, s.50 interest on cash liability, and the filing calendar.",
     href: "/tools/gst", segment: "practitioner", tier: "free",
