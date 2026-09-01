@@ -90,6 +90,11 @@ export const PRO_TOOLS: ProTool[] = [
   },
   // ---------- Practitioners (Pro) ----------
   {
+    id: "playbook", title: "The Tax-Saving Playbook", icon: "🎯",
+    desc: "14 legal strategies with real ₹ math — presumptive, depreciation timing, 80JJAA, employer NPS, HUFs — plus engine-verified case studies.",
+    href: "/playbook", segment: "practitioner", tier: "free",
+  },
+  {
     id: "property", title: "Property Sale Tax Planner", icon: "🏘️",
     desc: "12.5% vs grandfathered indexed 20%, then s.54/54F/54EC exemptions — reinvestment, bonds, CGAS — to one final number.",
     href: "/tools/property", segment: "practitioner", tier: "free",

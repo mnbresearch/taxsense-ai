@@ -18,6 +18,7 @@ export const CHANGELOG: ChangeEntry[] = [
       "Status & Gifts Desk: s.6 residential status (ROR/RNOR/NR) with every relaxation + s.56(2)(x) gift taxability — free",
       "Advance Tax Planner: the exact instalment calendar with 234B/234C rules — free",
       "Pricing refreshed to match everything now inside the product",
+      "The Tax-Saving Playbook: 14 legal strategies with real ₹ math and honest watch-outs, plus engine-verified case studies — a ₹30L freelancer paying ₹1.09L tax is the law, used properly",
     ],
   },
   {
