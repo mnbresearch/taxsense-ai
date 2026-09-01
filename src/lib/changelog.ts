@@ -19,6 +19,7 @@ export const CHANGELOG: ChangeEntry[] = [
       "Advance Tax Planner: the exact instalment calendar with 234B/234C rules — free",
       "Pricing refreshed to match everything now inside the product",
       "The Tax-Saving Playbook: 14 legal strategies with real ₹ math and honest watch-outs, plus engine-verified case studies — a ₹30L freelancer paying ₹1.09L tax is the law, used properly",
+      "60-second Tax Check on the homepage: four questions → both regimes + your ₹ savings opportunity, live — full report by email",
     ],
   },
   {
