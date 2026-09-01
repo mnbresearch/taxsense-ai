@@ -1,5 +1,6 @@
 import Link from "next/link";
 import RequestAccess from "./RequestAccess";
+import TaxCheck from "./TaxCheck";
 import InstallApp from "./InstallApp";
 import { PRO_TOOLS } from "@/lib/pro";
 
@@ -98,6 +99,8 @@ export default function Landing() {
           <p className="mt-2 text-xs text-stone-500">No spam — a welcome email with your access details, and that's it.</p>
         </div>
       </section>
+
+      <TaxCheck />
 
       {/* Proof strip */}
       <section className="border-y border-stone-200 bg-white">
