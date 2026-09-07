@@ -11,7 +11,7 @@ function toIcs(): string {
   const stamp = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
   const events = DEADLINES.map((d) => {
     const ymd = d.date.replace(/-/g, "");
-    const uid = `taxsense-${d.date}-${d.label.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40)}@taxsense-ai.vercel.app`;
+    const uid = `taxsense-${d.date}-${d.label.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40)}@taxsense.mnbresearch.com`;
     const esc = (s: string) => s.replace(/\\/g, "\\\\").replace(/,/g, "\\,").replace(/;/g, "\\;");
     return [
       "BEGIN:VEVENT",
@@ -19,7 +19,7 @@ function toIcs(): string {
       `DTSTAMP:${stamp}`,
       `DTSTART;VALUE=DATE:${ymd}`,
       `SUMMARY:🧮 ${esc(d.label)}`,
-      `DESCRIPTION:${esc(d.detail + " — via TaxSense AI (taxsense-ai.vercel.app/deadlines)")}`,
+      `DESCRIPTION:${esc(d.detail + " — via TaxSense AI (taxsense.mnbresearch.com/deadlines)")}`,
       "BEGIN:VALARM",
       "TRIGGER:-P1D",
       "ACTION:DISPLAY",
