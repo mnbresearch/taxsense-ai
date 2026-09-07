@@ -52,7 +52,7 @@ export default function Quiz() {
   }
 
   function share() {
-    const text = `I scored ${score}/${qs.length} on the TaxSense AI tax-law quiz (${grade().replace(/[^\w\s-]/g, "").trim()}). Try beating me: https://taxsense-ai.vercel.app/tools/quiz`;
+    const text = `I scored ${score}/${qs.length} on the TaxSense AI tax-law quiz (${grade().replace(/[^\w\s-]/g, "").trim()}). Try beating me: https://taxsense.mnbresearch.com/tools/quiz`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener");
   }
 
