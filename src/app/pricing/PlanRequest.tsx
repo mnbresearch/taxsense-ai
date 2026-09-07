@@ -77,9 +77,14 @@ export default function PlanRequest({ plan, cta = "Request this plan" }: { plan:
       const d = await res.json();
       if (!res.ok || !d.paymentSessionId) throw new Error(d.error ?? "could not start payment");
       const Cashfree = await loadCashfreeSdk();
-      if (!Cashfree) throw new Error("payment SDK blocked — try Request instead");
-      const cf = Cashfree({ mode: d.mode === "production" ? "production" : "sandbox" });
-      await cf.checkout({ paymentSessionId: d.paymentSessionId, redirectTarget: "_self" });
+      if (Cashfree) {
+        const cf = Cashfree({ mode: d.mode === "production" ? "production" : "sandbox" });
+        await cf.checkout({ paymentSessionId: d.paymentSessionId, redirectTarget: "_self" });
+      } else {
+        // Ad-blockers sometimes swallow the SDK script — Cashfree's hosted
+        // checkout page works without it via a plain navigation.
+        window.location.assign("https://payments.cashfree.com/order/#" + d.paymentSessionId);
+      }
       setState("idle");
     } catch (err: any) {
       setState("error");
