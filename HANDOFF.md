@@ -1,11 +1,11 @@
-# TaxSense AI — Session Handoff (through Batch 80)
+# TaxSense AI — Session Handoff (through Batch 94 · LAUNCH-CERTIFIED)
 
 **Live:** https://taxsense.mnbresearch.com (Vercel, auto-deploys from `main`; old taxsense-ai.vercel.app 308-redirects here)
 **Entity:** ABROBOT TECHNOLOGIES PRIVATE LIMITED (MNB Research). Founder: Mridul Nanda (mridulnanda2004@gmail.com; leads inbox mnbgotyou@gmail.com).
 
 ## Stack
 Next.js 14 App Router + TS + Tailwind · Supabase (project rsuevtdelaqjjqtyiosd): Postgres, RLS deny-by-default, magic-link + OTP auth · Resend (verified domain updates.mnbresearch.com) · Vercel Hobby (bom1), cron 02:00 UTC daily.
-Tests: `npx vitest run` — 22 files / 163 tests. Always run tsc + vitest + next build before pushing.
+Tests: `npx vitest run` — 28 files / 230 tests. Always run tsc + vitest + next build before pushing.
 
 ## Product surface (all live)
 - **Workspace /app** — conversational intake (extract+respond LLM prompts in src/lib/intake/prompts.ts, proactive-CA behaviors), live both-regime engine, optimizer, Tax Health Score, PDFs, scenarios, samples, Hindi, share/WhatsApp, PWA that self-updates (UpdateWatcher polls /api/health build sha).
@@ -25,8 +25,17 @@ Tests: `npx vitest run` — 22 files / 163 tests. Always run tsc + vitest + next
 3. Commit in a SEPARATE call: set `input[name="message"]`, click enabled "Commit changes" (never same-call setTimeout — commits silently fail).
 4. Verify bytes via GitHub contents API (raw CDN lies). Wait ~90s → check /api/health `build` sha → probe live URLs.
 
-## Known state / remaining
-- Cosmetic: taxsense-ai.vercel.app strings inside Quiz.tsx, CalendarTool.tsx, InterestCalculator.tsx, lib/pdf/rentReceipts.ts (UI links; 308 covers them).
-- Founder to-dos: test OTP sign-in on desktop, confirm /admin 200 (Batch 73 close-out), rotate Groq key someday, call leads.
-- file_upload MCP tool broken ("paths… undefined") — use JS injection workaround above.
+## Since Batch 80 (all live, all verified)
+- **Payments (82)**: Cashfree end-to-end — /api/pay/create-order (server-side price catalog), hosted checkout on /pricing, hardened webhook (ms-timestamp normalisation, raw-body HMAC, constant-time, fail-closed, idempotent fulfilment), /api/pay/status fallback, /pay/return, payments ledger (migration 0010, applied). Env: CASHFREE_CLIENT_ID/SECRET/ENV=production set. Auto-activation + branded emails verified; live ₹ charge test pending founder.
+- **AI resilience (83-84)**: provider chain Groq GPT-OSS-120B → 20B → Anthropic (if key) → LLM_FALLBACK_URL/KEY/MODEL slot (Gemini/OpenRouter/Cerebras) → strong deterministic extractor; llm_degraded telemetry. Groq Llama models are Enterprise-only in 2026 — GPT-OSS is the free tier. CRITICAL fix: workspace crash from scrollIntoView-as-cleanup (Chrome) — braced.
+- **Practice Suite (85-90)**: /tools/gst, /tools/tds-rates (incl. new 194T), /tools/audit (44AB traps + 40(b) + 115BAA/BAB), /tools/property (12.5% vs indexed 20% + 54/54F/54EC), /tools/residency (s.6 + gifts), /tools/advance-tax. Pricing page rewritten to match product.
+- **Growth (91-93)**: /playbook — 14 strategies + 6 case studies with engine-verified numbers (labelled illustrative composites) + share buttons; landing lead magnet "60-second Tax Check" → instant both-regime answer, /api/tax-check emails full report to lead AND lead (with phone, tel: link, computed opportunity) to mnbgotyou; lead rows land in admin (source: tax-check).
+- **Hygiene (94)**: ZERO taxsense-ai.vercel.app strings anywhere in src; "beta" framing retired; all 39 routes 200; API battery green; browser flows verified (lead magnet recompute, workspace samples, playbook filters/share, GST tool).
+
+## Founder to-dos (only items code can't do)
+- One live ₹399 payment test → confirm Cashfree webhook log shows 200, plan auto-activates.
+- Sign into /admin with the 6-digit code once (closes Batch 73 verification).
+- Register webhook URL in Cashfree if not done: https://taxsense.mnbresearch.com/api/pay/webhook
+- Optional: add ANTHROPIC_API_KEY or LLM_FALLBACK_* for a second AI engine.
+- file_upload MCP tool broken — use JS injection workaround (see push workflow). NEW: raw.githubusercontent fetch + in-browser patch + hash-check is the cheapest edit path for existing files.
 - /tmp sandbox gets wiped; re-clone when missing.
