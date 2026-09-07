@@ -98,6 +98,51 @@ export async function getCashfreeOrder(orderId: string): Promise<any | null> {
   }
 }
 
+/* --------------------------- payment links --------------------------- */
+/** SDK-free hosted checkout (survives ad-blockers): official Payment Links. */
+export async function createPaymentLink(opts: {
+  linkId: string;
+  amount: number;
+  email: string;
+  phone: string;
+  name?: string;
+  planKey: string;
+  purpose: string;
+  returnUrl: string;
+}): Promise<{ ok: true; linkUrl: string } | { ok: false; error: string }> {
+  try {
+    const res = await fetch(`${baseUrl()}/links`, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({
+        link_id: opts.linkId,
+        link_amount: opts.amount,
+        link_currency: "INR",
+        link_purpose: opts.purpose,
+        customer_details: { customer_phone: opts.phone, customer_email: opts.email, customer_name: opts.name || undefined },
+        link_notify: { send_sms: false, send_email: false },
+        link_notes: { plan: opts.planKey, email: opts.email },
+        link_meta: { return_url: opts.returnUrl },
+      }),
+    });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok || !d.link_url) return { ok: false, error: String(d.message ?? `cashfree ${res.status}`).slice(0, 200) };
+    return { ok: true, linkUrl: d.link_url };
+  } catch (e: any) {
+    return { ok: false, error: String(e).slice(0, 200) };
+  }
+}
+
+export async function getPaymentLink(linkId: string): Promise<any | null> {
+  try {
+    const res = await fetch(`${baseUrl()}/links/${encodeURIComponent(linkId)}`, { headers: headers() });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
 /* ------------------------ webhook verification ----------------------- */
 
 export const WEBHOOK_MAX_AGE_SECONDS = 15 * 60;
