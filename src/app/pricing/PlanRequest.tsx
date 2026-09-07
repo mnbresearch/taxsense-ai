@@ -77,13 +77,20 @@ export default function PlanRequest({ plan, cta = "Request this plan" }: { plan:
       const d = await res.json();
       if (!res.ok || !d.paymentSessionId) throw new Error(d.error ?? "could not start payment");
       const Cashfree = await loadCashfreeSdk();
-      if (Cashfree) {
+      if (Cashfree && d.paymentSessionId) {
         const cf = Cashfree({ mode: d.mode === "production" ? "production" : "sandbox" });
         await cf.checkout({ paymentSessionId: d.paymentSessionId, redirectTarget: "_self" });
       } else {
-        // Ad-blockers sometimes swallow the SDK script — Cashfree's hosted
-        // checkout page works without it via a plain navigation.
-        window.location.assign("https://payments.cashfree.com/order/#" + d.paymentSessionId);
+        // Ad-blockers swallow the SDK script — fall back to an official
+        // hosted Payment Link (server-created, QR + UPI, no SDK needed).
+        const res2 = await fetch("/api/pay/create-order", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ planKey, email, name, phone, link: true }),
+        });
+        const d2 = await res2.json();
+        if (!res2.ok || !d2.linkUrl) throw new Error(d2.error ?? "could not start payment");
+        window.location.assign(d2.linkUrl);
       }
       setState("idle");
     } catch (err: any) {
