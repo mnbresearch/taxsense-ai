@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cashfreeConfigured, getCashfreeOrder } from "@/lib/cashfree";
+import { cashfreeConfigured, getCashfreeOrder, getPaymentLink } from "@/lib/cashfree";
 import { fulfillPaidOrder } from "@/lib/fulfill";
 import { clientKey, rateLimit } from "@/lib/rateLimit";
 
@@ -16,7 +16,20 @@ export async function GET(req: NextRequest) {
   if (!cashfreeConfigured()) return NextResponse.json({ error: "payments not configured" }, { status: 503 });
 
   const orderId = req.nextUrl.searchParams.get("order_id")?.slice(0, 64) ?? "";
-  if (!/^ts_[a-z0-9]+$/i.test(orderId)) return NextResponse.json({ error: "bad order id" }, { status: 400 });
+  if (!/^(ts_|tsl)[a-z0-9]+$/i.test(orderId)) return NextResponse.json({ error: "bad order id" }, { status: 400 });
+
+  // Hosted Payment Link flow (SDK-free): status lives on the link object.
+  if (orderId.startsWith("tsl")) {
+    const link = await getPaymentLink(orderId);
+    if (!link) return NextResponse.json({ error: "order not found" }, { status: 404 });
+    const paid = link.link_status === "PAID" || Number(link.link_amount_paid) >= Number(link.link_amount);
+    const lEmail = String(link.customer_details?.customer_email ?? link.link_notes?.email ?? "").toLowerCase();
+    const lPlan = String(link.link_notes?.plan ?? "");
+    if (paid && lEmail) {
+      await fulfillPaidOrder({ orderId, email: lEmail, planKey: lPlan, amount: Number(link.link_amount) || undefined, via: "status-poll" });
+    }
+    return NextResponse.json({ status: paid ? "PAID" : String(link.link_status ?? "ACTIVE"), planKey: lPlan, email: lEmail ? lEmail.replace(/(.{2}).*(@.*)/, "$1…$2") : null });
+  }
 
   const order = await getCashfreeOrder(orderId);
   if (!order) return NextResponse.json({ error: "order not found" }, { status: 404 });
