@@ -34,15 +34,21 @@ function payOptionsFor(plan: string) {
 
 declare global { interface Window { Cashfree?: any } }
 
-async function loadCashfreeSdk(): Promise<any | null> {
-  if (window.Cashfree) return window.Cashfree;
+async function loadScript(src: string): Promise<void> {
   await new Promise<void>((resolve, reject) => {
     const s = document.createElement("script");
-    s.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
+    s.src = src;
     s.onload = () => resolve();
     s.onerror = () => reject(new Error("sdk load failed"));
     document.head.appendChild(s);
   }).catch(() => {});
+}
+
+async function loadCashfreeSdk(): Promise<any | null> {
+  if (window.Cashfree) return window.Cashfree;
+  await loadScript("https://sdk.cashfree.com/js/v3/cashfree.js");
+  // Ad-blockers kill third-party scripts — our same-origin proxy always loads.
+  if (!window.Cashfree) await loadScript("/api/pay/sdk");
   return window.Cashfree ?? null;
 }
 
