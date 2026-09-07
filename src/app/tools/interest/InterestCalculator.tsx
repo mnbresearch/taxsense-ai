@@ -107,7 +107,7 @@ export default function InterestCalculator() {
                   "",
                   "Notes: interest at 1% per month or part thereof (s.234A/B/C); base rounded down to the nearest Rs. 100 (Rule 119A);",
                   "12%/36% safe harbour applied to the June/September installments (proviso to s.234C(1)).",
-                  "Computed via TaxSense AI (taxsense-ai.vercel.app/tools/interest).",
+                  "Computed via TaxSense AI (taxsense.mnbresearch.com/tools/interest).",
                 ].join("\n");
                 navigator.clipboard?.writeText(lines).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2500); });
               }}
