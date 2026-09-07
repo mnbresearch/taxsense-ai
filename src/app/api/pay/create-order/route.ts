@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
-import { cashfreeConfigured, cashfreeMode, createCashfreeOrder, PAY_CATALOG } from "@/lib/cashfree";
+import { cashfreeConfigured, cashfreeMode, createCashfreeOrder, createPaymentLink, PAY_CATALOG } from "@/lib/cashfree";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { clientKey, rateLimit } from "@/lib/rateLimit";
 
@@ -30,13 +30,28 @@ export async function POST(req: NextRequest) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return NextResponse.json({ error: "valid email required" }, { status: 400 });
   if (!/^[6-9]\d{9}$/.test(phone)) return NextResponse.json({ error: "valid 10-digit Indian mobile required" }, { status: 400 });
 
-  const orderId = `ts_${randomUUID().replace(/-/g, "").slice(0, 24)}`;
   const origin = req.nextUrl.origin;
-  const created = await createCashfreeOrder({
-    orderId, amount: cat.amount, email, phone, name, planKey,
-    returnUrl: `${origin}/pay/return?order_id=${orderId}`,
-  });
-  if (!created.ok) return NextResponse.json({ error: created.error }, { status: 502 });
+  const wantLink = !!body.link; // SDK blocked client-side → hosted Payment Link
+  const orderId = (wantLink ? "tsl" : "ts_") + randomUUID().replace(/-/g, "").slice(0, 24);
+
+  let paymentSessionId: string | null = null;
+  let linkUrl: string | null = null;
+  if (wantLink) {
+    const link = await createPaymentLink({
+      linkId: orderId, amount: cat.amount, email, phone, name, planKey,
+      purpose: `TaxSense AI — ${cat.blurb}`,
+      returnUrl: `${origin}/pay/return?order_id=${orderId}`,
+    });
+    if (!link.ok) return NextResponse.json({ error: link.error }, { status: 502 });
+    linkUrl = link.linkUrl;
+  } else {
+    const created = await createCashfreeOrder({
+      orderId, amount: cat.amount, email, phone, name, planKey,
+      returnUrl: `${origin}/pay/return?order_id=${orderId}`,
+    });
+    if (!created.ok) return NextResponse.json({ error: created.error }, { status: 502 });
+    paymentSessionId = created.paymentSessionId;
+  }
 
   // Make the lead visible to the admin panel immediately (best-effort).
   const admin = supabaseAdmin();
@@ -45,8 +60,8 @@ export async function POST(req: NextRequest) {
     const { error } = await admin.from("access_requests").insert(row);
     if (error) await admin.from("access_requests").update({ plan: cat.planLabel }).eq("email", email).eq("status", "lead");
     await admin.from("audit_events").insert({ event: "pay_order_created", meta: { email, orderId, planKey, amount: cat.amount } });
-    try { await admin.from("payments").insert({ order_id: orderId, email, plan_key: planKey, amount: cat.amount, status: "created", via: "checkout" }); } catch {}
+    try { await admin.from("payments").insert({ order_id: orderId, email, plan_key: planKey, amount: cat.amount, status: "created", via: wantLink ? "checkout-link" : "checkout" }); } catch {}
   }
 
-  return NextResponse.json({ enabled: true, orderId, paymentSessionId: created.paymentSessionId, mode: cashfreeMode() });
+  return NextResponse.json({ enabled: true, orderId, paymentSessionId, linkUrl, mode: cashfreeMode() });
 }
