@@ -82,10 +82,16 @@ export default function PlanRequest({ plan, cta = "Request this plan" }: { plan:
       });
       const d = await res.json();
       if (!res.ok || !d.paymentSessionId) throw new Error(d.error ?? "could not start payment");
+      const BLOCKED_MSG =
+        "The payment page didn't open — an ad-blocker or network filter is likely blocking cashfree.com. Pause it for one payment, or open this page on your phone and pay there.";
       const Cashfree = await loadCashfreeSdk();
       if (Cashfree && d.paymentSessionId) {
         const cf = Cashfree({ mode: d.mode === "production" ? "production" : "sandbox" });
         await cf.checkout({ paymentSessionId: d.paymentSessionId, redirectTarget: "_self" });
+        // If the redirect to Cashfree succeeded this code never runs. Still
+        // here after 2.5s ⇒ the checkout domain itself is blocked client-side.
+        await new Promise((r) => setTimeout(r, 2500));
+        throw new Error(BLOCKED_MSG);
       } else {
         // Ad-blockers swallow the SDK script — fall back to an official
         // hosted Payment Link (server-created, QR + UPI, no SDK needed).
@@ -94,8 +100,8 @@ export default function PlanRequest({ plan, cta = "Request this plan" }: { plan:
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ planKey, email, name, phone, link: true }),
         });
-        const d2 = await res2.json();
-        if (!res2.ok || !d2.linkUrl) throw new Error(d2.error ?? "could not start payment");
+        const d2 = await res2.json().catch(() => ({}));
+        if (!res2.ok || !d2.linkUrl) throw new Error(BLOCKED_MSG);
         window.location.assign(d2.linkUrl);
       }
       setState("idle");
