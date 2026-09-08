@@ -1,4 +1,4 @@
-# TaxSense AI — Session Handoff (through Batch 94 · LAUNCH-CERTIFIED)
+# TaxSense AI — Session Handoff (through Batch 96 · LAUNCH-CERTIFIED)
 
 **Live:** https://taxsense.mnbresearch.com (Vercel, auto-deploys from `main`; old taxsense-ai.vercel.app 308-redirects here)
 **Entity:** ABROBOT TECHNOLOGIES PRIVATE LIMITED (MNB Research). Founder: Mridul Nanda (mridulnanda2004@gmail.com; leads inbox mnbgotyou@gmail.com).
@@ -31,6 +31,13 @@ Tests: `npx vitest run` — 28 files / 230 tests. Always run tsc + vitest + next
 - **Practice Suite (85-90)**: /tools/gst, /tools/tds-rates (incl. new 194T), /tools/audit (44AB traps + 40(b) + 115BAA/BAB), /tools/property (12.5% vs indexed 20% + 54/54F/54EC), /tools/residency (s.6 + gifts), /tools/advance-tax. Pricing page rewritten to match product.
 - **Growth (91-93)**: /playbook — 14 strategies + 6 case studies with engine-verified numbers (labelled illustrative composites) + share buttons; landing lead magnet "60-second Tax Check" → instant both-regime answer, /api/tax-check emails full report to lead AND lead (with phone, tel: link, computed opportunity) to mnbgotyou; lead rows land in admin (source: tax-check).
 - **Hygiene (94)**: ZERO taxsense-ai.vercel.app strings anywhere in src; "beta" framing retired; all 39 routes 200; API battery green; browser flows verified (lead magnet recompute, workspace samples, playbook filters/share, GST tool).
+
+## Batch 96 (8 Sep 2026) — final hardening pass
+- next.js 14.2.33 → 14.2.35 (security patch) + dependency audit fixes (nanoid, browserslist).
+- tax-check lead emails now HTML-escape user-supplied name/email (injection hardening).
+- Pricing Pay button: if an ad-blocker silently blocks the Cashfree redirect, users now see clear guidance (pause blocker / pay from phone) instead of a dead button.
+- Re-certified: 230/230 tests, tsc clean, prod build 61 pages, all live routes 200, engine anchor ₹1,09,200 / ITR-4 exact, webhook fail-closed 401s, PDF valid, chat AI extracting live (groq gpt-oss-120b), zero console errors.
+- Emailed care@cashfree.com requesting Payment Links API + S2S UPI-QR enablement (code already deployed for both).
 
 ## Founder to-dos (only items code can't do)
 - One live ₹399 payment test → confirm Cashfree webhook log shows 200, plan auto-activates.
