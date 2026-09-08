@@ -7,6 +7,8 @@ import { clientKey, rateLimit } from "@/lib/rateLimit";
 export const runtime = "nodejs";
 
 const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
+const escHtml = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 
 /** Batch 93 — landing lead magnet: full report to the lead, lead to the founder. */
 export async function POST(req: NextRequest) {
@@ -39,7 +41,9 @@ export async function POST(req: NextRequest) {
     await admin.from("audit_events").insert({ event: "tax_check_lead", meta: { email, income, opportunity: r.totalOpportunity } });
   }
 
-  const first = name.split(" ")[0];
+  const safeName = escHtml(name);
+  const safeEmail = escHtml(email);
+  const first = escHtml(name.split(" ")[0]);
   await Promise.allSettled([
     sendOne({
       to: ADMIN_EMAIL,
@@ -48,7 +52,7 @@ export async function POST(req: NextRequest) {
       html: brandedShell(
         "New Tax-Check lead",
         `<table style="width:100%;border-collapse:collapse;font-size:14px;">
-          ${[["Name", name], ["Email", email], ["Phone", "+91 " + phone], ["Income", inr(income)], ["Rent", inr(rentMonthly) + "/mo" + (metro ? " (metro)" : "")], ["80C so far", inr(ded80C)], ["Files under", currentRegime], ["Old regime tax", inr(r.oldTax)], ["New regime tax", inr(r.newTax)], ["Overpaying now", inr(r.overpayingNow)], ["With 2 moves", inr(r.movesSaving)], ["TOTAL opportunity", inr(r.totalOpportunity)]]
+          ${[["Name", safeName], ["Email", safeEmail], ["Phone", "+91 " + phone], ["Income", inr(income)], ["Rent", inr(rentMonthly) + "/mo" + (metro ? " (metro)" : "")], ["80C so far", inr(ded80C)], ["Files under", currentRegime], ["Old regime tax", inr(r.oldTax)], ["New regime tax", inr(r.newTax)], ["Overpaying now", inr(r.overpayingNow)], ["With 2 moves", inr(r.movesSaving)], ["TOTAL opportunity", inr(r.totalOpportunity)]]
             .map(([k, v]) => `<tr><td style="padding:6px 0;color:#78716c;width:140px;border-bottom:1px solid #f5f5f4;">${k}</td><td style="padding:6px 0;color:#1c1917;font-weight:600;border-bottom:1px solid #f5f5f4;">${v}</td></tr>`).join("")}
         </table>
         <p style="margin-top:14px;"><a href="tel:+91${phone}" style="color:#0d5947;font-weight:700;">📞 Call ${first}</a> &nbsp;·&nbsp; <a href="https://taxsense.mnbresearch.com/admin" style="color:#0d5947;font-weight:600;">Open admin →</a></p>`
