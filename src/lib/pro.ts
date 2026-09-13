@@ -32,6 +32,11 @@ export const SEGMENT_META: Record<Segment, { title: string; tagline: string }> =
 };
 
 export const PRO_TOOLS: ProTool[] = [
+  {
+    id: "import", title: "Form 16 & AIS Import", icon: "📥",
+    desc: "Paste your Form 16 or AIS and TaxSense reads every number — salary, HRA, 80C/80D/NPS, interest, capital gains — so you review instead of type. Nothing stored.",
+    href: "/tools/import", segment: "practitioner", tier: "free",
+  },
   // ---------- Law students (free) ----------
   {
     id: "filing", title: "ITR Filing Kit", icon: "📋",

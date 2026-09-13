@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { computeBoth } from "@/lib/tax-engine";
 import { advanceTaxPlan } from "@/lib/tax-engine/advanceTax";
 import { recommendItrForm } from "@/lib/tax-engine/itrForm";
+import { buildFilingSheet } from "@/lib/itrExport";
 import { safeParseProfile } from "@/lib/tax-engine/validate";
 import { optimize } from "@/lib/optimizer";
 import { computeInsights } from "@/lib/optimizer/insights";
@@ -47,6 +48,7 @@ export async function POST(req: NextRequest) {
         notes: advanceTax.notes,
       },
       itr,
+      filingSheet: buildFilingSheet(profile, best, itr),
     });
   } catch (e: any) {
     return NextResponse.json({ error: "compute failed" }, { status: 500 });
