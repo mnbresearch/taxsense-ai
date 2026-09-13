@@ -8,6 +8,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { buildFilingKit, type FilingKit as Kit, type FlagSeverity } from "@/lib/filing";
+import { renderFilingSheetText } from "@/lib/itrExport";
 
 const inr = (n: number) => "₹" + Math.round(Math.abs(n)).toLocaleString("en-IN");
 
@@ -108,6 +109,53 @@ export default function FilingKit() {
               {result.comparison.recommended === "new" ? "New" : "Old"} regime · tax {inr(best.totalTaxLiability)} ·{" "}
               {best.netPayable > 0 ? <>balance payable <strong>{inr(best.netPayable)}</strong></> : <>refund due <strong className="text-brand-700">{inr(best.netPayable)}</strong></>}
             </p>
+          </section>
+
+          <section className="rounded-xl border border-stone-200 bg-white p-5">
+            <h2 className="text-lg font-bold text-stone-800">📄 Filing exports</h2>
+            <p className="mt-1 text-xs text-stone-500">
+              Preparation aids generated from your computation. Verify every figure — and, for the JSON,
+              validate in the portal's offline utility and add PAN/bank details — before filing.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-3">
+              {result.filingSheet && (
+                <button
+                  onClick={() => {
+                    const txt = renderFilingSheetText(result.filingSheet);
+                    const blob = new Blob([txt], { type: "text/plain" });
+                    const a = document.createElement("a");
+                    a.href = URL.createObjectURL(blob);
+                    a.download = `TaxSense-filing-sheet-${result.itr.form}.txt`;
+                    a.click();
+                    URL.revokeObjectURL(a.href);
+                  }}
+                  className="rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white"
+                >
+                  ⬇ Filing sheet (schedule-mapped)
+                </button>
+              )}
+              {result.itr1Draft?.eligible && result.itr1Draft.json && (
+                <button
+                  onClick={() => {
+                    const blob = new Blob([JSON.stringify(result.itr1Draft.json, null, 2)], { type: "application/json" });
+                    const a = document.createElement("a");
+                    a.href = URL.createObjectURL(blob);
+                    a.download = "TaxSense-ITR1-draft.json";
+                    a.click();
+                    URL.revokeObjectURL(a.href);
+                  }}
+                  className="rounded-lg border border-brand-700 px-4 py-2 text-sm font-semibold text-brand-700"
+                >
+                  ⬇ ITR-1 draft JSON
+                </button>
+              )}
+            </div>
+            {result.itr1Draft && !result.itr1Draft.eligible && (
+              <p className="mt-2 text-xs text-stone-500">{result.itr1Draft.reason}</p>
+            )}
+            {result.itr1Draft?.eligible && (
+              <p className="mt-2 text-[11px] leading-relaxed text-amber-700">{result.itr1Draft.status}</p>
+            )}
           </section>
 
           <section>

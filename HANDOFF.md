@@ -1,4 +1,4 @@
-# TaxSense AI — Session Handoff (through Batch 96 · LAUNCH-CERTIFIED)
+# TaxSense AI — Session Handoff (through Batch 99 · LAUNCH-CERTIFIED)
 
 **Live:** https://taxsense.mnbresearch.com (Vercel, auto-deploys from `main`; old taxsense-ai.vercel.app 308-redirects here)
 **Entity:** ABROBOT TECHNOLOGIES PRIVATE LIMITED (MNB Research). Founder: Mridul Nanda (mridulnanda2004@gmail.com; leads inbox mnbgotyou@gmail.com).
@@ -39,7 +39,14 @@ Tests: `npx vitest run` — 28 files / 230 tests. Always run tsc + vitest + next
 - Re-certified: 230/230 tests, tsc clean, prod build 61 pages, all live routes 200, engine anchor ₹1,09,200 / ITR-4 exact, webhook fail-closed 401s, PDF valid, chat AI extracting live (groq gpt-oss-120b), zero console errors.
 - Emailed care@cashfree.com requesting Payment Links API + S2S UPI-QR enablement (code already deployed for both).
 
-## Founder to-dos (only items code can't do)
+## Batches 97-99 (13 Sep 2026)
+- **Batch 97 — serverless-safe rate limiting:** shared Postgres-backed limiter (`rl_hit` RPC, migration 0011) on signin/verify/tax-check/access-request/chat, graceful in-memory fallback. Closes the concurrent-bypass gap the stress test found. **Founder step: run supabase/migrations/0011_rate_limits.sql** (done ✓ if the limiter returns 429s under concurrent load).
+- **Batch 98 — Form 16 / AIS import + ITR filing sheet:** /tools/import parses pasted Form 16 (Part B) or AIS/TIS into reviewable fields (deterministic, no storage). Compute now returns a schedule-mapped `filingSheet`.
+- **Batch 99 — ITR-1 draft JSON:** compute returns `itr1Draft` in ITR-1 layout, scope-guarded to ITR-1 (refuses ITR-2/3/4), labelled DRAFT (validate in portal offline utility). Downloads for both the filing sheet and the ITR-1 JSON are in the Filing Kit (/tools/filing).
+- Suite: 267 tests, tsc clean, 63 pages.
+
+
+## Founder to-dos (dev notes — items code can't do)
 - One live ₹399 payment test → confirm Cashfree webhook log shows 200, plan auto-activates.
 - Sign into /admin with the 6-digit code once (closes Batch 73 verification).
 - Register webhook URL in Cashfree if not done: https://taxsense.mnbresearch.com/api/pay/webhook
