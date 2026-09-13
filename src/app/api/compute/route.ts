@@ -3,6 +3,7 @@ import { computeBoth } from "@/lib/tax-engine";
 import { advanceTaxPlan } from "@/lib/tax-engine/advanceTax";
 import { recommendItrForm } from "@/lib/tax-engine/itrForm";
 import { buildFilingSheet } from "@/lib/itrExport";
+import { buildItr1Json } from "@/lib/itrJson";
 import { safeParseProfile } from "@/lib/tax-engine/validate";
 import { optimize } from "@/lib/optimizer";
 import { computeInsights } from "@/lib/optimizer/insights";
@@ -49,6 +50,7 @@ export async function POST(req: NextRequest) {
       },
       itr,
       filingSheet: buildFilingSheet(profile, best, itr),
+      itr1Draft: buildItr1Json(profile, best, itr),
     });
   } catch (e: any) {
     return NextResponse.json({ error: "compute failed" }, { status: 500 });
