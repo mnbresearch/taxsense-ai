@@ -14,8 +14,13 @@ export async function POST(req: NextRequest) {
   const rl = rateLimit(`compute:${clientKey(req)}`, { capacity: 60, refillPerMinute: 60 });
   if (!rl.allowed)
     return NextResponse.json({ error: "rate limited" }, { status: 429, headers: { "retry-after": String(rl.retryAfterSeconds) } });
+  let body: any;
   try {
-    const body = await req.json();
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "invalid JSON body" }, { status: 400 });
+  }
+  try {
     if (!body?.profile) return NextResponse.json({ error: "profile required" }, { status: 400 });
     const parsed = safeParseProfile(body.profile);
     if (!parsed.ok) return NextResponse.json({ error: `invalid profile — ${parsed.error}` }, { status: 400 });
@@ -44,6 +49,6 @@ export async function POST(req: NextRequest) {
       itr,
     });
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message ?? "compute failed" }, { status: 500 });
+    return NextResponse.json({ error: "compute failed" }, { status: 500 });
   }
 }

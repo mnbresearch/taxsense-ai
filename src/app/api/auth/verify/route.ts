@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
-import { clientKey, rateLimit } from "@/lib/rateLimit";
+import { clientKey, rateLimitShared } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 
@@ -10,7 +10,7 @@ export const runtime = "nodejs";
  * device — no PKCE cookie required.
  */
 export async function POST(req: NextRequest) {
-  const rl = rateLimit(`verify:${clientKey(req)}`, { capacity: 8, refillPerMinute: 2 });
+  const rl = await rateLimitShared(`verify:${clientKey(req)}`, 8, 60, { capacity: 8, refillPerMinute: 2 });
   if (!rl.allowed) return NextResponse.json({ error: "too many attempts — wait a minute" }, { status: 429 });
   const { email, code } = await req.json().catch(() => ({}));
   const e = typeof email === "string" ? email.trim().toLowerCase() : "";

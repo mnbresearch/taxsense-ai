@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { quickCheck } from "@/lib/taxcheck";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { ADMIN_EMAIL, brandedShell, sendOne } from "@/lib/email";
-import { clientKey, rateLimit } from "@/lib/rateLimit";
+import { clientKey, rateLimitShared } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 
@@ -12,7 +12,7 @@ const escHtml = (s: string) =>
 
 /** Batch 93 — landing lead magnet: full report to the lead, lead to the founder. */
 export async function POST(req: NextRequest) {
-  const rl = rateLimit(`taxcheck:${clientKey(req)}`, { capacity: 5, refillPerMinute: 2 });
+  const rl = await rateLimitShared(`taxcheck:${clientKey(req)}`, 5, 60, { capacity: 5, refillPerMinute: 2 });
   if (!rl.allowed) return NextResponse.json({ error: "too many attempts — try again in a minute" }, { status: 429 });
 
   const b = await req.json().catch(() => ({}));

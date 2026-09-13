@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer, supabaseAdmin } from "@/lib/supabase/server";
-import { clientKey, rateLimit } from "@/lib/rateLimit";
+import { clientKey, rateLimitShared } from "@/lib/rateLimit";
 import { brandedShell, sendOne } from "@/lib/email";
 
 export const runtime = "nodejs";
@@ -14,7 +14,7 @@ export const runtime = "nodejs";
  * Falls back to Supabase's stock magic-link email if anything fails.
  */
 export async function POST(req: NextRequest) {
-  const rl = rateLimit(`signin:${clientKey(req)}`, { capacity: 5, refillPerMinute: 1 });
+  const rl = await rateLimitShared(`signin:${clientKey(req)}`, 5, 60, { capacity: 5, refillPerMinute: 1 });
   if (!rl.allowed) return NextResponse.json({ error: "too many attempts — try again in a minute" }, { status: 429 });
   const { email } = await req.json().catch(() => ({}));
   const e = typeof email === "string" ? email.trim().toLowerCase() : "";

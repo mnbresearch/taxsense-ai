@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { demoEvents, supabaseAdmin } from "@/lib/supabase/server";
-import { clientKey, rateLimit } from "@/lib/rateLimit";
+import { clientKey, rateLimitShared } from "@/lib/rateLimit";
 import { sendAccessRequestEmails } from "@/lib/email";
 
 export const runtime = "nodejs";
@@ -16,7 +16,7 @@ const Input = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const rl = rateLimit(`access:${clientKey(req)}`, { capacity: 5, refillPerMinute: 3 });
+  const rl = await rateLimitShared(`access:${clientKey(req)}`, 5, 60, { capacity: 5, refillPerMinute: 2 });
   if (!rl.allowed) return NextResponse.json({ error: "rate limited" }, { status: 429 });
   try {
     const parsed = Input.safeParse(await req.json());

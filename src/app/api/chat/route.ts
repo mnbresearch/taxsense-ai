@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { runIntakeTurn, newIntakeState } from "@/lib/intake/engine";
 import type { IntakeState } from "@/lib/intake/engine";
 import { supabaseServer, demoEvents } from "@/lib/supabase/server";
-import { clientKey, rateLimit } from "@/lib/rateLimit";
+import { clientKey, rateLimitShared } from "@/lib/rateLimit";
 import { glossaryAnswer } from "@/lib/glossary";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
 export async function POST(req: NextRequest) {
-  const rl = rateLimit(`chat:${clientKey(req)}`, { capacity: 20, refillPerMinute: 15 });
+  const rl = await rateLimitShared(`chat:${clientKey(req)}`, 30, 60, { capacity: 30, refillPerMinute: 20 });
   if (!rl.allowed)
     return NextResponse.json(
       { error: "Whoa — too many messages at once. Give me a few seconds." },
