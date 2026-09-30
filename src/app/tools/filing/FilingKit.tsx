@@ -209,6 +209,33 @@ export default function FilingKit() {
             </ol>
           </section>
 
+          <details className="rounded-xl border border-stone-200 bg-white p-5 group">
+            <summary className="cursor-pointer list-none flex items-center justify-between">
+              <span className="text-lg font-bold text-stone-800">🔍 Show the working — how this tax was computed</span>
+              <span className="text-xs text-brand-700 group-open:hidden">expand</span>
+              <span className="text-xs text-brand-700 hidden group-open:inline">collapse</span>
+            </summary>
+            <p className="mt-1 text-xs text-stone-500">
+              Every figure below is derived by the engine and reconciles to the rupee — verify it yourself, or hand it to your CA. Showing the <strong>{result.comparison.recommended === "new" ? "new" : "old"}</strong> regime (the one recommended for you).
+            </p>
+            <div className="mt-3 divide-y divide-stone-100 text-sm">
+              {(result.explanation?.[result.comparison.recommended] ?? []).map((step: any, i: number) => {
+                const isTotal = /Total Tax Liability|PAYABLE|Refund DUE|Gross Total Income|Total Income \(taxable\)/.test(step.label);
+                return (
+                  <div key={i} className={"flex items-start justify-between gap-4 py-1.5 " + (isTotal ? "font-semibold text-stone-900" : "text-stone-700")}>
+                    <span className="flex-1">
+                      {step.label}
+                      {step.note && <span className="block text-[11px] font-normal text-stone-400">{step.note}</span>}
+                    </span>
+                    <span className={"tabular-nums whitespace-nowrap " + (step.amount < 0 ? "text-emerald-700" : "")}>
+                      {step.amount < 0 ? "−" : ""}{inr(step.amount)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </details>
+
           <section className="rounded-xl border border-stone-200 bg-stone-50 p-4 text-sm text-stone-600">
             <strong className="text-stone-800">Update anything in conversation.</strong> Numbers changed? Head back to the{" "}
             <Link href="/app" className="font-semibold text-brand-700 underline">workspace</Link>, tell TaxSense what's new, hit Save — this kit rebuilds itself.
