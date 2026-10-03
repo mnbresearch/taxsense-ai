@@ -2,7 +2,7 @@
  * Filing-summary PDF generator (Session 4) — the product's "aha" moment.
  * Server-side, pdf-lib (no headless browser needed on Vercel).
  */
-import { PDFDocument, PDFFont, PDFPage, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, PDFFont, PDFPage, StandardFonts, rgb, type RGB } from "pdf-lib";
 import type { ComparisonResult, TaxProfile } from "../tax-engine";
 import type { OptimizerReport } from "../optimizer";
 import { computeTaxScore } from "../tax-engine/score";
@@ -53,7 +53,7 @@ function ensure(ctx: Ctx, needed: number) {
   }
 }
 
-function text(ctx: Ctx, s: string, opts: { size?: number; bold?: boolean; color?: any; x?: number; dy?: number } = {}) {
+function text(ctx: Ctx, s: string, opts: { size?: number; bold?: boolean; color?: RGB; x?: number; dy?: number } = {}) {
   const size = opts.size ?? 10;
   ensure(ctx, size + 4);
   ctx.page.drawText(winAnsi(s), {
@@ -66,7 +66,7 @@ function text(ctx: Ctx, s: string, opts: { size?: number; bold?: boolean; color?
   ctx.y -= size + (opts.dy ?? 6);
 }
 
-function row(ctx: Ctx, label: string, value: string, opts: { bold?: boolean; indent?: number; color?: any } = {}) {
+function row(ctx: Ctx, label: string, value: string, opts: { bold?: boolean; indent?: number; color?: RGB } = {}) {
   const size = 10;
   ensure(ctx, 16);
   const f = opts.bold ? ctx.bold : ctx.font;

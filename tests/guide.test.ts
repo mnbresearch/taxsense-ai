@@ -35,7 +35,7 @@ describe("business owners", () => {
   it(">₹10cr → audit mandatory; ₹3-10cr digital → no audit", () => {
     const big = buildGuide({ earns: ["business"], entity: "individual", turnoverBand: "above10cr", mostlyDigital: true, sellsGoods: true, soldAssets: false, incomeBand: "above50L" });
     expect(flat(big)).toMatch(/mandatory, full stop/);
-    expect(big.deadlines.some((d) => d.date.includes("31 Oct"))).toBe(true);
+    expect(big.deadlines.some((d) => d.date.includes("21 Nov"))).toBe(true);
     const mid = buildGuide({ earns: ["business"], entity: "individual", turnoverBand: "3to10cr", mostlyDigital: true, sellsGoods: true, soldAssets: false, incomeBand: "12to50L" });
     expect(flat(mid)).toMatch(/NO tax audit/);
   });

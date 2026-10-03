@@ -66,7 +66,7 @@ export default function HraCalculator() {
           min={0}
           value={value || ""}
           onChange={(e) => set(Math.max(0, Number(e.target.value) || 0))}
-          className="w-full rounded-lg px-2 py-2.5 text-sm outline-none"
+          className="w-full rounded-lg px-2 py-2.5 text-sm outline-hidden"
         />
         <span className="pr-3 text-xs text-stone-400">/month</span>
       </div>

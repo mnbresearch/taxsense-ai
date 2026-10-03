@@ -1,12 +1,27 @@
 /**
- * Batch 82 — idempotent payment fulfilment, shared by the webhook and the
- * status-poll fallback. Activation is safe to run twice: the payments table
- * (unique order_id) short-circuits retries, and even without that table an
- * "already active" update is a no-op in effect.
+ * Payment fulfilment, shared by the webhook and the status-poll fallback.
+ *
+ * Security model (hardened):
+ *  - The plan and price come from OUR ledger row (written by /api/pay/create-order
+ *    with server-side catalog prices), never from webhook/order fields alone.
+ *  - Unknown plan keys and under-payments are refused — they never map to a tier.
+ *  - Each order is claimed atomically (status created→paid in one UPDATE), so
+ *    concurrent webhook + status-poll calls cannot double-activate or double-email.
+ *  - Paid-online plans get an expiry (paid_until); renewals extend it.
  */
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { brandedShell, FOUNDER_CC, sendOne } from "@/lib/email";
 import { PAY_CATALOG } from "@/lib/cashfree";
+import { escHtml } from "@/lib/html";
+
+const DAY = 86_400_000;
+/** Validity granted by each catalog key. */
+export function planDurationDays(planKey: string): number {
+  if (planKey.endsWith("-yearly")) return 366;
+  if (planKey.endsWith("-monthly")) return 31;
+  if (planKey === "filed-once") return 365;
+  return 0;
+}
 
 export async function fulfillPaidOrder(opts: {
   orderId: string;
@@ -18,44 +33,62 @@ export async function fulfillPaidOrder(opts: {
 }): Promise<{ ok: boolean; duplicate?: boolean; error?: string }> {
   const admin = supabaseAdmin();
   if (!admin) return { ok: false, error: "service key not configured" };
-  const email = opts.email.trim().toLowerCase();
-  const cat = PAY_CATALOG[opts.planKey];
-  const planLabel = cat?.planLabel ?? `Paid online (${opts.planKey})`;
 
-  // Idempotency ledger (tolerate a missing table — activation is still safe).
-  try {
-    const { data: existing } = await admin.from("payments").select("status").eq("order_id", opts.orderId).maybeSingle();
-    if (existing?.status === "paid") return { ok: true, duplicate: true };
-    await admin.from("payments").upsert(
-      {
-        order_id: opts.orderId, email, plan_key: opts.planKey,
-        amount: opts.amount ?? cat?.amount ?? null, status: "paid",
-        cf_payment_id: opts.cfPaymentId ?? null, via: opts.via,
-      },
-      { onConflict: "order_id" }
-    );
-  } catch { /* table may not exist yet — proceed; activation is idempotent */ }
-
-  // Activate: update the lead row if present, else create one.
-  const { data: updated, error: upErr } = await admin
-    .from("access_requests")
-    .update({ status: "active", plan: planLabel })
-    .eq("email", email)
-    .select("email")
-    .maybeSingle();
-  if (upErr) return { ok: false, error: upErr.message };
-  if (!updated) {
-    const { error: insErr } = await admin
-      .from("access_requests")
-      .insert({ email, source: "pay-online", plan: planLabel, status: "active" });
-    if (insErr && !/duplicate/i.test(insErr.message)) return { ok: false, error: insErr.message };
+  // 1. Our own ledger row is the source of truth for plan, price and email.
+  let email = opts.email.trim().toLowerCase();
+  let planKey = opts.planKey;
+  const ledger = await admin.from("payments").select("status, plan_key, amount, email").eq("order_id", opts.orderId).maybeSingle();
+  const ledgerAvailable = !ledger.error;
+  if (ledger.data) {
+    if (ledger.data.status === "paid") return { ok: true, duplicate: true };
+    planKey = String(ledger.data.plan_key ?? "");
+    email = String(ledger.data.email ?? email).trim().toLowerCase();
+  } else if (ledgerAvailable) {
+    // Ledger exists but has no such order: we never created it — refuse.
+    return { ok: false, error: "unknown order" };
   }
+
+  const cat = PAY_CATALOG[planKey];
+  if (!cat) return { ok: false, error: "unknown plan" };
+  if (opts.amount !== undefined && opts.amount + 0.01 < cat.amount) return { ok: false, error: "amount mismatch" };
+
+  // 2. Atomic claim — only one caller flips created→paid.
+  if (ledgerAvailable) {
+    const { data: claimed, error: claimErr } = await admin
+      .from("payments")
+      .update({ status: "paid", cf_payment_id: opts.cfPaymentId ?? null, via: opts.via, updated_at: new Date().toISOString() })
+      .eq("order_id", opts.orderId)
+      .neq("status", "paid")
+      .select("order_id");
+    if (claimErr) return { ok: false, error: "ledger update failed" };
+    if (!claimed || claimed.length === 0) return { ok: true, duplicate: true };
+  }
+
+  // 3. Activate with an expiry; renewals extend from the later of now / current expiry.
+  const { data: current } = await admin.from("access_requests").select("paid_until").eq("email", email).maybeSingle();
+  const base = Math.max(Date.now(), current?.paid_until ? new Date(current.paid_until).getTime() : 0);
+  const paidUntil = new Date(base + planDurationDays(planKey) * DAY).toISOString();
+
+  const activate = async (withExpiry: boolean) => {
+    const patch = { status: "active", plan: cat.planLabel, ...(withExpiry ? { paid_until: paidUntil } : {}) };
+    const { data: updated, error } = await admin.from("access_requests").update(patch).eq("email", email).select("email").maybeSingle();
+    if (error) return error;
+    if (!updated) {
+      const ins = await admin.from("access_requests").insert({ email, source: "pay-online", ...patch });
+      if (ins.error && !/duplicate/i.test(ins.error.message)) return ins.error;
+    }
+    return null;
+  };
+  let err = await activate(true);
+  if (err && /paid_until|column/i.test(err.message)) err = await activate(false); // migration 0012 not yet applied
+  if (err) return { ok: false, error: "activation failed" };
 
   await admin.from("audit_events").insert({
     event: "payment_fulfilled",
-    meta: { email, orderId: opts.orderId, planKey: opts.planKey, amount: opts.amount ?? cat?.amount, via: opts.via },
+    meta: { email, orderId: opts.orderId, planKey, amount: opts.amount ?? cat.amount, via: opts.via, paidUntil },
   });
 
+  const until = new Date(paidUntil).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
   await sendOne({
     to: email,
     cc: email === FOUNDER_CC ? undefined : [FOUNDER_CC],
@@ -63,9 +96,9 @@ export async function fulfillPaidOrder(opts: {
     kind: "custom",
     html: brandedShell(
       "Payment received — you're in!",
-      `<p style="color:#44403c;font-size:14px;line-height:1.6;">Your payment for <strong>${cat?.blurb ?? planLabel}</strong> went through and your plan is <strong>active right now</strong>. Sign in with this email address (${email}) and everything is unlocked.</p>
+      `<p style="color:#44403c;font-size:14px;line-height:1.6;">Your payment for <strong>${escHtml(cat.blurb)}</strong> went through and your plan is <strong>active right now</strong> (valid until ${until}). Sign in with this email address (${escHtml(email)}) and everything is unlocked.</p>
        <p style="margin:18px 0;"><a href="https://taxsense.mnbresearch.com/app" style="background:#0d5947;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;display:inline-block;">Open TaxSense AI →</a></p>
-       <p style="color:#78716c;font-size:12px;line-height:1.6;">Order ${opts.orderId}. A GST invoice follows by email. Questions? Just reply — a human reads this inbox.</p>`
+       <p style="color:#78716c;font-size:12px;line-height:1.6;">Order ${escHtml(opts.orderId)}. A GST invoice follows by email. Questions? Just reply — a human reads this inbox.</p>`
     ),
   });
 

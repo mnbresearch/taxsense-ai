@@ -131,7 +131,11 @@ function openAiCompatProvider(baseUrl: string, apiKey: string, model: string): L
  *  Handles: "80k a month", "12 LPA", "1.5 lakh in PPF", "no house", etc. */
 export function mockExtract(userMessage: string): string {
   const msg = userMessage.toLowerCase();
-  const updates: any = {};
+  type Section = Record<string, number | boolean | string>;
+  const updates: {
+    salary?: Section; deductions?: Section; otherSources?: Section; capitalGains?: Section;
+    houseProperty?: Section; taxesPaid?: number;
+  } = {};
   const notApplicable: string[] = [];
   const estimates: string[] = [];
 

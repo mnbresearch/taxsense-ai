@@ -77,7 +77,7 @@ export default function Breakeven() {
         <div className="mt-1 flex items-center rounded-lg border border-stone-300 bg-white focus-within:border-brand-600">
           <span className="pl-3 text-sm text-stone-400">₹</span>
           <input type="number" min={0} value={rentMonthly || ""} onChange={(e) => setRentMonthly(Math.max(0, Number(e.target.value) || 0))}
-            className="w-full rounded-lg px-2 py-2 text-sm outline-none" />
+            className="w-full rounded-lg px-2 py-2 text-sm outline-hidden" />
           <span className="pr-3 text-xs text-stone-400">/month</span>
         </div>
       </label>

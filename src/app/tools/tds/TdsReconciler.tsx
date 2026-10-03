@@ -38,14 +38,14 @@ export default function TdsReconciler() {
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder={"Paste 26AS text here…\ne.g.\nACME TECHNOLOGIES PVT LTD MUMB01234A 192 31-Mar-2026 1,20,000.00 12,000.00 12,000.00"}
-            className="h-72 w-full rounded-xl border border-stone-300 p-3 font-mono text-xs outline-none focus:border-brand-600"
+            className="h-72 w-full rounded-xl border border-stone-300 p-3 font-mono text-xs outline-hidden focus:border-brand-600"
           />
           <label className="block">
             <span className="text-xs font-semibold text-stone-600">TDS the return currently claims</span>
             <div className="mt-1 flex max-w-xs items-center rounded-lg border border-stone-300 bg-white focus-within:border-brand-600">
               <span className="pl-3 text-sm text-stone-400">₹</span>
               <input type="number" min={0} value={claimed || ""} onChange={(e) => setClaimed(Math.max(0, Number(e.target.value) || 0))}
-                className="w-full rounded-lg px-2 py-2 text-sm outline-none" />
+                className="w-full rounded-lg px-2 py-2 text-sm outline-hidden" />
             </div>
           </label>
         </section>

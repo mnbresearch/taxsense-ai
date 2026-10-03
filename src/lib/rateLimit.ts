@@ -2,9 +2,10 @@
  * Minimal in-memory token bucket per IP (per serverless instance).
  * Good enough to blunt abuse on the free tier; swap for Upstash/Redis at scale.
  */
-const g = globalThis as any;
-g.__taxsenseBuckets ??= new Map<string, { tokens: number; last: number }>();
-const buckets: Map<string, { tokens: number; last: number }> = g.__taxsenseBuckets;
+type Bucket = { tokens: number; last: number };
+const g = globalThis as typeof globalThis & { __taxsenseBuckets?: Map<string, Bucket> };
+g.__taxsenseBuckets ??= new Map<string, Bucket>();
+const buckets: Map<string, Bucket> = g.__taxsenseBuckets;
 
 export function rateLimit(
   key: string,
@@ -25,7 +26,8 @@ export function rateLimit(
 
 export function clientKey(req: Request): string {
   const h = (name: string) => (req.headers.get(name) ?? "").split(",")[0].trim();
-  return h("x-forwarded-for") || h("x-real-ip") || "anonymous";
+  // Platform-set headers first (Vercel overwrites these; clients can't spoof them).
+  return h("x-vercel-forwarded-for") || h("x-real-ip") || h("x-forwarded-for") || "anonymous";
 }
 
 /**

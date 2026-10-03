@@ -23,6 +23,8 @@ export interface FilingKit { documents: DocGroup[]; redFlags: RedFlag[]; steps: 
 
 /** FY 2025-26 (AY 2026-27) key dates. */
 export const DUE_DATE_NON_AUDIT = new Date("2026-07-31T23:59:59+05:30");
+/** ITR-3 / ITR-4 (non-audit business & profession) — from AY 2026-27. */
+export const DUE_DATE_NON_AUDIT_BIZ = new Date("2026-08-31T23:59:59+05:30");
 export const BELATED_DEADLINE = new Date("2026-12-31T23:59:59+05:30");
 
 const inr = (n: number) => "₹" + Math.round(Math.abs(n)).toLocaleString("en-IN");
@@ -116,11 +118,13 @@ export function buildFilingKit(
 
   /* ------------------------------ red flags ------------------------------ */
   const redFlags: RedFlag[] = [];
-  if (today > DUE_DATE_NON_AUDIT) {
+  const bizForm = itr.form === "ITR-3" || itr.form === "ITR-4";
+  const dueDate = bizForm ? DUE_DATE_NON_AUDIT_BIZ : DUE_DATE_NON_AUDIT;
+  if (today > dueDate) {
     const feeSmall = best.totalIncome <= 500000;
     redFlags.push({
       severity: "high",
-      title: "Past the 31 July due date — this is now a belated return",
+      title: `Past the ${bizForm ? "31 August" : "31 July"} due date — this is now a belated return`,
       detail: `File u/s 139(4) by 31 December 2026. Late fee u/s 234F: ${feeSmall ? "₹1,000 (income ≤ ₹5L)" : "₹5,000"}; interest u/s 234A runs on unpaid tax, and most losses can no longer be carried forward.`,
       fix: "File as soon as possible — every month of delay adds 1% interest u/s 234A on the balance.",
     });

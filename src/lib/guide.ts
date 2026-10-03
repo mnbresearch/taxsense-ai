@@ -238,10 +238,12 @@ export function buildGuide(a: GuideAnswers): GuideReport {
             { date: "15 Mar 2026", what: "Final advance-tax installment (100%)" },
           ]
       : [{ date: "15 Mar 2026", what: "Advance tax if TDS falls short by ≥ ₹10,000" }]),
-    { date: "31 Jul 2026", what: "ITR filing due date (non-audit cases) — s.234F late fee after this" },
+    isBiz || isProf
+      ? { date: "31 Aug 2026", what: "ITR-3/ITR-4 due date (non-audit business/profession) — s.234F late fee after this" }
+      : { date: "31 Jul 2026", what: "ITR-1/ITR-2 due date — s.234F late fee after this" },
   ];
   if (sections.some((s) => s.title.includes("44AB") && s.tone === "warn"))
-    deadlines.push({ date: "31 Oct 2026", what: "Extended filing due date for audit cases (audit report earlier)" });
+    deadlines.push({ date: "21 Nov 2026", what: "ITR due date for audit cases (extended by CBDT from 31 Oct; audit report due 21 Oct)" });
 
   const headline = isBiz
     ? presumptiveOk

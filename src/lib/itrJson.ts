@@ -20,7 +20,7 @@ export interface Itr1DraftResult {
   eligible: boolean;
   reason?: string;
   /** the ITR-1-layout object (present only when eligible) */
-  json?: Record<string, any>;
+  json?: Record<string, unknown>;
   /** loud, unmissable status for any UI that surfaces this */
   status: string;
 }
