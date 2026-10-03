@@ -231,7 +231,7 @@ export default function AdminPage() {
 
           <div className="mt-6 rounded-xl border border-stone-200 bg-white p-5">
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold">Access requests {leads && <span className="ml-1 rounded bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-700">{leads.length}</span>}</h2>
+              <h2 className="font-semibold">Access requests {leads && <span className="ml-1 rounded-sm bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-700">{leads.length}</span>}</h2>
               {leads && leads.length > 0 && (
                 <button
                   onClick={() => {
@@ -301,12 +301,12 @@ export default function AdminPage() {
                       </td>
                       <td className="text-stone-600">
                         <span className="flex items-center gap-1.5">
-                          {l.status === "active" && <span className="rounded bg-green-100 px-1.5 py-0.5 text-xs font-bold text-green-700">✓ ACTIVE</span>}
+                          {l.status === "active" && <span className="rounded-sm bg-green-100 px-1.5 py-0.5 text-xs font-bold text-green-700">✓ ACTIVE</span>}
                           <select
                             value={l.plan ?? ""}
                             onChange={(e) => setPlan(l.email, e.target.value)}
                             title="Change plan — takes effect immediately for active users"
-                            className="rounded border border-stone-200 bg-white px-1 py-0.5 text-xs text-stone-700 outline-none hover:border-brand-600"
+                            className="rounded-sm border border-stone-200 bg-white px-1 py-0.5 text-xs text-stone-700 outline-hidden hover:border-brand-600"
                           >
                             <option value="">no plan</option>
                             <option value="Pro (₹399/mo or ₹3,999/yr)">Pro</option>
@@ -325,9 +325,9 @@ export default function AdminPage() {
                       </td>
                       <td className="whitespace-nowrap pl-2 text-right">
                         {l.status !== "active" ? (
-                          <button onClick={() => activateLead(l.email)} title="Mark paid & activate (sends email)" className="mr-2 rounded bg-green-600 px-2 py-0.5 text-xs font-bold text-white hover:bg-green-700">₹ Paid</button>
+                          <button onClick={() => activateLead(l.email)} title="Mark paid & activate (sends email)" className="mr-2 rounded-sm bg-green-600 px-2 py-0.5 text-xs font-bold text-white hover:bg-green-700">₹ Paid</button>
                         ) : (
-                          <button onClick={() => revokeAccess(l.email)} title="Revoke access — locks paid features immediately" className="mr-2 rounded bg-amber-500 px-2 py-0.5 text-xs font-bold text-white hover:bg-amber-600">Revoke</button>
+                          <button onClick={() => revokeAccess(l.email)} title="Revoke access — locks paid features immediately" className="mr-2 rounded-sm bg-amber-500 px-2 py-0.5 text-xs font-bold text-white hover:bg-amber-600">Revoke</button>
                         )}
                         <button onClick={() => deleteLead(l.email)} title="Remove lead" className="text-xs text-stone-400 hover:text-red-600">✕</button>
                       </td>
@@ -368,7 +368,7 @@ export default function AdminPage() {
                   value={to}
                   onChange={(e) => setTo(e.target.value)}
                   placeholder="Recipients — comma-separated emails"
-                  className="min-w-0 flex-1 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-600"
+                  className="min-w-0 flex-1 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-hidden focus:border-brand-600"
                 />
                 {leads && leads.length > 0 && (
                   <>
@@ -397,14 +397,14 @@ export default function AdminPage() {
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 placeholder="Subject"
-                className="rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-600"
+                className="rounded-lg border border-stone-300 px-3 py-2 text-sm outline-hidden focus:border-brand-600"
               />
               <textarea
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 placeholder={"Hi {name},\n\nYour TaxSense AI access is live...\n\nBlank line = new paragraph."}
                 rows={7}
-                className="rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-600"
+                className="rounded-lg border border-stone-300 px-3 py-2 text-sm outline-hidden focus:border-brand-600"
               />
               <div className="flex items-center gap-3">
                 <button
@@ -481,7 +481,7 @@ export default function AdminPage() {
           <div className="mt-6 rounded-xl border border-stone-200 bg-white p-5">
             <div className="flex items-center justify-between">
               <h2 className="font-semibold">
-                Email activity {emails && <span className="ml-1 rounded bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-700">{emails.length}</span>}
+                Email activity {emails && <span className="ml-1 rounded-sm bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-700">{emails.length}</span>}
               </h2>
               <div className="flex items-center gap-3">
                 {emails && emails.length > 0 && (
@@ -521,7 +521,7 @@ export default function AdminPage() {
                       <td className="max-w-[220px] truncate text-stone-600" title={m.subject}>{m.subject}</td>
                       <td className="text-stone-500">{m.kind}</td>
                       <td>
-                        <span className={m.status === "sent" ? "rounded bg-green-50 px-1.5 py-0.5 text-xs font-semibold text-green-700" : "rounded bg-red-50 px-1.5 py-0.5 text-xs font-semibold text-red-700"} title={m.error ?? ""}>
+                        <span className={m.status === "sent" ? "rounded-sm bg-green-50 px-1.5 py-0.5 text-xs font-semibold text-green-700" : "rounded-sm bg-red-50 px-1.5 py-0.5 text-xs font-semibold text-red-700"} title={m.error ?? ""}>
                           {m.status}
                         </span>
                       </td>
@@ -544,8 +544,8 @@ export default function AdminPage() {
             <div className="mt-6 rounded-xl border border-stone-200 bg-white p-5">
               <h2 className="font-semibold">
                 Traffic — last 7 days
-                <span className="ml-2 rounded bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-700">{traffic.total7d} views</span>
-                <span className="ml-1.5 rounded bg-stone-100 px-2 py-0.5 text-xs font-bold text-stone-600">{traffic.today} today</span>
+                <span className="ml-2 rounded-sm bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-700">{traffic.total7d} views</span>
+                <span className="ml-1.5 rounded-sm bg-stone-100 px-2 py-0.5 text-xs font-bold text-stone-600">{traffic.today} today</span>
               </h2>
               <div className="mt-3 space-y-1.5">
                 {traffic.paths.map((p: any) => {
@@ -568,7 +568,7 @@ export default function AdminPage() {
             <div className="mt-6 rounded-xl border border-red-200 bg-red-50/60 p-5">
               <h2 className="font-semibold text-red-900">
                 Client errors — last 7 days
-                <span className="ml-2 rounded bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700">{traffic.errorCount7d}</span>
+                <span className="ml-2 rounded-sm bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700">{traffic.errorCount7d}</span>
               </h2>
               <ul className="mt-2 space-y-1">
                 {traffic.errors.map((e: any) => (
@@ -617,7 +617,7 @@ export default function AdminPage() {
           {suppressions.length > 0 && (
             <div className="mt-6 rounded-xl border border-stone-200 bg-white p-5">
               <h2 className="font-semibold">
-                Unsubscribed <span className="ml-1 rounded bg-red-50 px-2 py-0.5 text-xs font-bold text-red-700">{suppressions.length}</span>
+                Unsubscribed <span className="ml-1 rounded-sm bg-red-50 px-2 py-0.5 text-xs font-bold text-red-700">{suppressions.length}</span>
                 <span className="ml-2 text-xs font-normal text-stone-500">campaigns skip these addresses automatically</span>
               </h2>
               <div className="mt-3 flex flex-wrap gap-2">
@@ -633,7 +633,7 @@ export default function AdminPage() {
           {subs && subs.length > 0 && (
             <div className="mt-6 rounded-xl border border-stone-200 bg-white p-5">
               <h2 className="font-semibold">
-                Reminder subscribers <span className="ml-1 rounded bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-700">{subs.filter((s) => s.active).length}</span>
+                Reminder subscribers <span className="ml-1 rounded-sm bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-700">{subs.filter((s) => s.active).length}</span>
               </h2>
               <div className="mt-3 flex flex-wrap gap-2">
                 {subs.slice(0, 30).map((s, i) => (
@@ -664,7 +664,7 @@ export default function AdminPage() {
                 <div className="mt-4 text-xs text-stone-500">
                   Recent admin actions:{" "}
                   {ops.adminActions.slice(0, 5).map((a: any, i: number) => (
-                    <span key={i} className="mr-2 rounded bg-stone-100 px-1.5 py-0.5">
+                    <span key={i} className="mr-2 rounded-sm bg-stone-100 px-1.5 py-0.5">
                       {a.event.replace("admin_", "")} · {new Date(a.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
                     </span>
                   ))}

@@ -24,6 +24,7 @@ export default function InstallApp({ compact = false }: { compact?: boolean }) {
 
     // 2. Already running as an installed app? Hide the button.
     if (window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- browser-only state (window/localStorage/URL) is read after mount to keep SSR hydration stable
       setInstalled(true);
     }
 

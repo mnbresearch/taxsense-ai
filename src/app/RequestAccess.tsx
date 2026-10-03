@@ -45,14 +45,14 @@ export default function RequestAccess({ compact = false }: { compact?: boolean }
         tabIndex={-1}
         autoComplete="off"
         aria-hidden="true"
-        className="absolute -left-[9999px] h-0 w-0 opacity-0"
+        className="absolute left-[-9999px] h-0 w-0 opacity-0"
       />
       {!compact && (
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Your name (optional)"
-          className="rounded-lg border border-stone-300 px-4 py-3 text-sm outline-none focus:border-brand-600 sm:w-44"
+          className="rounded-lg border border-stone-300 px-4 py-3 text-sm outline-hidden focus:border-brand-600 sm:w-44"
         />
       )}
       <input
@@ -61,7 +61,7 @@ export default function RequestAccess({ compact = false }: { compact?: boolean }
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="you@email.com"
-        className="flex-1 rounded-lg border border-stone-300 px-4 py-3 text-sm outline-none focus:border-brand-600"
+        className="flex-1 rounded-lg border border-stone-300 px-4 py-3 text-sm outline-hidden focus:border-brand-600"
       />
       <button
         type="submit"

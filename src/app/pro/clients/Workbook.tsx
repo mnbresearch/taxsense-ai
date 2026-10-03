@@ -32,6 +32,7 @@ export default function Workbook() {
       setStatus("locked");
     }
   }
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- browser-only state (window/localStorage/URL) is read after mount to keep SSR hydration stable
   useEffect(() => { load(); }, []);
 
   async function removeClient(label: string) {
@@ -102,7 +103,7 @@ export default function Workbook() {
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addClient()}
               placeholder="New client name (e.g. Sharma, Rakesh — ITR-1)"
-              className="flex-1 rounded-lg border border-stone-300 px-3 py-2.5 text-sm outline-none focus:border-brand-600"
+              className="flex-1 rounded-lg border border-stone-300 px-3 py-2.5 text-sm outline-hidden focus:border-brand-600"
             />
             <button onClick={addClient} disabled={busy || !name.trim()}
               className="rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
@@ -136,7 +137,7 @@ export default function Workbook() {
                       <td className="px-4 py-2.5 font-semibold text-stone-700">{c.label}</td>
                       <td>
                         {c.recommended
-                          ? <span className={"rounded px-1.5 py-0.5 text-[11px] font-bold " + (c.recommended === "new" ? "bg-brand-50 text-brand-700" : "bg-stone-100 text-stone-600")}>{c.recommended}</span>
+                          ? <span className={"rounded-sm px-1.5 py-0.5 text-[11px] font-bold " + (c.recommended === "new" ? "bg-brand-50 text-brand-700" : "bg-stone-100 text-stone-600")}>{c.recommended}</span>
                           : <span className="text-xs text-stone-400">—</span>}
                       </td>
                       <td className="text-right text-stone-600">{c.income != null ? inr(c.income) : "—"}</td>

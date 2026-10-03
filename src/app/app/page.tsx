@@ -13,6 +13,7 @@ import { HINDI_OPENER, quickChips, t, type Lang } from "@/lib/i18n";
 import PdfHistory from "./PdfHistory";
 import { SAMPLES } from "./samples";
 import InstallApp from "../InstallApp";
+import { nextDeadline } from "@/lib/deadlines";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -22,6 +23,7 @@ const OPENER =
 const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
 
 export default function AppPage() {
+  const [nextDl] = useState(() => nextDeadline());
   const [messages, setMessages] = useState<Msg[]>([{ role: "assistant", content: OPENER }]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -52,6 +54,7 @@ export default function AppPage() {
   useEffect(() => {
     const client = new URLSearchParams(window.location.search).get("client");
     if (client) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- browser-only state (window/localStorage/URL) is read after mount to keep SSR hydration stable
       setProfileLabel(client);
       setRestoreDismissed(true);
       fetch(`/api/profile?label=${encodeURIComponent(client)}`)
@@ -121,6 +124,7 @@ export default function AppPage() {
       : parts.includes("professional")
         ? `Welcome from the Tax Guide! For your freelance/professional work: what were your gross receipts this year, roughly?`
         : `Welcome from the Tax Guide! You mentioned earning from ${label}. Let's get the numbers — what's the biggest income first?`;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- browser-only state (window/localStorage/URL) is read after mount to keep SSR hydration stable
     setMessages([{ role: "assistant", content: opener }]);
   }, []);
 
@@ -361,9 +365,11 @@ export default function AppPage() {
           TaxSense <span className="font-normal text-stone-400">AI</span>
         </Link>
         <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1.5 text-xs text-stone-500">
-          <span className="rounded-full bg-amber-100 px-2.5 py-1 font-semibold text-amber-800">
-            {Math.max(0, Math.ceil((new Date("2026-07-31T23:59:59+05:30").getTime() - Date.now()) / 86400000))} {t("daysToFile", lang)}
-          </span>
+          {nextDl && (
+            <Link href="/deadlines" title={nextDl.detail} className="rounded-full bg-amber-100 px-2.5 py-1 font-semibold text-amber-800 hover:bg-amber-200">
+              ⏳ {nextDl.label} · {nextDl.days} {t("daysLeft", lang)}
+            </Link>
+          )}
           <button
             onClick={() => switchLang(lang === "en" ? "hi" : "en")}
             className="rounded-full border border-stone-300 px-2.5 py-1 font-semibold text-stone-600 hover:border-brand-600 hover:text-brand-700"
@@ -371,7 +377,7 @@ export default function AppPage() {
           >
             {lang === "en" ? "हिंदी" : "EN"}
           </button>
-          {provider && <span className="rounded bg-stone-100 px-2 py-1">intake: {provider}</span>}
+          {provider && <span className="rounded-sm bg-stone-100 px-2 py-1">intake: {provider}</span>}
           {profileLabel !== "My profile" && (
             <span className="rounded-full bg-stone-100 px-2.5 py-1 font-semibold text-stone-600" title="Saving under this client">🗂 {profileLabel}</span>
           )}
@@ -448,7 +454,7 @@ export default function AppPage() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && send()}
                 placeholder={t("placeholder", lang)}
-                className="flex-1 rounded-lg border border-stone-300 px-3 py-2.5 text-sm outline-none focus:border-brand-600"
+                className="flex-1 rounded-lg border border-stone-300 px-3 py-2.5 text-sm outline-hidden focus:border-brand-600"
               />
               <button
                 onClick={() => send()}
@@ -489,7 +495,7 @@ export default function AppPage() {
                   onClick={() => setTab(k)}
                   className={
                     "flex-1 rounded-md py-1.5 capitalize " +
-                    (tab === k ? "bg-white text-brand-700 shadow-sm" : "text-stone-500 hover:text-stone-700")
+                    (tab === k ? "bg-white text-brand-700 shadow-xs" : "text-stone-500 hover:text-stone-700")
                   }
                 >
                   {t(k, lang)}
@@ -586,7 +592,7 @@ export default function AppPage() {
                   <div className="mt-3 space-y-1.5">
                     {score.dimensions.filter((x: any) => x.tip).slice(0, 3).map((x: any) => (
                       <div key={x.key} className="flex items-start gap-2 text-xs text-stone-600">
-                        <span className="mt-0.5 flex-none rounded bg-stone-100 px-1.5 py-0.5 font-semibold text-stone-500">{x.earned}/{x.max}</span>
+                        <span className="mt-0.5 flex-none rounded-sm bg-stone-100 px-1.5 py-0.5 font-semibold text-stone-500">{x.earned}/{x.max}</span>
                         <span>{x.tip}</span>
                       </div>
                     ))}
@@ -635,7 +641,7 @@ export default function AppPage() {
 
               <Link
                 href="/pricing"
-                className="block rounded-lg border border-brand-200 bg-gradient-to-r from-brand-50 to-emerald-50 p-3 text-sm transition hover:border-brand-600"
+                className="block rounded-lg border border-brand-200 bg-linear-to-r from-brand-50 to-emerald-50 p-3 text-sm transition hover:border-brand-600"
               >
                 <span className="font-semibold text-brand-700">Want this working for you all year?</span>{" "}
                 <span className="text-stone-600">

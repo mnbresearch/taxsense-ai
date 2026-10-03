@@ -4,7 +4,7 @@
  * Tax Guide wizard (feature batch 6) — knowledge-first, tap-through.
  * One question per screen, big buttons, zero typing, deterministic report.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { buildGuide, type EarnType, type GuideAnswers } from "@/lib/guide";
 
@@ -17,6 +17,22 @@ const EARN_OPTS: { v: EarnType; label: string; sub: string }[] = [
   { v: "rental", label: "Rental income", sub: "I earn rent from property" },
   { v: "investor", label: "Investor", sub: "Stocks, mutual funds, FDs, dividends" },
 ];
+
+type OptProps = { onClick: () => void; label: string; sub?: string; active?: boolean };
+function Opt({ onClick, label, sub, active = false }: OptProps) {
+  return (
+    <button
+      onClick={onClick}
+      className={
+        "w-full rounded-xl border-2 p-4 text-left transition hover:border-brand-600 " +
+        (active ? "border-brand-600 bg-brand-50" : "border-stone-200 bg-white")
+      }
+    >
+      <div className="font-semibold">{label}</div>
+      {sub && <div className="mt-0.5 text-sm text-stone-500">{sub}</div>}
+    </button>
+  );
+}
 
 export default function GuidePage() {
   const [a, setA] = useState<GuideAnswers>({ earns: [] });
@@ -51,28 +67,17 @@ export default function GuidePage() {
   const report = step === "report" ? buildGuide(a) : null;
 
   // product telemetry: one event per completed guide (no answers sent)
-  const firedRef = useState({ fired: false })[0];
-  if (report && !firedRef.fired) {
-    firedRef.fired = true;
+  const firedRef = useRef(false);
+  const isReport = step === "report";
+  useEffect(() => {
+    if (!isReport || firedRef.current) return;
+    firedRef.current = true;
     fetch("/api/telemetry", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ type: "guide_complete", message: a.earns.join(",") }),
     }).catch(() => {});
-  }
-
-  const Opt = ({ onClick, label, sub, active = false }: any) => (
-    <button
-      onClick={onClick}
-      className={
-        "w-full rounded-xl border-2 p-4 text-left transition hover:border-brand-600 " +
-        (active ? "border-brand-600 bg-brand-50" : "border-stone-200 bg-white")
-      }
-    >
-      <div className="font-semibold">{label}</div>
-      {sub && <div className="mt-0.5 text-sm text-stone-500">{sub}</div>}
-    </button>
-  );
+  }, [isReport, a.earns]);
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-8">

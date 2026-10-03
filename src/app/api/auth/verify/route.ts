@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import { clientKey, rateLimitShared } from "@/lib/rateLimit";
+import { cancelPendingDeletionOnSignIn } from "@/lib/deletion";
 
 export const runtime = "nodejs";
 
@@ -12,12 +13,16 @@ export const runtime = "nodejs";
 export async function POST(req: NextRequest) {
   const rl = await rateLimitShared(`verify:${clientKey(req)}`, 8, 60, { capacity: 8, refillPerMinute: 2 });
   if (!rl.allowed) return NextResponse.json({ error: "too many attempts — wait a minute" }, { status: 429 });
-  const { email, code } = await req.json().catch(() => ({}));
+  const { email, code } = (await req.json().catch(() => ({}))) as { email?: unknown; code?: unknown };
   const e = typeof email === "string" ? email.trim().toLowerCase() : "";
   const token = typeof code === "string" ? code.trim() : "";
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) || !/^\d{6}$/.test(token))
     return NextResponse.json({ error: "valid email and 6-digit code required" }, { status: 400 });
-  const sb = supabaseServer();
+  // Per-account guess cap across ALL IPs — a 6-digit code can't be brute-forced
+  // from a botnet (10 guesses / 15 min / email).
+  const perEmail = await rateLimitShared(`verify-e:${e}`, 10, 900, { capacity: 10, refillPerMinute: 0.67 });
+  if (!perEmail.allowed) return NextResponse.json({ error: "too many wrong codes — request a new one in a few minutes" }, { status: 429 });
+  const sb = await supabaseServer();
   if (!sb) return NextResponse.json({ error: "demo mode — sign-in unavailable" }, { status: 500 });
   // Batch 75 — the code may come from signInWithOtp ("email") or from
   // admin.generateLink type "magiclink"; accept both token types.
@@ -28,6 +33,7 @@ export async function POST(req: NextRequest) {
     error = second.error;
   }
   if (error || !data.session)
-    return NextResponse.json({ error: error?.message ?? "invalid or expired code" }, { status: 401 });
+    return NextResponse.json({ error: "That code is wrong or has expired — request a new one." }, { status: 401 });
+  if (data.user) await cancelPendingDeletionOnSignIn(sb, data.user.id);
   return NextResponse.json({ ok: true, email: e });
 }

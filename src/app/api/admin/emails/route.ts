@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { serverError } from "@/lib/http";
 import { z } from "zod";
 import { isAdminEmail, supabaseAdmin, supabaseServer } from "@/lib/supabase/server";
 import { sendCampaign } from "@/lib/email";
@@ -8,7 +9,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60; // campaign sends are sequential
 
 async function requireAdmin() {
-  const sb = supabaseServer();
+  const sb = await supabaseServer();
   if (!sb) return { error: NextResponse.json({ error: "supabase not configured" }, { status: 500 }) };
   const { data: auth } = await sb.auth.getUser();
   if (!auth.user || !isAdminEmail(auth.user.email))
@@ -27,7 +28,7 @@ export async function GET() {
     .select("to_email, subject, kind, status, error, created_at, template_name, opened_at")
     .order("created_at", { ascending: false })
     .limit(500);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError("admin/emails", error);
   // Batch 52 — surface the unsubscribe list alongside the log.
   const { data: sup } = await g.admin
     .from("email_suppressions")

@@ -12,8 +12,9 @@ export const dynamic = "force-dynamic";
 
 const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
 
-export default function SharedResult({ params }: { params: { data: string } }) {
-  const decoded = decodeProfile(params.data);
+export default async function SharedResult({ params }: { params: Promise<{ data: string }> }) {
+  const { data } = await params;
+  const decoded = decodeProfile(data);
   if (!decoded.ok) {
     return (
       <main className="mx-auto max-w-2xl px-6 py-24 text-center">
@@ -36,7 +37,7 @@ export default function SharedResult({ params }: { params: { data: string } }) {
         <div className="text-lg font-bold text-brand-700">
           TaxSense <span className="font-normal text-stone-400">AI</span>
         </div>
-        <span className="rounded bg-stone-100 px-2 py-1 text-xs text-stone-500">shared summary · read-only</span>
+        <span className="rounded-sm bg-stone-100 px-2 py-1 text-xs text-stone-500">shared summary · read-only</span>
       </header>
 
       <div className="rounded-xl bg-brand-50 p-5">

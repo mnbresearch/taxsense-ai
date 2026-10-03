@@ -9,7 +9,7 @@ import { useMemo, useState } from "react";
 import { quickCheck } from "@/lib/taxcheck";
 
 const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
-const field = "mt-1 w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm outline-none focus:border-brand-600";
+const field = "mt-1 w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm outline-hidden focus:border-brand-600";
 
 export default function TaxCheck() {
   const [income, setIncome] = useState(1_800_000);
@@ -46,7 +46,7 @@ export default function TaxCheck() {
   }
 
   return (
-    <section className="border-y border-brand-100 bg-gradient-to-b from-brand-50/60 to-white">
+    <section className="border-y border-brand-100 bg-linear-to-b from-brand-50/60 to-white">
       <div className="mx-auto max-w-5xl px-6 py-14">
         <div className="text-center">
           <p className="text-xs font-semibold uppercase tracking-widest text-brand-600">Free · no signup · 60 seconds</p>

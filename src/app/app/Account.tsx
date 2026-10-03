@@ -104,7 +104,7 @@ export function AccountControl({ ent }: { ent: Ent | null }) {
             onKeyDown={(e) => e.key === "Enter" && sendLink()}
             placeholder="you@example.com"
             type="email"
-            className="mt-2 w-full rounded-md border border-stone-300 px-2.5 py-2 text-xs outline-none focus:border-brand-600"
+            className="mt-2 w-full rounded-md border border-stone-300 px-2.5 py-2 text-xs outline-hidden focus:border-brand-600"
           />
           <button
             onClick={sendLink}
@@ -124,7 +124,7 @@ export function AccountControl({ ent }: { ent: Ent | null }) {
                   onKeyDown={(e) => e.key === "Enter" && verifyCode()}
                   inputMode="numeric"
                   placeholder="123456"
-                  className="w-24 rounded-md border border-stone-300 px-2 py-1.5 text-center text-sm tracking-widest outline-none focus:border-brand-600"
+                  className="w-24 rounded-md border border-stone-300 px-2 py-1.5 text-center text-sm tracking-widest outline-hidden focus:border-brand-600"
                 />
                 <button
                   onClick={verifyCode}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin, supabaseServer } from "@/lib/supabase/server";
 import { sendAccessRequestEmails } from "@/lib/email";
+import { cancelPendingDeletionOnSignIn } from "@/lib/deletion";
 
 export const runtime = "nodejs";
 
@@ -15,12 +16,13 @@ export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const code = url.searchParams.get("code");
   if (code) {
-    const sb = supabaseServer();
+    const sb = await supabaseServer();
     if (sb) {
       try {
         const { data } = await sb.auth.exchangeCodeForSession(code);
         const user = data?.user;
         const email = user?.email?.toLowerCase();
+        if (user) await cancelPendingDeletionOnSignIn(sb, user.id);
         if (user && email) {
           const admin = supabaseAdmin();
           if (admin) {

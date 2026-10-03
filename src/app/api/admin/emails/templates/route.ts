@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { serverError } from "@/lib/http";
 import { z } from "zod";
 import { isAdminEmail, supabaseAdmin, supabaseServer } from "@/lib/supabase/server";
 
@@ -6,7 +7,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 async function requireAdmin() {
-  const sb = supabaseServer();
+  const sb = await supabaseServer();
   if (!sb) return { error: NextResponse.json({ error: "supabase not configured" }, { status: 500 }) };
   const { data: auth } = await sb.auth.getUser();
   if (!auth.user || !isAdminEmail(auth.user.email))
@@ -30,7 +31,7 @@ const STARTERS = [
   {
     name: "Plan nudge (unconverted)",
     subject: "{name}, your TaxSense plan is one call away",
-    body: "Hi {name},\n\nYou asked about a TaxSense AI plan \u2014 it's still waiting for you. The July 31 filing deadline is doing its thing, and Pro members are already using unlimited filing summaries, the CTC Designer and the practitioner toolkit.\n\nActivation is simple: we call, you pay by UPI or bank transfer, and your email unlocks everything within minutes.\n\nReply with a good time to call, or just ring us at +91 97114 88480.",
+    body: "Hi {name},\n\nYou asked about a TaxSense AI plan \u2014 it's still waiting for you. Pro members are already using unlimited filing summaries, the CTC Designer and the practitioner toolkit.\n\nActivation is instant: pay online by UPI, card or netbanking and your email unlocks everything automatically — or reply and we will set you up personally.\n\nReply with a good time to call, or just ring us at +91 97114 88480.",
   },
   {
     name: "Feature update (active)",
@@ -48,9 +49,9 @@ export async function GET() {
     .select("name, subject, body, updated_at")
     .order("updated_at", { ascending: false })
     .limit(50);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError("admin/emails/templates", error);
   const saved = data ?? [];
-  const savedNames = new Set(saved.map((t: any) => t.name));
+  const savedNames = new Set(saved.map((t) => t.name));
   const starters = STARTERS.filter((t) => !savedNames.has(t.name)).map((t) => ({ ...t, updated_at: null, builtin: true }));
   return NextResponse.json({ templates: [...saved, ...starters] });
 }
@@ -70,7 +71,7 @@ export async function POST(req: NextRequest) {
   const { error } = await g.admin
     .from("email_templates")
     .upsert({ name: name.trim(), subject, body, updated_at: new Date().toISOString() }, { onConflict: "name" });
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError("admin/emails/templates", error);
   return NextResponse.json({ saved: true, name: name.trim() });
 }
 
@@ -80,6 +81,6 @@ export async function DELETE(req: NextRequest) {
   const name = req.nextUrl.searchParams.get("name");
   if (!name) return NextResponse.json({ error: "name required" }, { status: 400 });
   const { error } = await g.admin.from("email_templates").delete().eq("name", name);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError("admin/emails/templates", error);
   return NextResponse.json({ deleted: true });
 }

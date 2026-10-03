@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabase/server";
-import { clientKey, rateLimit } from "@/lib/rateLimit";
+import { clientKey, rateLimitShared } from "@/lib/rateLimit";
 import { brandedShell, sendOne } from "@/lib/email";
 import { upcomingDeadlines } from "@/lib/deadlines";
 
@@ -11,7 +11,7 @@ const Input = z.object({ email: z.string().email().max(120) });
 
 /** Subscribe to deadline reminder emails (batch 16). */
 export async function POST(req: NextRequest) {
-  const rl = rateLimit(`rem:${clientKey(req)}`, { capacity: 5, refillPerMinute: 2 });
+  const rl = await rateLimitShared(`rem:${clientKey(req)}`, 5, 60, { capacity: 5, refillPerMinute: 2 });
   if (!rl.allowed) return NextResponse.json({ error: "rate limited" }, { status: 429 });
   try {
     const parsed = Input.safeParse(await req.json());

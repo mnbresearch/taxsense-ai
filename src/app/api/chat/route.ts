@@ -1,12 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { runIntakeTurn, newIntakeState } from "@/lib/intake/engine";
 import type { IntakeState } from "@/lib/intake/engine";
-import { supabaseServer, demoEvents } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/server";
+import { safeParseProfile } from "@/lib/tax-engine/validate";
 import { clientKey, rateLimitShared } from "@/lib/rateLimit";
 import { glossaryAnswer } from "@/lib/glossary";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
+
+const MAX_BODY = 64_000; // bytes — a full profile + 12 turns fits comfortably
+
+const Body = z.object({
+  message: z.string().min(1).max(4000),
+  lang: z.enum(["en", "hi"]).optional(),
+  history: z
+    .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(20000).transform((s) => s.slice(0, 2000)) }))
+    .max(40)
+    .optional(),
+  state: z
+    .object({
+      profile: z.unknown(),
+      notApplicable: z.array(z.string().max(60)).max(40).default([]),
+      estimates: z.array(z.string().max(300)).max(40).default([]),
+      covered: z.array(z.string().max(60)).max(60).default([]),
+      complete: z.boolean().default(false),
+    })
+    .optional(),
+});
 
 export async function POST(req: NextRequest) {
   const rl = await rateLimitShared(`chat:${clientKey(req)}`, 30, 60, { capacity: 30, refillPerMinute: 20 });
@@ -16,11 +38,24 @@ export async function POST(req: NextRequest) {
       { status: 429, headers: { "retry-after": String(rl.retryAfterSeconds) } }
     );
   try {
-    const body = await req.json();
-    const state: IntakeState = body.state ?? newIntakeState();
-    const history = Array.isArray(body.history) ? body.history.slice(-12) : [];
-    const message = String(body.message ?? "").slice(0, 4000);
+    const raw = await req.text();
+    if (raw.length > MAX_BODY) return NextResponse.json({ error: "conversation too large — start a new one" }, { status: 413 });
+    let json: unknown;
+    try { json = JSON.parse(raw); } catch { return NextResponse.json({ error: "invalid JSON body" }, { status: 400 }); }
+    const parsed = Body.safeParse(json);
+    if (!parsed.success) return NextResponse.json({ error: "invalid chat request" }, { status: 400 });
+    const body = parsed.data;
+    const message = body.message;
     if (!message.trim()) return NextResponse.json({ error: "empty message" }, { status: 400 });
+
+    // The client round-trips its state; never trust it — re-validate the profile.
+    let state: IntakeState = newIntakeState();
+    if (body.state) {
+      const prof = safeParseProfile(body.state.profile);
+      if (!prof.ok) return NextResponse.json({ error: "invalid profile state" }, { status: 400 });
+      state = { ...body.state, profile: prof.profile };
+    }
+    const history = (body.history ?? []).slice(-12);
 
     // Glossary fast-path: definitional questions answered locally — instant,
     // accurate, zero LLM cost. Profile state is untouched.
@@ -34,26 +69,10 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const lang = body.lang === "hi" ? "hi" : "en";
-    const turn = await runIntakeTurn(state, history, message, lang);
+    const turn = await runIntakeTurn(state, history, message, body.lang ?? "en");
 
-    // best-effort persistence of the transcript (never blocks the reply)
-    const sb = supabaseServer();
-    if (sb) {
-      const { data } = await sb.auth.getUser();
-      if (data.user && body.profileId) {
-        await sb.from("intake_messages").insert([
-          { profile_id: body.profileId, user_id: data.user.id, role: "user", content: message },
-          { profile_id: body.profileId, user_id: data.user.id, role: "assistant", content: turn.reply },
-        ]);
-      }
-    } else {
-      demoEvents.push({ event: "chat_turn", at: new Date().toISOString() });
-    }
-
-    // Batch 83 — degradation is a pageable event, not a silent shrug.
+    // Degradation is a pageable event, not a silent shrug.
     if (turn.providerName.startsWith("mock") && (process.env.GROQ_API_KEY || process.env.ANTHROPIC_API_KEY)) {
-      const { supabaseAdmin } = await import("@/lib/supabase/server");
       const admin = supabaseAdmin();
       if (admin) await admin.from("audit_events").insert({ event: "llm_degraded", meta: { provider: turn.providerName } });
     }
@@ -64,7 +83,8 @@ export async function POST(req: NextRequest) {
       provider: turn.providerName,
       extraction: turn.extraction,
     });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message ?? "chat failed" }, { status: 500 });
+  } catch (e) {
+    console.error("chat failed", e);
+    return NextResponse.json({ error: "Something went wrong on our side — please try again." }, { status: 500 });
   }
 }

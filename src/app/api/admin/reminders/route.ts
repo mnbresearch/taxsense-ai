@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { serverError } from "@/lib/http";
 import { isAdminEmail, supabaseAdmin, supabaseServer } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 async function requireAdmin() {
-  const sb = supabaseServer();
+  const sb = await supabaseServer();
   if (!sb) return { error: NextResponse.json({ error: "supabase not configured" }, { status: 500 }) };
   const { data: auth } = await sb.auth.getUser();
   if (!auth.user || !isAdminEmail(auth.user.email))
@@ -24,7 +25,7 @@ export async function GET() {
     .select("email, active, created_at")
     .order("created_at", { ascending: false })
     .limit(500);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError("admin/reminders", error);
   return NextResponse.json({ subs: data });
 }
 
@@ -35,7 +36,7 @@ export async function DELETE(req: NextRequest) {
   const email = new URL(req.url).searchParams.get("email")?.toLowerCase().slice(0, 120);
   if (!email) return NextResponse.json({ error: "email required" }, { status: 400 });
   const { error } = await g.admin.from("tax_reminders").update({ active: false }).eq("email", email);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError("admin/reminders", error);
   await g.admin.from("audit_events").insert({ event: "admin_reminder_deactivated", meta: { email, by: g.who } });
   return NextResponse.json({ ok: true });
 }

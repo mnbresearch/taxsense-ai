@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { serverError } from "@/lib/http";
 import { computeBoth } from "@/lib/tax-engine";
 import { optimize } from "@/lib/optimizer";
 import { generateFilingSummaryPdf } from "@/lib/pdf/filingSummary";
@@ -6,21 +7,21 @@ import { safeParseProfile } from "@/lib/tax-engine/validate";
 import { advanceTaxPlan } from "@/lib/tax-engine/advanceTax";
 import { recommendItrForm } from "@/lib/tax-engine/itrForm";
 import { computeInsights } from "@/lib/optimizer/insights";
-import { supabaseServer, demoEvents } from "@/lib/supabase/server";
+import { supabaseAdmin, supabaseServer, demoEvents } from "@/lib/supabase/server";
 import { freeEntitlements, getEntitlementsForEmail } from "@/lib/entitlements";
-import { clientKey, rateLimit } from "@/lib/rateLimit";
+import { clientKey, rateLimitShared } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
 export async function POST(req: NextRequest) {
-  const rl = rateLimit(`pdf:${clientKey(req)}`, { capacity: 10, refillPerMinute: 6 });
+  const rl = await rateLimitShared(`pdf:${clientKey(req)}`, 10, 60, { capacity: 10, refillPerMinute: 6 });
   if (!rl.allowed)
     return NextResponse.json({ error: "rate limited" }, { status: 429, headers: { "retry-after": String(rl.retryAfterSeconds) } });
 
   // Batch 28 — plan gating: free tier gets a couple of PDFs a day; any
   // active paid plan is unlimited (within the abuse rate limit above).
-  const sbEnt = supabaseServer();
+  const sbEnt = await supabaseServer();
   let ent = freeEntitlements();
   if (sbEnt) {
     const { data } = await sbEnt.auth.getUser();
@@ -28,7 +29,7 @@ export async function POST(req: NextRequest) {
   }
   if (ent.features.pdfPerDay !== null) {
     const cap = ent.features.pdfPerDay;
-    const daily = rateLimit(`pdfday:${ent.email ?? clientKey(req)}`, { capacity: cap, refillPerMinute: cap / 1440 });
+    const daily = await rateLimitShared(`pdfday:${ent.email ?? clientKey(req)}`, cap, 86_400, { capacity: cap, refillPerMinute: cap / 1440 });
     if (!daily.allowed)
       return NextResponse.json(
         {
@@ -39,7 +40,15 @@ export async function POST(req: NextRequest) {
       );
   }
   try {
-    const { profile: rawProfile, estimates, name } = await req.json();
+    const raw = await req.text();
+    if (raw.length > 100_000) return NextResponse.json({ error: "request too large" }, { status: 413 });
+    let body: { profile?: unknown; estimates?: unknown; name?: unknown };
+    try { body = JSON.parse(raw); } catch { return NextResponse.json({ error: "invalid JSON body" }, { status: 400 }); }
+    const rawProfile = body.profile;
+    const estimates = Array.isArray(body.estimates)
+      ? body.estimates.filter((x): x is string => typeof x === "string").slice(0, 30).map((x) => x.slice(0, 300))
+      : undefined;
+    const name = typeof body.name === "string" ? body.name.trim().slice(0, 80) || undefined : undefined;
     if (!rawProfile) return NextResponse.json({ error: "profile required" }, { status: 400 });
     const parsedP = safeParseProfile(rawProfile);
     if (!parsedP.ok) return NextResponse.json({ error: `invalid profile — ${parsedP.error}` }, { status: 400 });
@@ -64,11 +73,11 @@ export async function POST(req: NextRequest) {
       insights: computeInsights(profile, comparison),
     });
 
-    const sb = supabaseServer();
+    const sb = await supabaseServer();
     if (sb) {
       const { data } = await sb.auth.getUser();
       if (data.user) {
-        await sb.from("audit_events").insert({ user_id: data.user.id, event: "pdf_generated" });
+        await supabaseAdmin()?.from("audit_events").insert({ user_id: data.user.id, event: "pdf_generated" });
         // Batch 30 — PDF history: snapshot the exact inputs for re-download.
         await sb.from("pdf_history").insert({
           user_id: data.user.id,
@@ -88,7 +97,7 @@ export async function POST(req: NextRequest) {
         "content-disposition": 'attachment; filename="taxsense-filing-summary.pdf"',
       },
     });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message ?? "pdf failed" }, { status: 500 });
+  } catch (e) {
+    return serverError("pdf", e, "Couldn't complete that — please try again.");
   }
 }

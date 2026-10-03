@@ -8,11 +8,11 @@ import { useSearchParams } from "next/navigation";
 function ReturnInner() {
   const params = useSearchParams();
   const orderId = params.get("order_id") ?? "";
-  const [state, setState] = useState<"checking" | "paid" | "pending" | "failed">("checking");
+  const [state, setState] = useState<"checking" | "paid" | "pending" | "failed">(orderId ? "checking" : "failed");
   const [tries, setTries] = useState(0);
 
   useEffect(() => {
-    if (!orderId) { setState("failed"); return; }
+    if (!orderId) return;
     let stop = false;
     async function poll(attempt: number) {
       if (stop) return;
@@ -59,7 +59,7 @@ function ReturnInner() {
           <p className="mt-2 text-sm text-stone-600">
             Your bank has the payment in flight. The moment it confirms, your plan activates automatically and
             you'll get an email — no need to pay again. If nothing arrives in 30 minutes, reply to any of our
-            emails or WhatsApp +91 97114 88480 with order <code className="rounded bg-stone-100 px-1">{orderId}</code>.
+            emails or WhatsApp +91 97114 88480 with order <code className="rounded-sm bg-stone-100 px-1">{orderId}</code>.
           </p>
           <Link href="/app" className="mt-5 text-sm font-semibold text-brand-700 underline">Back to the app</Link>
         </>
