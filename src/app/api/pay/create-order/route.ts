@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { cashfreeConfigured, cashfreeMode, createCashfreeOrder, createPaymentLink, PAY_CATALOG } from "@/lib/cashfree";
 import { supabaseAdmin } from "@/lib/supabase/server";
-import { clientKey, rateLimit } from "@/lib/rateLimit";
+import { clientKey, rateLimitShared } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 
@@ -13,12 +13,12 @@ export async function GET() {
 
 /** Create a Cashfree order for a catalog plan. Amounts are server-side only. */
 export async function POST(req: NextRequest) {
-  const rl = rateLimit(`payorder:${clientKey(req)}`, { capacity: 6, refillPerMinute: 2 });
+  const rl = await rateLimitShared(`payorder:${clientKey(req)}`, 6, 60, { capacity: 6, refillPerMinute: 2 });
   if (!rl.allowed) return NextResponse.json({ error: "too many attempts — wait a minute" }, { status: 429 });
   if (!cashfreeConfigured())
     return NextResponse.json({ enabled: false, error: "Online payment isn't live yet — use Request and we'll set you up personally." }, { status: 503 });
 
-  const body = await req.json().catch(() => ({}));
+  const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
   const planKey = typeof body.planKey === "string" ? body.planKey : "";
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   const name = typeof body.name === "string" ? body.name.trim().slice(0, 80) : "";
@@ -34,6 +34,16 @@ export async function POST(req: NextRequest) {
   const wantLink = !!body.link; // SDK blocked client-side → hosted Payment Link
   const orderId = (wantLink ? "tsl" : "ts_") + randomUUID().replace(/-/g, "").slice(0, 24);
 
+  // Ledger row FIRST: fulfilment trusts only orders we recorded, at catalog price.
+  const admin = supabaseAdmin();
+  if (admin) {
+    const led = await admin.from("payments").insert({ order_id: orderId, email, plan_key: planKey, amount: cat.amount, status: "created", via: wantLink ? "checkout-link" : "checkout" });
+    if (led.error) {
+      console.error("payments ledger insert failed", led.error.message);
+      return NextResponse.json({ error: "could not start payment — try again" }, { status: 500 });
+    }
+  }
+
   let paymentSessionId: string | null = null;
   let linkUrl: string | null = null;
   if (wantLink) {
@@ -42,25 +52,29 @@ export async function POST(req: NextRequest) {
       purpose: `TaxSense AI — ${cat.blurb}`,
       returnUrl: `${origin}/pay/return?order_id=${orderId}`,
     });
-    if (!link.ok) return NextResponse.json({ error: link.error }, { status: 502 });
+    if (!link.ok) {
+      console.error("cashfree link failed", link.error);
+      return NextResponse.json({ error: "payment gateway unavailable — try again or use Request" }, { status: 502 });
+    }
     linkUrl = link.linkUrl;
   } else {
     const created = await createCashfreeOrder({
       orderId, amount: cat.amount, email, phone, name, planKey,
       returnUrl: `${origin}/pay/return?order_id=${orderId}`,
     });
-    if (!created.ok) return NextResponse.json({ error: created.error }, { status: 502 });
+    if (!created.ok) {
+      console.error("cashfree order failed", created.error);
+      return NextResponse.json({ error: "payment gateway unavailable — try again or use Request" }, { status: 502 });
+    }
     paymentSessionId = created.paymentSessionId;
   }
 
   // Make the lead visible to the admin panel immediately (best-effort).
-  const admin = supabaseAdmin();
   if (admin) {
     const row = { email, name: name || null, phone: phone || null, source: "pay-online", plan: cat.planLabel };
     const { error } = await admin.from("access_requests").insert(row);
     if (error) await admin.from("access_requests").update({ plan: cat.planLabel }).eq("email", email).eq("status", "lead");
     await admin.from("audit_events").insert({ event: "pay_order_created", meta: { email, orderId, planKey, amount: cat.amount } });
-    try { await admin.from("payments").insert({ order_id: orderId, email, plan_key: planKey, amount: cat.amount, status: "created", via: wantLink ? "checkout-link" : "checkout" }); } catch {}
   }
 
   return NextResponse.json({ enabled: true, orderId, paymentSessionId, linkUrl, mode: cashfreeMode() });

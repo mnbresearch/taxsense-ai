@@ -47,7 +47,7 @@ export default function RentReceipts() {
   const annual = rent * months.length;
   const ready = tenant.trim() && landlord.trim() && address.trim() && rent > 0 && to >= from;
 
-  const field = "mt-1 w-full rounded-md border border-stone-300 px-2.5 py-2 text-sm outline-none focus:border-brand-600";
+  const field = "mt-1 w-full rounded-md border border-stone-300 px-2.5 py-2 text-sm outline-hidden focus:border-brand-600";
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">

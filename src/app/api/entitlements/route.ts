@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 /** Who am I + what does my plan unlock? Safe for anonymous callers. */
 export async function GET() {
-  const sb = supabaseServer();
+  const sb = await supabaseServer();
   if (!sb) return NextResponse.json(freeEntitlements()); // demo mode
   const { data } = await sb.auth.getUser();
   const email = data.user?.email ?? null;

@@ -10,6 +10,7 @@
  * a mail failure can never block or break the app UI.
  */
 
+import { createHmac, timingSafeEqual } from "crypto";
 import { supabaseAdmin } from "@/lib/supabase/server";
 
 const RESEND_URL = "https://api.resend.com/emails";
@@ -17,12 +18,30 @@ const FROM = "TaxSense AI · MNB Research <hello@updates.mnbresearch.com>";
 /** Batch 49 — real-time copy of every campaign send to the founder. */
 export const FOUNDER_CC = "mridulnanda2004@gmail.com";
 
-/** Batch 50 — HMAC-signed unsubscribe token (secret = service key, server-only). */
-export function unsubToken(email: string): string {
-  const secret = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "dev-secret";
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { createHmac } = require("crypto") as typeof import("crypto");
+/**
+ * HMAC-signed unsubscribe token. Uses the dedicated UNSUBSCRIBE_SECRET; tokens
+ * minted earlier with the legacy key are still honoured by verifyUnsubToken so
+ * old emails keep working.
+ */
+function hmac20(secret: string, email: string): string {
   return createHmac("sha256", secret).update(email.trim().toLowerCase()).digest("hex").slice(0, 20);
+}
+export function unsubToken(email: string): string {
+  const secret = process.env.UNSUBSCRIBE_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!secret) return "";
+  return hmac20(secret, email);
+}
+export function verifyUnsubToken(email: string, token: string): boolean {
+  if (!email || !/^[a-f0-9]{20}$/.test(token)) return false;
+  const secrets = [process.env.UNSUBSCRIBE_SECRET, process.env.SUPABASE_SERVICE_ROLE_KEY].filter((x): x is string => !!x);
+  const got = Buffer.from(token);
+  return secrets.some((sec) => {
+    const want = Buffer.from(hmac20(sec, email));
+    return want.length === got.length && timingSafeEqual(want, got);
+  });
+}
+export function unsubUrl(email: string): string {
+  return `https://taxsense.mnbresearch.com/api/unsubscribe?e=${encodeURIComponent(email.trim().toLowerCase())}&t=${unsubToken(email)}`;
 }
 const REPLY_TO = "mnbgotyou@gmail.com";
 export const ADMIN_EMAIL = "mnbgotyou@gmail.com";
@@ -93,7 +112,14 @@ export async function sendOne(payload: { to: string; subject: string; html: stri
     const res = await fetch(RESEND_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-      body: JSON.stringify({ from: FROM, reply_to: REPLY_TO, to: [to], subject, html, ...(cc && cc.length ? { cc } : {}) }),
+      body: JSON.stringify({
+        from: FROM, reply_to: REPLY_TO, to: [to], subject, html,
+        ...(cc && cc.length ? { cc } : {}),
+        // RFC 8058 one-click unsubscribe for everything except internal admin mail.
+        ...(kind !== "admin_notify"
+          ? { headers: { "List-Unsubscribe": `<${unsubUrl(to)}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" } }
+          : {}),
+      }),
     });
     if (!res.ok) {
       const err = (await res.text()).slice(0, 300);
@@ -103,7 +129,7 @@ export async function sendOne(payload: { to: string; subject: string; html: stri
     }
     await logEmail({ to_email: to, subject, kind, status: "sent", ...meta });
     return { to, ok: true };
-  } catch (e: any) {
+  } catch (e) {
     await logEmail({ to_email: to, subject, kind, status: "failed", error: String(e).slice(0, 300), ...meta });
     return { to, ok: false, error: String(e).slice(0, 120) };
   }
@@ -211,7 +237,7 @@ export async function sendCampaign(opts: {
       esc(personalSubject),
       `${paragraphs}
        <p style="color:#78716c;font-size:12px;line-height:1.6;margin-top:20px;">Questions? Just reply to this email.<br/>${CONTACT_LINE}</p>
-       <p style="color:#a8a29e;font-size:10px;margin-top:8px;"><a href="${SITE}/api/unsubscribe?e=${encodeURIComponent(email)}&t=${unsubToken(email)}" style="color:#a8a29e;">Unsubscribe from these updates</a></p>
+       <p style="color:#a8a29e;font-size:10px;margin-top:8px;"><a href="${unsubUrl(email)}" style="color:#a8a29e;">Unsubscribe from these updates</a></p>
        <img src="${SITE}/api/e/o/${trackId}" width="1" height="1" alt="" style="display:block;" />`
     );
     results.push(await sendOne({

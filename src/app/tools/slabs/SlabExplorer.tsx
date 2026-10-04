@@ -82,8 +82,8 @@ export default function SlabExplorer() {
           <circle cx={sx(probe)} cy={sy(at.o)} r="4" fill="#a8a29e" />
         </svg>
         <div className="mt-2 flex gap-5 text-xs text-stone-600">
-          <span><span className="mr-1 inline-block h-2 w-4 rounded bg-[#0d5947] align-middle"></span>New regime (default)</span>
-          <span><span className="mr-1 inline-block h-2 w-4 rounded bg-stone-400 align-middle"></span>Old regime {ded > 0 && `(with ${inr(ded)} in 80C)`}</span>
+          <span><span className="mr-1 inline-block h-2 w-4 rounded-sm bg-brand-500 align-middle"></span>New regime (default)</span>
+          <span><span className="mr-1 inline-block h-2 w-4 rounded-sm bg-stone-400 align-middle"></span>Old regime {ded > 0 && `(with ${inr(ded)} in 80C)`}</span>
         </div>
       </div>
 

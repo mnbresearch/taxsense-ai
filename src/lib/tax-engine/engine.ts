@@ -250,7 +250,7 @@ export function computeRegime(profile: TaxProfile, regime: Regime): RegimeComput
   const via = chapterVIA(profile, regime, gtiExcludingSpecial, notes);
 
   const totalIncome = round10(clamp0(grossTotalIncome - via.total)); // s.288A
-  let normalIncome = clamp0(totalIncome - specialGross - exempt112A);
+  const normalIncome = clamp0(totalIncome - specialGross - exempt112A);
 
   /* 4 — Unexhausted basic exemption against special-rate gains (residents;
      provisos to ss.111A(1), 112(1), 112A(2)). Applied in taxpayer-favourable

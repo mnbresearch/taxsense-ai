@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 /** Admin-only: system status — providers, last keep-alive run, recent admin actions. */
 export async function GET() {
-  const sb = supabaseServer();
+  const sb = await supabaseServer();
   if (!sb) return NextResponse.json({ error: "supabase not configured" }, { status: 500 });
   const { data: auth } = await sb.auth.getUser();
   if (!auth.user || !isAdminEmail(auth.user.email))

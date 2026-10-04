@@ -16,11 +16,16 @@ export const runtime = "nodejs";
 export async function POST(req: NextRequest) {
   const rl = await rateLimitShared(`signin:${clientKey(req)}`, 5, 60, { capacity: 5, refillPerMinute: 1 });
   if (!rl.allowed) return NextResponse.json({ error: "too many attempts — try again in a minute" }, { status: 429 });
-  const { email } = await req.json().catch(() => ({}));
+  const { email } = (await req.json().catch(() => ({}))) as { email?: unknown };
   const e = typeof email === "string" ? email.trim().toLowerCase() : "";
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e))
     return NextResponse.json({ error: "valid email required" }, { status: 400 });
-  const sb = supabaseServer();
+  // Per-recipient caps (any IP): stops inbox-bombing a victim with codes.
+  const perEmail = await rateLimitShared(`signin-e:${e}`, 4, 600, { capacity: 4, refillPerMinute: 0.4 });
+  const perDay = await rateLimitShared(`signin-d:${e}`, 15, 86_400, { capacity: 15, refillPerMinute: 0.01 });
+  if (!perEmail.allowed || !perDay.allowed)
+    return NextResponse.json({ error: "A code was sent recently — check your inbox (and spam) or try again in a few minutes." }, { status: 429 });
+  const sb = await supabaseServer();
   if (!sb) return NextResponse.json({ message: "Demo mode — sign-in unavailable without Supabase." });
   const origin = req.nextUrl.origin;
 
@@ -59,6 +64,9 @@ export async function POST(req: NextRequest) {
     email: e,
     options: { emailRedirectTo: `${origin}/auth/callback` },
   });
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("signInWithOtp failed", error.message);
+    return NextResponse.json({ error: "Couldn't send the sign-in email right now — try again in a minute." }, { status: 500 });
+  }
   return NextResponse.json({ message: `Magic link sent to ${e} — open it on this device to sign in.` });
 }

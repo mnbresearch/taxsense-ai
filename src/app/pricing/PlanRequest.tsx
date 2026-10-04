@@ -145,11 +145,11 @@ export default function PlanRequest({ plan, cta = "Request this plan" }: { plan:
   return (
     <form onSubmit={submit} className="flex flex-col gap-2">
       <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name"
-        className="rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-600" />
+        className="rounded-lg border border-stone-300 px-3 py-2 text-sm outline-hidden focus:border-brand-600" />
       <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com"
-        className="rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-600" />
+        className="rounded-lg border border-stone-300 px-3 py-2 text-sm outline-hidden focus:border-brand-600" />
       <input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 phone number" pattern="[+\d][\d\s\-()]{6,}"
-        className="rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-600" />
+        className="rounded-lg border border-stone-300 px-3 py-2 text-sm outline-hidden focus:border-brand-600" />
       {payEnabled && payOpts.length > 0 && (
         <div className="flex flex-col gap-1.5">
           {payOpts.map((o) => (

@@ -22,7 +22,7 @@ export default function WhatsNew() {
       <div className="space-y-8">
         {CHANGELOG.map((c) => (
           <section key={c.date} className="relative border-l-2 border-brand-100 pl-6">
-            <span className="absolute -left-[7px] top-1.5 h-3 w-3 rounded-full bg-brand-600" />
+            <span className="absolute left-[-7px] top-1.5 h-3 w-3 rounded-full bg-brand-600" />
             <div className="text-xs font-semibold uppercase tracking-wide text-stone-400">
               {new Date(c.date + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}
             </div>

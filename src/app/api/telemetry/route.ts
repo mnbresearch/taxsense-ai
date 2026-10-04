@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { demoEvents, supabaseAdmin } from "@/lib/supabase/server";
-import { clientKey, rateLimit } from "@/lib/rateLimit";
+import { clientKey, rateLimitShared } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 
@@ -10,7 +10,7 @@ export const runtime = "nodejs";
  * no user financial data, aggressively rate-limited.
  */
 export async function POST(req: NextRequest) {
-  const rl = rateLimit(`tel:${clientKey(req)}`, { capacity: 5, refillPerMinute: 2 });
+  const rl = await rateLimitShared(`tel:${clientKey(req)}`, 5, 60, { capacity: 5, refillPerMinute: 2 });
   if (!rl.allowed) return NextResponse.json({ ok: false }, { status: 429 });
   try {
     const { type, message, path } = await req.json();

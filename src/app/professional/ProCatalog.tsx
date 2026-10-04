@@ -51,7 +51,7 @@ export default function ProCatalog() {
           <button
             key={k}
             onClick={() => setSeg(k)}
-            className={"flex-1 rounded-md px-3 py-2 " + (seg === k ? "bg-white text-brand-700 shadow-sm" : "text-stone-500 hover:text-stone-700")}
+            className={"flex-1 rounded-md px-3 py-2 " + (seg === k ? "bg-white text-brand-700 shadow-xs" : "text-stone-500 hover:text-stone-700")}
           >
             {SEGMENT_META[k].title}
           </button>
@@ -70,7 +70,7 @@ export default function ProCatalog() {
               onClick={() => open(t.id)}
               className={
                 "rounded-xl border p-5 text-left transition " +
-                (unlocked ? "border-stone-200 bg-white hover:border-brand-600 hover:shadow-sm" : "border-stone-200 bg-stone-50 hover:border-amber-400")
+                (unlocked ? "border-stone-200 bg-white hover:border-brand-600 hover:shadow-xs" : "border-stone-200 bg-stone-50 hover:border-amber-400")
               }
             >
               <div className="flex items-start justify-between">

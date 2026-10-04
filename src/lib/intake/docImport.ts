@@ -152,14 +152,15 @@ export function importDocument(text: string, kind?: ImportKind): ImportResult {
   return parseForm16(t);
 }
 
-export function fieldsToPartialProfile(fields: ImportField[]): Record<string, any> {
-  const out: Record<string, any> = {};
+type Tree = { [k: string]: Tree | number | boolean | string };
+export function fieldsToPartialProfile(fields: ImportField[]): Tree {
+  const out: Tree = {};
   for (const f of fields) {
     const parts = f.path.split(".");
     let node = out;
     for (let i = 0; i < parts.length - 1; i++) {
       node[parts[i]] ??= {};
-      node = node[parts[i]];
+      node = node[parts[i]] as Tree;
     }
     node[parts[parts.length - 1]] = f.value;
   }

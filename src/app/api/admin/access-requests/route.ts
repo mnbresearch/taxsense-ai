@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { serverError } from "@/lib/http";
 import { demoEvents, isAdminEmail, supabaseAdmin, supabaseServer } from "@/lib/supabase/server";
 import { brandedShell, sendOne } from "@/lib/email";
+import { escHtml } from "@/lib/html";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /** Admin-only: the access-request leads list. */
 export async function GET() {
-  const sb = supabaseServer();
+  const sb = await supabaseServer();
   if (!sb) {
     const leads = demoEvents
       .filter((e) => e.event.startsWith("access_request:"))
@@ -24,13 +26,13 @@ export async function GET() {
     .select("email, name, source, phone, plan, status, created_at")
     .order("created_at", { ascending: false })
     .limit(200);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError("admin/access-requests", error);
   return NextResponse.json({ mode: "supabase", leads: data });
 }
 
 /** Admin-only: mark a lead paid & active — sends the activation email. Audited. */
 export async function PATCH(req: NextRequest) {
-  const sb = supabaseServer();
+  const sb = await supabaseServer();
   if (!sb) return NextResponse.json({ error: "supabase not configured" }, { status: 500 });
   const { data: auth } = await sb.auth.getUser();
   if (!auth.user || !isAdminEmail(auth.user.email))
@@ -48,7 +50,7 @@ export async function PATCH(req: NextRequest) {
       .from("access_requests")
       .update({ status: "lead" })
       .eq("email", email);
-    if (revErr) return NextResponse.json({ error: revErr.message }, { status: 500 });
+    if (revErr) return serverError("admin/access-requests", revErr);
     await admin.from("audit_events").insert({ event: "admin_access_revoked", meta: { email, by: auth.user.email } });
     return NextResponse.json({ ok: true, revoked: true });
   }
@@ -59,7 +61,7 @@ export async function PATCH(req: NextRequest) {
       .from("access_requests")
       .update({ plan })
       .eq("email", email);
-    if (planErr) return NextResponse.json({ error: planErr.message }, { status: 500 });
+    if (planErr) return serverError("admin/access-requests", planErr);
     await admin.from("audit_events").insert({ event: "admin_plan_changed", meta: { email, plan, by: auth.user.email } });
     return NextResponse.json({ ok: true, plan });
   }
@@ -70,7 +72,7 @@ export async function PATCH(req: NextRequest) {
     .eq("email", email)
     .select("name, plan")
     .single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError("admin/access-requests", error);
 
   const first = (lead?.name ?? "").trim().split(" ")[0];
   await sendOne({
@@ -78,8 +80,8 @@ export async function PATCH(req: NextRequest) {
     subject: `🎉 You're in — your TaxSense AI ${lead?.plan ? "plan" : "access"} is active`,
     kind: "custom",
     html: brandedShell(
-      `Welcome aboard${first ? ", " + first : ""}!`,
-      `<p style="color:#44403c;font-size:14px;line-height:1.6;">Your ${lead?.plan ? `<strong>${lead.plan}</strong> plan` : "access"} on <strong>TaxSense AI</strong> is now active. Sign in with this email address and everything is unlocked.</p>
+      `Welcome aboard${first ? ", " + escHtml(first) : ""}!`,
+      `<p style="color:#44403c;font-size:14px;line-height:1.6;">Your ${lead?.plan ? `<strong>${escHtml(lead.plan)}</strong> plan` : "access"} on <strong>TaxSense AI</strong> is now active. Sign in with this email address and everything is unlocked.</p>
        <p style="margin:18px 0;"><a href="https://taxsense.mnbresearch.com/app" style="background:#0d5947;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;display:inline-block;">Open TaxSense AI →</a></p>
        <p style="color:#78716c;font-size:12px;line-height:1.6;">Pro tip: tap "📲 Get the app" inside to install it on your phone. Questions? Just reply — a human reads this inbox.</p>`
     ),
@@ -90,7 +92,7 @@ export async function PATCH(req: NextRequest) {
 
 /** Admin-only: remove a lead (e.g. test entries) by email. Audited. */
 export async function DELETE(req: NextRequest) {
-  const sb = supabaseServer();
+  const sb = await supabaseServer();
   if (!sb) return NextResponse.json({ error: "supabase not configured" }, { status: 500 });
   const { data: auth } = await sb.auth.getUser();
   if (!auth.user || !isAdminEmail(auth.user.email))
@@ -100,7 +102,7 @@ export async function DELETE(req: NextRequest) {
   const email = new URL(req.url).searchParams.get("email")?.toLowerCase().slice(0, 120);
   if (!email) return NextResponse.json({ error: "email required" }, { status: 400 });
   const { error } = await admin.from("access_requests").delete().eq("email", email);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError("admin/access-requests", error);
   await admin.from("audit_events").insert({ event: "admin_lead_deleted", meta: { email, by: auth.user.email } });
   return NextResponse.json({ ok: true });
 }

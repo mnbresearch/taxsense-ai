@@ -4,10 +4,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { computeBoth, emptyProfile } from "@/lib/tax-engine";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { deadlinesInDays } from "@/lib/deadlines";
-import { ADMIN_EMAIL, brandedShell, sendOne, sendCampaign } from "@/lib/email";
+import { ADMIN_EMAIL, brandedShell, sendOne, sendCampaign, unsubUrl } from "@/lib/email";
+import { escHtml } from "@/lib/html";
+import { timingSafeEqual } from "crypto";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 300;
+
+/** Constant-time bearer check. Fails CLOSED: no CRON_SECRET configured → nobody gets in. */
+function authorized(req: NextRequest): boolean {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) return false;
+  const got = Buffer.from(req.headers.get("authorization") ?? "");
+  const want = Buffer.from(`Bearer ${secret}`);
+  return got.length === want.length && timingSafeEqual(got, want);
+}
 
 /**
  * Keep-alive + nightly ops (batch 14). Runs daily via Vercel Cron (vercel.json).
@@ -19,12 +31,12 @@ export const dynamic = "force-dynamic";
  * 3. Runs the tax-engine self-test and logs the run to audit_events, so the
  *    admin panel can show when the last keep-alive happened.
  *
- * Security: when CRON_SECRET is set in the environment, Vercel Cron sends
- * "Authorization: Bearer <CRON_SECRET>" automatically and we require it.
+ * Security: Vercel Cron sends "Authorization: Bearer <CRON_SECRET>"; the route
+ * refuses every request when the secret is missing or wrong. Email-sending
+ * steps also run at most once per ~20h even if the job is retried.
  */
 export async function GET(req: NextRequest) {
-  const secret = process.env.CRON_SECRET;
-  if (secret && req.headers.get("authorization") !== `Bearer ${secret}`) {
+  if (!authorized(req)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
@@ -53,6 +65,21 @@ export async function GET(req: NextRequest) {
     out.dbTouch = String(e).slice(0, 120);
   }
 
+  // Once-per-day guard for everything that sends email.
+  let alreadyRan = false;
+  try {
+    const since20h = new Date(Date.now() - 20 * 3_600_000).toISOString();
+    const { count } = await sb.from("audit_events").select("*", { count: "exact", head: true }).eq("event", "cron_keepalive").gte("created_at", since20h);
+    alreadyRan = (count ?? 0) > 0;
+  } catch { /* if the check fails, proceed — the job is otherwise idempotent */ }
+  out.alreadyRanToday = alreadyRan;
+
+  // Housekeeping: expire old rate-limit windows.
+  try {
+    const { error } = await sb.from("rate_limits").delete().lt("window_start", new Date(Date.now() - 86_400_000).toISOString());
+    out.rateLimitsPurge = error ? "error" : "ok";
+  } catch { out.rateLimitsPurge = "skipped"; }
+
   // 3. Retention jobs (formerly the manual pg_cron runbook items)
   for (const fn of ["execute_pending_deletions", "purge_stale_intake_messages"] as const) {
     try {
@@ -67,7 +94,9 @@ export async function GET(req: NextRequest) {
   try {
     const due = [...deadlinesInDays(new Date(), 7).map((d) => ({ ...d, when: "in 7 days" })),
                  ...deadlinesInDays(new Date(), 1).map((d) => ({ ...d, when: "TOMORROW" }))];
-    if (due.length > 0) {
+    if (alreadyRan) {
+      out.reminders = "skipped (already ran today)";
+    } else if (due.length > 0) {
       const { data: subs } = await sb.from("tax_reminders").select("email").eq("active", true).limit(1000);
       let sent = 0;
       for (const s of subs ?? []) {
@@ -78,9 +107,9 @@ export async function GET(req: NextRequest) {
             kind: "custom",
             html: brandedShell(
               `${dl.label} is ${dl.when.toLowerCase()}`,
-              `<p style="color:#44403c;font-size:14px;line-height:1.6;"><strong>${new Date(dl.date + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</strong> — ${dl.detail}</p>
+              `<p style="color:#44403c;font-size:14px;line-height:1.6;"><strong>${new Date(dl.date + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</strong> — ${escHtml(dl.detail)}</p>
                <p style="margin:18px 0;"><a href="https://taxsense.mnbresearch.com/app" style="background:#0d5947;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;display:inline-block;">Compute what you owe →</a></p>
-               <p style="color:#78716c;font-size:12px;">Reply STOP to stop reminders.</p>`
+               <p style="color:#78716c;font-size:12px;">Don't want these? <a href="${unsubUrl(s.email)}" style="color:#78716c;">Unsubscribe</a> or reply STOP.</p>`
             ),
           });
           if (res.ok) sent++;
@@ -97,8 +126,10 @@ export async function GET(req: NextRequest) {
   // 5. Founder daily digest: last-24h activity straight to the admin inbox
   try {
     const since = new Date(Date.now() - 86_400_000).toISOString();
-    const cnt = async (table: string, extra?: (q: any) => any) => {
-      let q: any = sb.from(table).select("*", { count: "exact", head: true }).gte("created_at", since);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- supabase builder generics are impractical here
+    type Q = any;
+    const cnt = async (table: string, extra?: (q: Q) => Q) => {
+      let q: Q = sb.from(table).select("*", { count: "exact", head: true }).gte("created_at", since);
       if (extra) q = extra(q);
       const { count } = await q;
       return count ?? 0;
@@ -130,7 +161,7 @@ export async function GET(req: NextRequest) {
         if (l.status === "active") activeMrr += val; else pipeMrr += val;
       }
     } catch { /* revenue rows are optional in the digest */ }
-    if (leads24 + emails24 + subs24 > 0) {
+    if (!alreadyRan && leads24 + emails24 + subs24 > 0) {
       const row = (k: string, v: number) =>
         `<tr><td style="padding:7px 0;color:#78716c;border-bottom:1px solid #f5f5f4;">${k}</td><td style="padding:7px 0;color:#1c1917;font-weight:700;text-align:right;border-bottom:1px solid #f5f5f4;">${v}</td></tr>`;
       await sendOne({
@@ -160,12 +191,12 @@ export async function GET(req: NextRequest) {
   // 6b. Batch 63 — Monday weekly digest to the whole list (suppression-aware).
   try {
     const istNow = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
-    if (istNow.getDay() === 1) {
+    if (istNow.getDay() === 1 && !alreadyRan) {
       const { data: list } = await sb
         .from("access_requests")
         .select("email, name")
         .limit(500);
-      const recipients = (list ?? []).map((l: any) => ({ email: l.email, name: l.name }));
+      const recipients = (list ?? []).map((l: { email: string; name: string | null }) => ({ email: l.email, name: l.name }));
       if (recipients.length > 0) {
         const latest = CHANGELOG[0];
         const dl = upcomingDeadlines(new Date(), 2);

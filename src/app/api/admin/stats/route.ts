@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { serverError } from "@/lib/http";
 import { demoEvents, demoStore, isAdminEmail, supabaseAdmin, supabaseServer } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -6,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 /** Admin metrics — aggregates only, never raw financial data. */
 export async function GET() {
-  const sb = supabaseServer();
+  const sb = await supabaseServer();
   if (!sb) {
     // demo mode
     return NextResponse.json({
@@ -30,6 +31,6 @@ export async function GET() {
   const admin = supabaseAdmin();
   if (!admin) return NextResponse.json({ error: "service key not configured" }, { status: 500 });
   const { data, error } = await admin.rpc("admin_stats");
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError("admin/stats", error);
   return NextResponse.json({ mode: "supabase", stats: data });
 }

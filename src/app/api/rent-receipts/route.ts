@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { serverError } from "@/lib/http";
 import { z } from "zod";
 import { generateRentReceiptsPdf } from "@/lib/pdf/rentReceipts";
-import { clientKey, rateLimit } from "@/lib/rateLimit";
+import { clientKey, rateLimitShared } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -17,7 +18,7 @@ const Input = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const rl = rateLimit(`rr:${clientKey(req)}`, { capacity: 6, refillPerMinute: 3 });
+  const rl = await rateLimitShared(`rr:${clientKey(req)}`, 6, 60, { capacity: 6, refillPerMinute: 3 });
   if (!rl.allowed) return NextResponse.json({ error: "rate limited" }, { status: 429 });
   try {
     const parsed = Input.safeParse(await req.json());
@@ -33,7 +34,7 @@ export async function POST(req: NextRequest) {
         "content-disposition": 'attachment; filename="rent-receipts-fy2025-26.pdf"',
       },
     });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message ?? "generation failed" }, { status: 500 });
+  } catch (e) {
+    return serverError("rent-receipts", e, "Couldn't complete that — please try again.");
   }
 }

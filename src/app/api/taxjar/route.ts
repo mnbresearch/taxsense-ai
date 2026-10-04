@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { serverError } from "@/lib/http";
 import { z } from "zod";
 import { taxJar } from "@/lib/optimizer/taxjar";
-import { clientKey, rateLimit } from "@/lib/rateLimit";
+import { clientKey, rateLimitShared } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 
@@ -16,7 +17,7 @@ const Input = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const rl = rateLimit(`jar:${clientKey(req)}`, { capacity: 30, refillPerMinute: 20 });
+  const rl = await rateLimitShared(`jar:${clientKey(req)}`, 30, 60, { capacity: 30, refillPerMinute: 20 });
   if (!rl.allowed) return NextResponse.json({ error: "rate limited" }, { status: 429 });
   try {
     const parsed = Input.safeParse(await req.json());
@@ -26,7 +27,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     return NextResponse.json(taxJar(parsed.data));
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message ?? "tax jar failed" }, { status: 500 });
+  } catch (e) {
+    return serverError("taxjar", e, "Couldn't complete that — please try again.");
   }
 }

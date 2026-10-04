@@ -163,7 +163,7 @@ export default function Pricing() {
         </div>
 
         {/* Concierge anchor tier */}
-        <div className="mt-10 overflow-hidden rounded-2xl bg-gradient-to-r from-brand-900 via-brand-700 to-brand-900 p-8 text-white">
+        <div className="mt-10 overflow-hidden rounded-2xl bg-linear-to-r from-brand-900 via-brand-700 to-brand-900 p-8 text-white">
           <div className="flex flex-wrap items-center justify-between gap-6">
             <div className="max-w-xl">
               <div className="flex items-center gap-2">

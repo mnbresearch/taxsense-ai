@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   const rl = await rateLimitShared(`import:${clientKey(req)}`, 20, 60, { capacity: 20, refillPerMinute: 10 });
   if (!rl.allowed) return NextResponse.json({ error: "too many attempts — wait a minute" }, { status: 429 });
 
-  let body: any;
+  let body: { text?: unknown; kind?: unknown };
   try {
     body = await req.json();
   } catch {

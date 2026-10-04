@@ -39,7 +39,7 @@ export default function GratuityCalculator() {
       <div className="mt-1 flex items-center rounded-lg border border-stone-300 bg-white focus-within:border-brand-600">
         <span className="pl-3 text-sm text-stone-400">₹</span>
         <input type="number" min={0} value={value || ""} onChange={(e) => set(Math.max(0, Number(e.target.value) || 0))}
-          className="w-full rounded-lg px-2 py-2.5 text-sm outline-none" />
+          className="w-full rounded-lg px-2 py-2.5 text-sm outline-hidden" />
         {suffix && <span className="pr-3 text-xs text-stone-400">{suffix}</span>}
       </div>
     </label>
@@ -71,12 +71,12 @@ export default function GratuityCalculator() {
             <label className="block">
               <span className="text-xs font-semibold text-stone-600">Years of service</span>
               <input type="number" min={0} max={60} value={years || ""} onChange={(e) => setYears(Math.max(0, Math.min(60, Number(e.target.value) || 0)))}
-                className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm outline-none focus:border-brand-600" />
+                className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm outline-hidden focus:border-brand-600" />
             </label>
             <label className="block">
               <span className="text-xs font-semibold text-stone-600">+ months</span>
               <input type="number" min={0} max={11} value={months || ""} onChange={(e) => setMonths(Math.max(0, Math.min(11, Number(e.target.value) || 0)))}
-                className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm outline-none focus:border-brand-600" />
+                className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm outline-hidden focus:border-brand-600" />
             </label>
           </div>
           {num("Gratuity actually received (if known)", "Leave 0 to assume the formula amount", received, setReceived)}

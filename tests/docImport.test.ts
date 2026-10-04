@@ -71,7 +71,7 @@ describe("importDocument auto-detect", () => {
 
 describe("fieldsToPartialProfile", () => {
   it("nests dot-paths into a profile shape", () => {
-    const p = fieldsToPartialProfile([
+    const p: any = fieldsToPartialProfile([
       { path: "salary.grossSalary", label: "", value: 1850000, evidence: "" },
       { path: "deductions.section80C", label: "", value: 150000, evidence: "" },
     ]);

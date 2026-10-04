@@ -83,12 +83,29 @@ export async function createCashfreeOrder(opts: {
     if (!res.ok || !d.payment_session_id)
       return { ok: false, error: String(d.message ?? `cashfree ${res.status}`).slice(0, 200) };
     return { ok: true, paymentSessionId: d.payment_session_id };
-  } catch (e: any) {
+  } catch (e) {
     return { ok: false, error: String(e).slice(0, 200) };
   }
 }
 
-export async function getCashfreeOrder(orderId: string): Promise<any | null> {
+/** Fields we read from Cashfree's GET /orders/{id}. */
+export interface CashfreeOrder {
+  order_status?: string;
+  order_amount?: number | string;
+  order_note?: string;
+  order_tags?: { plan?: string } | null;
+  customer_details?: { customer_email?: string } | null;
+}
+/** Fields we read from Cashfree's GET /links/{id}. */
+export interface CashfreeLink {
+  link_status?: string;
+  link_amount?: number | string;
+  link_amount_paid?: number | string;
+  link_notes?: { plan?: string; email?: string } | null;
+  customer_details?: { customer_email?: string } | null;
+}
+
+export async function getCashfreeOrder(orderId: string): Promise<CashfreeOrder | null> {
   try {
     const res = await fetch(`${baseUrl()}/orders/${encodeURIComponent(orderId)}`, { headers: headers() });
     if (!res.ok) return null;
@@ -128,12 +145,12 @@ export async function createPaymentLink(opts: {
     const d = await res.json().catch(() => ({}));
     if (!res.ok || !d.link_url) return { ok: false, error: String(d.message ?? `cashfree ${res.status}`).slice(0, 200) };
     return { ok: true, linkUrl: d.link_url };
-  } catch (e: any) {
+  } catch (e) {
     return { ok: false, error: String(e).slice(0, 200) };
   }
 }
 
-export async function getPaymentLink(linkId: string): Promise<any | null> {
+export async function getPaymentLink(linkId: string): Promise<CashfreeLink | null> {
   try {
     const res = await fetch(`${baseUrl()}/links/${encodeURIComponent(linkId)}`, { headers: headers() });
     if (!res.ok) return null;

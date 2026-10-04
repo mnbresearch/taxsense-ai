@@ -11,7 +11,8 @@ const Input = z.object({
   name: z.string().max(80).optional(),
   source: z.string().max(40).optional(),
   phone: z.string().max(20).regex(/^[+\d][\d\s\-()]{6,}$/, "invalid phone").optional(),
-  plan: z.string().max(40).optional(),
+  // Free-text label from the pricing page; only ever stored on *lead* rows.
+  plan: z.string().max(60).regex(/^(Pro|Business|Filed For You|Concierge)\b[^<>]*$/, "invalid plan").optional(),
   company: z.string().max(200).optional(), // honeypot
 });
 
@@ -41,8 +42,15 @@ export async function POST(req: NextRequest) {
         }
         // Existing lead: a plan/phone request is an upgrade — update the row and
         // still notify; a plain re-signup stays silent (no duplicate emails).
+        // SECURITY: only un-activated leads may be updated from this public,
+        // unauthenticated route. Active/paid rows are never touched here —
+        // otherwise anyone could rewrite another member's plan.
         if (plan || phone) {
-          await sb.from("access_requests").update({ phone: phone ?? null, plan: plan ?? null, ...(name ? { name } : {}), source: source ?? "landing" }).eq("email", email.toLowerCase());
+          await sb
+            .from("access_requests")
+            .update({ phone: phone ?? null, plan: plan ?? null, ...(name ? { name } : {}), source: source ?? "landing" })
+            .eq("email", email.toLowerCase())
+            .eq("status", "lead");
         } else {
           notify = false;
         }

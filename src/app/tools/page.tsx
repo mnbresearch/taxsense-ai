@@ -27,7 +27,7 @@ export default function ToolsHub() {
       <h2 className="text-lg font-bold text-stone-800">Free — no signup</h2>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         {free.map((t) => (
-          <Link key={t.id} href={t.href} className="rounded-xl border border-stone-200 bg-white p-4 transition hover:border-brand-600 hover:shadow-sm">
+          <Link key={t.id} href={t.href} className="rounded-xl border border-stone-200 bg-white p-4 transition hover:border-brand-600 hover:shadow-xs">
             <span className="text-xl">{t.icon}</span>
             <span className="mt-1 block text-sm font-semibold text-stone-800">{t.title}</span>
             <span className="mt-0.5 block text-xs text-stone-500">{t.desc}</span>

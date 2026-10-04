@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { serverError } from "@/lib/http";
 import { z } from "zod";
 import { optimizeStructure } from "@/lib/optimizer/structure";
-import { clientKey, rateLimit } from "@/lib/rateLimit";
+import { clientKey, rateLimitShared } from "@/lib/rateLimit";
 import { supabaseServer } from "@/lib/supabase/server";
 import { freeEntitlements, getEntitlementsForEmail } from "@/lib/entitlements";
 
@@ -17,7 +18,7 @@ const Input = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const rl = rateLimit(`struct:${clientKey(req)}`, { capacity: 30, refillPerMinute: 20 });
+  const rl = await rateLimitShared(`struct:${clientKey(req)}`, 30, 60, { capacity: 30, refillPerMinute: 20 });
   if (!rl.allowed) return NextResponse.json({ error: "rate limited" }, { status: 429 });
   try {
     const parsed = Input.safeParse(await req.json());
@@ -29,7 +30,7 @@ export async function POST(req: NextRequest) {
 
     // Batch 28 — plan gating: free users get a taste (best option only),
     // paid plans get the full designer.
-    const sb = supabaseServer();
+    const sb = await supabaseServer();
     let ent = freeEntitlements();
     if (sb) {
       const { data } = await sb.auth.getUser();
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
     }
     // keep the payload lean: top 6 options only
     return NextResponse.json({ ...report, options: report.options.slice(0, 6), locked: false });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message ?? "structure optimization failed" }, { status: 500 });
+  } catch (e) {
+    return serverError("structure", e, "Couldn't complete that — please try again.");
   }
 }

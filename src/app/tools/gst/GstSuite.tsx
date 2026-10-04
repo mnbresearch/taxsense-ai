@@ -6,7 +6,7 @@ import Link from "next/link";
 import { compositionCheck, gstCalendar, gstInterest, gstRegistration, gstrLateFee } from "@/lib/gst";
 
 const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
-const field = "mt-1 w-full rounded-md border border-stone-300 px-2.5 py-2 text-sm outline-none focus:border-brand-600";
+const field = "mt-1 w-full rounded-md border border-stone-300 px-2.5 py-2 text-sm outline-hidden focus:border-brand-600";
 const STATES = ["Maharashtra","Delhi","Karnataka","Tamil Nadu","Gujarat","Uttar Pradesh","West Bengal","Telangana","Rajasthan","Kerala","Punjab","Haryana","Bihar","Madhya Pradesh","Assam","Uttarakhand","Puducherry","Sikkim","Meghalaya","Arunachal Pradesh","Manipur","Mizoram","Nagaland","Tripura","Other"];
 
 export default function GstSuite() {

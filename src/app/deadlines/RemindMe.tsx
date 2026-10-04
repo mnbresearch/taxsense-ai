@@ -35,7 +35,7 @@ export default function RemindMe() {
       <input
         type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
         placeholder="you@email.com"
-        className="flex-1 rounded-lg border border-stone-300 px-4 py-3 text-sm outline-none focus:border-brand-600"
+        className="flex-1 rounded-lg border border-stone-300 px-4 py-3 text-sm outline-hidden focus:border-brand-600"
       />
       <button type="submit" disabled={state === "busy"}
         className="rounded-lg bg-brand-600 px-5 py-3 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50">

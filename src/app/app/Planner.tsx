@@ -99,6 +99,7 @@ export default function Planner({ profile }: { profile: any }) {
 
   // Re-seed the draft whenever the underlying chat profile changes.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: re-seed / show busy state when the upstream profile changes
     if (profile) setDraft(JSON.parse(JSON.stringify(profile)));
   }, [JSON.stringify(profile)]);
 
@@ -106,6 +107,7 @@ export default function Planner({ profile }: { profile: any }) {
   useEffect(() => {
     if (!draft) return;
     if (timer.current) clearTimeout(timer.current);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: re-seed / show busy state when the upstream profile changes
     setBusy(true);
     timer.current = setTimeout(() => {
       fetch("/api/compute", {
@@ -234,7 +236,7 @@ export default function Planner({ profile }: { profile: any }) {
                   </tbody>
                 </table>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-stone-600 shadow">🔒 Pro unlocks this</span>
+                  <span className="rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-stone-600 shadow-sm">🔒 Pro unlocks this</span>
                 </div>
               </div>
               <Link
@@ -306,7 +308,7 @@ export default function Planner({ profile }: { profile: any }) {
                 value={(rr as any)[k]}
                 onChange={(e) => setRr({ ...rr, [k]: e.target.value })}
                 placeholder={ph}
-                className={"rounded-md border border-stone-300 px-2.5 py-2 text-xs outline-none focus:border-brand-600 " + (k === "propertyAddress" ? "col-span-2" : "")}
+                className={"rounded-md border border-stone-300 px-2.5 py-2 text-xs outline-hidden focus:border-brand-600 " + (k === "propertyAddress" ? "col-span-2" : "")}
               />
             ))}
           </div>

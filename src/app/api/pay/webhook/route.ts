@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   });
   if (!verdict.ok) return NextResponse.json({ error: verdict.reason }, { status: 401 });
 
-  let payload: any;
+  let payload: { type?: string; data?: { order?: Record<string, any>; payment?: Record<string, any>; customer_details?: Record<string, any> } }; // eslint-disable-line @typescript-eslint/no-explicit-any
   try {
     payload = JSON.parse(rawBody);
   } catch {
@@ -43,7 +43,16 @@ export async function POST(req: NextRequest) {
       cfPaymentId: payment.cf_payment_id ? String(payment.cf_payment_id) : undefined,
       via: "webhook",
     });
-    if (!res.ok) return NextResponse.json({ error: res.error }, { status: 500 });
+    if (!res.ok) {
+      console.error("fulfil failed", orderId, res.error);
+      // Permanent rejections (unknown order/plan, short payment) are acknowledged so
+      // Cashfree stops retrying; they are audited for manual review.
+      if (/unknown|mismatch/.test(res.error ?? "")) {
+        await supabaseAdmin()?.from("audit_events").insert({ event: "payment_rejected", meta: { orderId, email, reason: res.error } });
+        return NextResponse.json({ ok: false, rejected: true });
+      }
+      return NextResponse.json({ error: "temporary failure" }, { status: 500 });
+    }
     return NextResponse.json({ ok: true, duplicate: !!res.duplicate });
   }
 

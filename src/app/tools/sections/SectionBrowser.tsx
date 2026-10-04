@@ -35,7 +35,7 @@ export default function SectionBrowser() {
         value={qtext}
         onChange={(e) => setQ(e.target.value)}
         placeholder="Search: 87A, HRA, reassessment, presumptive…"
-        className="w-full rounded-lg border border-stone-300 px-4 py-2.5 text-sm outline-none focus:border-brand-600"
+        className="w-full rounded-lg border border-stone-300 px-4 py-2.5 text-sm outline-hidden focus:border-brand-600"
       />
       <div className="mt-3 flex flex-wrap gap-1.5">
         {TAGS.map((t) => (
@@ -56,7 +56,7 @@ export default function SectionBrowser() {
             <p className="mt-2 text-sm text-stone-700">{s.plain}</p>
             <p className="mt-2 rounded-lg bg-amber-50 p-2.5 text-xs text-amber-900"><strong>Practice note:</strong> {s.note}</p>
             <div className="mt-2 flex gap-1">
-              {s.tags.map((t) => <span key={t} className="rounded bg-stone-100 px-1.5 py-0.5 text-[10px] text-stone-500">{t}</span>)}
+              {s.tags.map((t) => <span key={t} className="rounded-sm bg-stone-100 px-1.5 py-0.5 text-[10px] text-stone-500">{t}</span>)}
             </div>
           </details>
         ))}

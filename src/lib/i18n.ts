@@ -7,6 +7,7 @@ export type Lang = "en" | "hi";
 
 const STRINGS = {
   daysToFile: { en: "days to file", hi: "दिन बचे हैं" },
+  daysLeft: { en: "days left", hi: "दिन बचे" },
   taxGuide: { en: "Tax Guide", hi: "टैक्स गाइड" },
   send: { en: "Send", hi: "भेजें" },
   thinking: { en: "TaxSense is thinking…", hi: "TaxSense सोच रहा है…" },

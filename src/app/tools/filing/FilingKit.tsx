@@ -41,6 +41,7 @@ export default function FilingKit() {
         if (d?.record?.profile) { setProfile(d.record.profile); setSource("saved"); }
       })
       .catch(() => {});
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- browser-only state (window/localStorage/URL) is read after mount to keep SSR hydration stable
     try { setDone(JSON.parse(localStorage.getItem("ts_filing_done") ?? "{}")); } catch {}
   }, []);
 

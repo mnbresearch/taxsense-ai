@@ -3,7 +3,7 @@ import { z } from "zod";
 import { computeBoth } from "@/lib/tax-engine";
 import { safeParseProfile } from "@/lib/tax-engine/validate";
 import { brandedShell, sendOne } from "@/lib/email";
-import { clientKey, rateLimit } from "@/lib/rateLimit";
+import { clientKey, rateLimitShared } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 
@@ -19,7 +19,7 @@ const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
  * their old-vs-new comparison. Strictly rate-limited; nothing is stored.
  */
 export async function POST(req: NextRequest) {
-  const rl = rateLimit(`emailres:${clientKey(req)}`, { capacity: 3, refillPerMinute: 1 });
+  const rl = await rateLimitShared(`emailres:${clientKey(req)}`, 3, 60, { capacity: 3, refillPerMinute: 1 });
   if (!rl.allowed) return NextResponse.json({ error: "rate limited — try again in a minute" }, { status: 429 });
   try {
     const parsed = Input.safeParse(await req.json());

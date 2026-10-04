@@ -12,8 +12,8 @@ const PIXEL = Buffer.from("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBR
  * per send; first hit stamps opened_at. No cookies, no PII, nothing stored
  * beyond the timestamp on the existing log row.
  */
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
-  const id = params.id;
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
     const admin = supabaseAdmin();
     if (admin) {

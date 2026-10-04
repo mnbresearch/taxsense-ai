@@ -6,7 +6,7 @@ import Link from "next/link";
 import { TDS_CALENDAR, TDS_SECTIONS, tdsInterest, tdsLateFee } from "@/lib/tdsRates";
 
 const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
-const field = "mt-1 w-full rounded-md border border-stone-300 px-2.5 py-2 text-sm outline-none focus:border-brand-600";
+const field = "mt-1 w-full rounded-md border border-stone-300 px-2.5 py-2 text-sm outline-hidden focus:border-brand-600";
 
 export default function TdsSuite() {
   const [q, setQ] = useState("");

@@ -24,14 +24,14 @@ describe("buildItr1Json — ITR-1 eligible", () => {
   it("is eligible for a simple salaried profile", () => expect(d.eligible).toBe(true));
   it("carries a loud DRAFT status", () => expect(d.status).toMatch(/DRAFT/));
   it("has the ITR1 root structure", () => {
-    expect(d.json!.ITR.ITR1.Form_ITR1.FormName).toBe("ITR1");
-    expect(d.json!.ITR.ITR1.Form_ITR1.AssessmentYear).toBe("2026");
+    expect((d.json!.ITR as any).ITR1.Form_ITR1.FormName).toBe("ITR1");
+    expect((d.json!.ITR as any).ITR1.Form_ITR1.AssessmentYear).toBe("2026");
   });
   it("TotalIncome matches the engine to the rupee", () => {
-    expect(d.json!.ITR.ITR1.ITR1_IncomeDeductions.TotalIncome).toBe(Math.round(best.totalIncome));
+    expect((d.json!.ITR as any).ITR1.ITR1_IncomeDeductions.TotalIncome).toBe(Math.round(best.totalIncome));
   });
   it("GrossTaxLiability matches the engine", () => {
-    expect(d.json!.ITR.ITR1.ITR1_TaxComputation.GrossTaxLiability).toBe(Math.round(best.totalTaxLiability));
+    expect((d.json!.ITR as any).ITR1.ITR1_TaxComputation.GrossTaxLiability).toBe(Math.round(best.totalTaxLiability));
   });
   it("maps 80C into Chapter VI-A when the filed regime allows it (old regime)", () => {
     // The recommended regime here may be NEW (no VI-A). Verify the mapping via
@@ -45,17 +45,17 @@ describe("buildItr1Json — ITR-1 eligible", () => {
     const comp = computeBoth(parsed.profile);
     const itr = recommendItrForm(parsed.profile, comp.old.totalIncome);
     const draft = buildItr1Json(parsed.profile, comp.old, itr);
-    expect(draft.json!.ITR.ITR1.ITR1_IncomeDeductions.DeductUndChapVIA.Section80C).toBe(150000);
-    expect(draft.json!.ITR.ITR1.FilingStatus.NewTaxRegime).toBe("N");
+    expect((draft.json!.ITR as any).ITR1.ITR1_IncomeDeductions.DeductUndChapVIA.Section80C).toBe(150000);
+    expect((draft.json!.ITR as any).ITR1.FilingStatus.NewTaxRegime).toBe("N");
   });
   it("sets the regime flag consistently", () => {
-    const flag = d.json!.ITR.ITR1.FilingStatus.NewTaxRegime;
+    const flag = (d.json!.ITR as any).ITR1.FilingStatus.NewTaxRegime;
     expect(flag === "Y" || flag === "N").toBe(true);
     expect(flag).toBe(best.regime === "new" ? "Y" : "N");
   });
   it("balance payable / refund never both positive", () => {
-    const bal = d.json!.ITR.ITR1.TaxPaid.BalTaxPayable;
-    const ref = d.json!.ITR.ITR1.Refund.RefundDue;
+    const bal = (d.json!.ITR as any).ITR1.TaxPaid.BalTaxPayable;
+    const ref = (d.json!.ITR as any).ITR1.Refund.RefundDue;
     expect(bal === 0 || ref === 0).toBe(true);
   });
 });

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cashfreeConfigured, getCashfreeOrder, getPaymentLink } from "@/lib/cashfree";
 import { fulfillPaidOrder } from "@/lib/fulfill";
-import { clientKey, rateLimit } from "@/lib/rateLimit";
+import { clientKey, rateLimitShared } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 
@@ -11,7 +11,7 @@ export const runtime = "nodejs";
  * fulfilment fallback if a webhook is delayed or unregistered (idempotent).
  */
 export async function GET(req: NextRequest) {
-  const rl = rateLimit(`paystatus:${clientKey(req)}`, { capacity: 30, refillPerMinute: 20 });
+  const rl = await rateLimitShared(`paystatus:${clientKey(req)}`, 30, 60, { capacity: 30, refillPerMinute: 20 });
   if (!rl.allowed) return NextResponse.json({ error: "rate limited" }, { status: 429 });
   if (!cashfreeConfigured()) return NextResponse.json({ error: "payments not configured" }, { status: 503 });
 

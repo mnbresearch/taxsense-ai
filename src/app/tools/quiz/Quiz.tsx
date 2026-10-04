@@ -147,7 +147,7 @@ export default function Quiz() {
                     onKeyDown={(e) => e.key === "Enter" && joinList()}
                     type="email"
                     placeholder="you@example.com"
-                    className="min-w-0 flex-1 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-600"
+                    className="min-w-0 flex-1 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-hidden focus:border-brand-600"
                   />
                   <button
                     onClick={joinList}

@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { computeBoth, emptyProfile } from "@/lib/tax-engine";
-import { supabaseConfigured } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,13 +16,8 @@ export async function GET() {
   return NextResponse.json(
     {
       status: engineOk ? "ok" : "degraded",
-      engineSelfTest: engineOk ? "pass (₹12.75L anchor case)" : "FAIL — slab constants may be corrupted",
+      engineSelfTest: engineOk ? "pass" : "fail",
       fy: "2025-26",
-      providers: {
-        intake: process.env.GROQ_API_KEY ? "groq" : process.env.ANTHROPIC_API_KEY ? "anthropic" : "mock",
-        supabase: supabaseConfigured() ? "configured" : "demo-mode",
-        email: process.env.RESEND_API_KEY ? "resend" : "not configured",
-      },
       build: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) ?? "dev",
       time: new Date().toISOString(),
     },

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { escHtml } from "@/lib/html";
 import { quickCheck } from "@/lib/taxcheck";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { ADMIN_EMAIL, brandedShell, sendOne } from "@/lib/email";
@@ -7,8 +8,6 @@ import { clientKey, rateLimitShared } from "@/lib/rateLimit";
 export const runtime = "nodejs";
 
 const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
-const escHtml = (s: string) =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 
 /** Batch 93 — landing lead magnet: full report to the lead, lead to the founder. */
 export async function POST(req: NextRequest) {

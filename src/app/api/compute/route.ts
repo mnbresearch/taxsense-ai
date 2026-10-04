@@ -9,15 +9,15 @@ import { safeParseProfile } from "@/lib/tax-engine/validate";
 import { optimize } from "@/lib/optimizer";
 import { computeInsights } from "@/lib/optimizer/insights";
 import { computeTaxScore } from "@/lib/tax-engine/score";
-import { clientKey, rateLimit } from "@/lib/rateLimit";
+import { clientKey, rateLimitShared } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
-  const rl = rateLimit(`compute:${clientKey(req)}`, { capacity: 60, refillPerMinute: 60 });
+  const rl = await rateLimitShared(`compute:${clientKey(req)}`, 60, 60, { capacity: 60, refillPerMinute: 60 });
   if (!rl.allowed)
     return NextResponse.json({ error: "rate limited" }, { status: 429, headers: { "retry-after": String(rl.retryAfterSeconds) } });
-  let body: any;
+  let body: { profile?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -54,7 +54,8 @@ export async function POST(req: NextRequest) {
       itr1Draft: buildItr1Json(profile, best, itr),
       explanation: { old: explainRegime(comparison.old), new: explainRegime(comparison.new) },
     });
-  } catch (e: any) {
+  } catch (e) {
+    console.error("[compute]", e);
     return NextResponse.json({ error: "compute failed" }, { status: 500 });
   }
 }

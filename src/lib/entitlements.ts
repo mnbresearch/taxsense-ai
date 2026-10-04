@@ -62,14 +62,15 @@ export async function getEntitlementsForEmail(email: string | null | undefined):
   if (!supabaseConfigured()) return freeEntitlements(e, true);
   const admin = supabaseAdmin();
   if (!admin) return freeEntitlements(e, true);
-  const { data } = await admin
-    .from("access_requests")
-    .select("plan, status")
-    .ilike("email", e)
-    .eq("status", "active")
-    .limit(1)
-    .maybeSingle();
+  const lookup = (cols: string) =>
+    admin.from("access_requests").select(cols).eq("email", e).eq("status", "active").limit(1).maybeSingle();
+  let res = await lookup("plan, status, paid_until");
+  // Tolerate a database where migration 0012 (paid_until) hasn't run yet.
+  if (res.error && /paid_until|column/i.test(res.error.message)) res = await lookup("plan, status");
+  const data = res.data as { plan?: string | null; paid_until?: string | null } | null;
   if (!data) return freeEntitlements(e, true);
+  // Paid-online plans carry an expiry; admin-granted rows (paid_until null) do not.
+  if (data.paid_until && new Date(data.paid_until).getTime() < Date.now()) return freeEntitlements(e, true);
   const plan = normalizePlan(data.plan);
   return { signedIn: true, email: e, plan, active: true, features: PLAN_FEATURES[plan] };
 }

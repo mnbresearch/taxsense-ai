@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { serverError } from "@/lib/http";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -6,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 /** Batch 30 — the signed-in user's past filing summaries (latest 20). */
 export async function GET() {
-  const sb = supabaseServer();
+  const sb = await supabaseServer();
   if (!sb) return NextResponse.json({ items: [], mode: "demo" });
   const { data: auth } = await sb.auth.getUser();
   if (!auth.user) return NextResponse.json({ items: [], mode: "anonymous" });
@@ -15,6 +16,6 @@ export async function GET() {
     .select("id, profile, estimates, regime, total_tax, created_at")
     .order("created_at", { ascending: false })
     .limit(20);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError("pdf/history", error);
   return NextResponse.json({ items: data ?? [], mode: "supabase" });
 }
