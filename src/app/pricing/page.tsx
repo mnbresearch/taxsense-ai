@@ -208,7 +208,7 @@ export default function Pricing() {
         </p>
         <p className="mt-6 text-center text-xs text-stone-400">
           Pay online for instant activation, or request a call and we set you up personally.
-          Prices include GST. TaxSense AI + your CA, not instead of your CA. An MNB Research product, in collaboration with Abrobot.ai — by ABROBOT TECHNOLOGIES PRIVATE LIMITED.
+          Prices include GST. See our <a href="/refund" className="underline">Refund &amp; Cancellation Policy</a>. TaxSense AI + your CA, not instead of your CA. An MNB Research product, in collaboration with Abrobot.ai — by ABROBOT TECHNOLOGIES PRIVATE LIMITED.
         </p>
       </section>
     </main>

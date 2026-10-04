@@ -373,7 +373,7 @@ export default function Landing() {
             </div>
             <FooterCol title="Product" links={[["/app", "Open the app"], ["/pricing", "Pricing"], ["/tools", "All tools"], ["/professional", "Professional Suite"], ["/whats-new", "What's new"]]} />
             <FooterCol title="Free help" links={[["/guide", "60-second Tax Guide"], ["/playbook", "Tax-Saving Playbook"], ["/deadlines", "Deadlines + reminders"], ["/learn", "Tax glossary"], ["/compare", "vs DIY portals & CAs"]]} />
-            <FooterCol title="Company" links={[["https://www.mnbresearch.com/taxsense-ai", "About this product"], ["https://www.mnbresearch.com", "MNB Research"], ["/privacy", "Privacy"], ["/terms", "Terms"]]} />
+            <FooterCol title="Company" links={[["https://www.mnbresearch.com/taxsense-ai", "About this product"], ["https://www.mnbresearch.com", "MNB Research"], ["/privacy", "Privacy"], ["/terms", "Terms"], ["/refund", "Refunds"]]} />
           </div>
           <div className="mt-8 border-t border-stone-100 pt-4 text-center text-xs text-stone-400">
             © 2026 ABROBOT TECHNOLOGIES PRIVATE LIMITED · TaxSense AI, an MNB Research product · Not a substitute for professional advice on complex matters.

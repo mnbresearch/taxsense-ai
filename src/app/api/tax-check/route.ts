@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { escHtml } from "@/lib/html";
 import { quickCheck } from "@/lib/taxcheck";
 import { supabaseAdmin } from "@/lib/supabase/server";
-import { ADMIN_EMAIL, brandedShell, sendOne } from "@/lib/email";
+import { ADMIN_EMAIL, brandedShell, isUndeliverable, sendOne } from "@/lib/email";
 import { clientKey, rateLimitShared } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
@@ -24,8 +24,10 @@ export async function POST(req: NextRequest) {
   const metro = !!b.metro;
   const currentRegime = ["new", "old", "unsure"].includes(b.currentRegime) ? b.currentRegime : "unsure";
 
+  if (b.consent !== true) return NextResponse.json({ error: "Please tick the consent box to continue." }, { status: 400 });
+  const marketing = b.marketing === true;
   if (!name) return NextResponse.json({ error: "name required" }, { status: 400 });
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return NextResponse.json({ error: "valid email required" }, { status: 400 });
+  if (isUndeliverable(email) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return NextResponse.json({ error: "valid email required" }, { status: 400 });
   if (!/^[6-9]\d{9}$/.test(phone)) return NextResponse.json({ error: "valid 10-digit mobile required" }, { status: 400 });
   if (income < 100000 || income > 100_000_000) return NextResponse.json({ error: "income out of range" }, { status: 400 });
 
@@ -34,10 +36,12 @@ export async function POST(req: NextRequest) {
   // Lead into the admin panel (best-effort).
   const admin = supabaseAdmin();
   if (admin) {
-    const row = { email, name, phone, source: "tax-check" };
-    const { error } = await admin.from("access_requests").insert(row);
-    if (error) await admin.from("access_requests").update({ phone, name }).eq("email", email).eq("status", "lead");
-    await admin.from("audit_events").insert({ event: "tax_check_lead", meta: { email, income, opportunity: r.totalOpportunity } });
+    const row = { email, name, phone, source: "tax-check", marketing_opt_in: marketing, consent_at: new Date().toISOString() };
+    let { error } = await admin.from("access_requests").insert(row);
+    if (error && /marketing_opt_in|column/i.test(error.message)) ({ error } = await admin.from("access_requests").insert({ email, name, phone, source: "tax-check" }));
+    if (error) await admin.from("access_requests").update({ phone, name, ...(marketing ? { marketing_opt_in: true } : {}) }).eq("email", email).eq("status", "lead");
+    // Event only — no email or income in the audit trail.
+    await admin.from("audit_events").insert({ event: "tax_check_lead", meta: { source: "landing" } });
   }
 
   const safeName = escHtml(name);

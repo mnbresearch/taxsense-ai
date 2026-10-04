@@ -15,8 +15,6 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 
 const RESEND_URL = "https://api.resend.com/emails";
 const FROM = "TaxSense AI · MNB Research <hello@updates.mnbresearch.com>";
-/** Batch 49 — real-time copy of every campaign send to the founder. */
-export const FOUNDER_CC = "mridulnanda2004@gmail.com";
 
 /**
  * HMAC-signed unsubscribe token. Uses the dedicated UNSUBSCRIBE_SECRET; tokens
@@ -49,6 +47,15 @@ const APP_NAME = "TaxSense AI";
 const CONTACT_LINE = "TaxSense AI · an MNB Research product · +91 97114 88480";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** RFC 2606/6761 reserved domains — never deliverable; Resend rejects them with 422. */
+export function isUndeliverable(email: string): boolean {
+  const domain = email.trim().toLowerCase().split("@")[1] ?? "";
+  return (
+    /(^|\.)(example\.(com|org|net)|test|invalid|localhost|local)$/.test(domain) ||
+    /^(mailinator|guerrillamail|10minutemail|yopmail)\./.test(domain)
+  );
+}
 
 export type EmailKind = "admin_notify" | "confirmation" | "welcome" | "custom";
 export type SendResult = { to: string; ok: boolean; error?: string };
@@ -103,6 +110,9 @@ export async function sendOne(payload: { to: string; subject: string; html: stri
   try {
     if (!EMAIL_RE.test(to)) {
       return { to, ok: false, error: "invalid email" };
+    }
+    if (isUndeliverable(to)) {
+      return { to, ok: false, error: "undeliverable domain — skipped" };
     }
     const key = process.env.RESEND_API_KEY;
     if (!key) {
@@ -243,8 +253,6 @@ export async function sendCampaign(opts: {
     results.push(await sendOne({
       to: email, subject: personalSubject, html, kind: "custom", trackId,
       templateName: opts.templateName ?? null,
-      // real-time copy of every campaign email to the founder (skip self-sends)
-      cc: email === FOUNDER_CC ? undefined : [FOUNDER_CC],
     }));
   }
   return results;

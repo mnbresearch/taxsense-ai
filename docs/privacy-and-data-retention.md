@@ -8,16 +8,18 @@
 |---|---|---|---|
 | Email (auth) | account access | Supabase Auth | until account deletion |
 | Tax profile JSON (income, deductions) | computation & PDF | `tax_profiles` (RLS: owner-only) | until deletion request + 30-day grace |
-| Chat transcripts | continuity of intake, quality | `intake_messages` (RLS: owner-only) | auto-purged after 18 months (`purge_stale_intake_messages`) |
-| Audit events (event names only, no amounts) | security, metrics | `audit_events` | 24 months |
+| Chat transcripts | — | not stored (since Oct 2026; migration 0013 removed old rows) | — |
+| Leads (email, name, phone, plan, consent time, marketing opt-in) | reply to the request; weekly digest only if opted in | `access_requests` | until deletion / unsubscribe |
+| Payment ledger (order id, plan, amount, email) | accounting & GST | `payments` | statutory period; unlinked on account deletion |
+| Audit events | security, metrics. Lead/order events carry no email or income; admin actions and payment fulfilment record the affected email for accountability | `audit_events` | 24 months / until account deletion |
 
-**We never hold:** PAN, Aadhaar, bank account numbers, Form 16 uploads (v1 doesn't ingest documents), passwords (magic-link auth).
+**We never hold:** PAN, TAN, Aadhaar, bank account numbers, card data (Cashfree-hosted checkout), passwords (OTP/magic-link auth). Pasted Form 16 / AIS text is parsed in memory by the deterministic importer (`src/lib/intake/docImport.ts`) and discarded; it never reaches an LLM. PAN/TAN/Aadhaar are redacted from every chat turn before inference (`src/lib/intake/pii.ts`).
 
 ## Technical enforcement (already implemented)
 
 - **RLS deny-by-default** on every table; owner-only policies (`0001_init.sql`). The anon key can never read another user's rows even if the app layer is buggy.
 - **Admin sees aggregates only** — the dashboard calls `admin_stats()` (SECURITY DEFINER, service-role only), which returns counts, never rows.
-- **LLM data path**: messages go to the inference provider (Groq/Anthropic) for extraction only; policy must disclose the subprocessors and state that API data isn't used for training (both providers' API terms).
+- **LLM data path**: typed messages (ID numbers redacted, documents excluded) go to Groq, with Anthropic as backup, for extraction only. `LLM_FALLBACK_URL` must stay unset unless that provider is added to /privacy first.
 - **Right to access/portability**: `GET /api/account` exports everything as JSON.
 - **Right to erasure**: `DELETE /api/account` queues deletion; 30-day grace (cancel by signing in), then `execute_pending_deletions()` hard-purges. Backups age out on the provider's schedule (~30 days) — policy must say so.
 

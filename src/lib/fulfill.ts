@@ -10,7 +10,7 @@
  *  - Paid-online plans get an expiry (paid_until); renewals extend it.
  */
 import { supabaseAdmin } from "@/lib/supabase/server";
-import { brandedShell, FOUNDER_CC, sendOne } from "@/lib/email";
+import { ADMIN_EMAIL, brandedShell, sendOne } from "@/lib/email";
 import { PAY_CATALOG } from "@/lib/cashfree";
 import { escHtml } from "@/lib/html";
 
@@ -91,7 +91,6 @@ export async function fulfillPaidOrder(opts: {
   const until = new Date(paidUntil).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
   await sendOne({
     to: email,
-    cc: email === FOUNDER_CC ? undefined : [FOUNDER_CC],
     subject: "🎉 Payment received — your TaxSense AI plan is live",
     kind: "custom",
     html: brandedShell(
@@ -99,6 +98,17 @@ export async function fulfillPaidOrder(opts: {
       `<p style="color:#44403c;font-size:14px;line-height:1.6;">Your payment for <strong>${escHtml(cat.blurb)}</strong> went through and your plan is <strong>active right now</strong> (valid until ${until}). Sign in with this email address (${escHtml(email)}) and everything is unlocked.</p>
        <p style="margin:18px 0;"><a href="https://taxsense.mnbresearch.com/app" style="background:#0d5947;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;display:inline-block;">Open TaxSense AI →</a></p>
        <p style="color:#78716c;font-size:12px;line-height:1.6;">Order ${escHtml(opts.orderId)}. A GST invoice follows by email. Questions? Just reply — a human reads this inbox.</p>`
+    ),
+  });
+
+  // Internal sale alert to the business inbox (replaces CC'ing the customer's mail).
+  await sendOne({
+    to: ADMIN_EMAIL,
+    subject: `💰 Payment: ${cat.blurb} · ₹${(opts.amount ?? cat.amount).toLocaleString("en-IN")}`,
+    kind: "admin_notify",
+    html: brandedShell(
+      "New online payment",
+      `<p style="color:#44403c;font-size:14px;line-height:1.6;"><strong>${escHtml(email)}</strong> paid for <strong>${escHtml(cat.blurb)}</strong>. Plan active until ${until}. Order ${escHtml(opts.orderId)} (via ${escHtml(String(opts.via))}).</p>`
     ),
   });
 

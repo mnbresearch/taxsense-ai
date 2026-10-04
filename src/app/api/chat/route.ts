@@ -6,6 +6,20 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 import { safeParseProfile } from "@/lib/tax-engine/validate";
 import { clientKey, rateLimitShared } from "@/lib/rateLimit";
 import { glossaryAnswer } from "@/lib/glossary";
+import { looksLikeDocument, redactPII } from "@/lib/intake/pii";
+import { fieldsToPartialProfile, importDocument } from "@/lib/intake/docImport";
+
+type Tree = { [k: string]: unknown };
+function deepMerge(base: Tree, add: Tree): Tree {
+  const out: Tree = { ...base };
+  for (const [k, v] of Object.entries(add)) {
+    out[k] = v && typeof v === "object" && !Array.isArray(v) && out[k] && typeof out[k] === "object"
+      ? deepMerge(out[k] as Tree, v as Tree)
+      : v;
+  }
+  return out;
+}
+const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -55,7 +69,37 @@ export async function POST(req: NextRequest) {
       if (!prof.ok) return NextResponse.json({ error: "invalid profile state" }, { status: 400 });
       state = { ...body.state, profile: prof.profile };
     }
-    const history = (body.history ?? []).slice(-12);
+    // Identity documents never leave our server: earlier pasted documents are
+    // dropped from history, and PAN/TAN/Aadhaar are stripped from every turn.
+    const history = (body.history ?? []).slice(-12).map((h) => ({
+      role: h.role,
+      content: looksLikeDocument(h.content) ? "[document pasted — read locally by TaxSense, not shown to the AI]" : redactPII(h.content),
+    }));
+
+    // Pasted Form 16 / AIS: parse it here with the deterministic importer. No LLM.
+    if (looksLikeDocument(message)) {
+      const doc = importDocument(message);
+      if (doc.recognised && doc.fields.length > 0) {
+        const merged = safeParseProfile(deepMerge(state.profile as unknown as Tree, fieldsToPartialProfile(doc.fields) as Tree));
+        if (merged.ok) state = { ...state, profile: merged.profile };
+        const lines = doc.fields.map((f) => `• ${f.label}: ${inr(f.value)}`).join("\n");
+        const notes = doc.notes.length ? "\n\n" + doc.notes.map((n) => `ℹ️ ${n}`).join("\n") : "";
+        return NextResponse.json({
+          reply:
+            `📄 I read your ${doc.kind === "ais" ? "AIS/TIS" : "Form 16"} right here on our server — it was **not** sent to any AI model, and your PAN/TAN aren't kept.\n\n${lines}${notes}\n\nThese are now in your computation on the right. Check them against your document — anything to correct, or other income to add?`,
+          state,
+          provider: "docimport/local",
+          extraction: { updates: {}, notApplicable: [], estimates: [], clarify: null },
+        });
+      }
+      return NextResponse.json({
+        reply:
+          "That looks like a tax document, but I couldn't pick out the amounts. For privacy it wasn't sent to the AI. Paste just the Part B salary/deductions section, or use the Form 16 importer at /tools/import — or simply tell me your gross salary, TDS and deductions.",
+        state,
+        provider: "docimport/local",
+        extraction: { updates: {}, notApplicable: [], estimates: [], clarify: null },
+      });
+    }
 
     // Glossary fast-path: definitional questions answered locally — instant,
     // accurate, zero LLM cost. Profile state is untouched.
@@ -69,7 +113,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const turn = await runIntakeTurn(state, history, message, body.lang ?? "en");
+    const turn = await runIntakeTurn(state, history, redactPII(message), body.lang ?? "en");
 
     // Degradation is a pageable event, not a silent shrug.
     if (turn.providerName.startsWith("mock") && (process.env.GROQ_API_KEY || process.env.ANTHROPIC_API_KEY)) {

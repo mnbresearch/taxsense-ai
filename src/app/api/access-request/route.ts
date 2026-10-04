@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { demoEvents, supabaseAdmin } from "@/lib/supabase/server";
 import { clientKey, rateLimitShared } from "@/lib/rateLimit";
-import { sendAccessRequestEmails } from "@/lib/email";
+import { isUndeliverable, sendAccessRequestEmails } from "@/lib/email";
 
 export const runtime = "nodejs";
 
@@ -14,6 +14,8 @@ const Input = z.object({
   // Free-text label from the pricing page; only ever stored on *lead* rows.
   plan: z.string().max(60).regex(/^(Pro|Business|Filed For You|Concierge)\b[^<>]*$/, "invalid plan").optional(),
   company: z.string().max(200).optional(), // honeypot
+  consent: z.boolean().optional(),
+  marketing: z.boolean().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -22,7 +24,9 @@ export async function POST(req: NextRequest) {
   try {
     const parsed = Input.safeParse(await req.json());
     if (!parsed.success) return NextResponse.json({ error: "please enter a valid email" }, { status: 400 });
-    const { email, name, source, phone, plan, company } = parsed.data;
+    const { email, name, source, phone, plan, company, consent, marketing } = parsed.data;
+    if (isUndeliverable(email)) return NextResponse.json({ error: "please enter a valid email" }, { status: 400 });
+    if (consent !== true) return NextResponse.json({ error: "Please tick the consent box to continue." }, { status: 400 });
     // Honeypot: bots fill the hidden field — pretend success, store nothing.
     if (company) {
       return NextResponse.json({ ok: true, message: "You're on the list — access details land in your inbox at launch." });
@@ -30,9 +34,12 @@ export async function POST(req: NextRequest) {
     const sb = supabaseAdmin();
     let notify = true;
     if (sb) {
-      const row = { email: email.toLowerCase(), name, source: source ?? "landing", phone: phone ?? null, plan: plan ?? null };
+      const row = { email: email.toLowerCase(), name, source: source ?? "landing", phone: phone ?? null, plan: plan ?? null, marketing_opt_in: marketing === true, consent_at: new Date().toISOString() };
       let { error } = await sb.from("access_requests").insert(row);
-      // Defensive: if the phone/plan migration hasn't run yet, fall back to base columns.
+      // Defensive: tolerate un-applied migrations (0013 consent columns, then phone/plan).
+      if (error && /column|schema/i.test(error.message)) {
+        ({ error } = await sb.from("access_requests").insert({ email: row.email, name, source: row.source, phone: row.phone, plan: row.plan }));
+      }
       if (error && /column|schema/i.test(error.message)) {
         ({ error } = await sb.from("access_requests").insert({ email: row.email, name, source: row.source }));
       }
@@ -45,6 +52,9 @@ export async function POST(req: NextRequest) {
         // SECURITY: only un-activated leads may be updated from this public,
         // unauthenticated route. Active/paid rows are never touched here —
         // otherwise anyone could rewrite another member's plan.
+        if (marketing === true) {
+          await sb.from("access_requests").update({ marketing_opt_in: true }).eq("email", email.toLowerCase()).eq("status", "lead");
+        }
         if (plan || phone) {
           await sb
             .from("access_requests")

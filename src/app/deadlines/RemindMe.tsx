@@ -2,11 +2,13 @@
 
 /** Inline reminder signup for the deadlines page (batch 17). */
 import { useState } from "react";
+import Consent from "../Consent";
 
 export default function RemindMe() {
   const [email, setEmail] = useState("");
   const [state, setState] = useState<"idle" | "busy" | "done" | "error">("idle");
   const [msg, setMsg] = useState("");
+  const [consent, setConsent] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -15,7 +17,7 @@ export default function RemindMe() {
       const res = await fetch("/api/reminders", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, consent }),
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error ?? "failed");
@@ -31,7 +33,8 @@ export default function RemindMe() {
     return <div className="mx-auto max-w-md rounded-xl border border-green-200 bg-green-50 p-4 text-center text-sm font-medium text-green-800">✓ {msg}</div>;
 
   return (
-    <form onSubmit={submit} className="mx-auto flex max-w-md gap-2">
+    <form onSubmit={submit} className="mx-auto max-w-md">
+      <div className="flex gap-2">
       <input
         type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
         placeholder="you@email.com"
@@ -41,7 +44,9 @@ export default function RemindMe() {
         className="rounded-lg bg-brand-600 px-5 py-3 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
         {state === "busy" ? "Saving…" : "🔔 Remind me"}
       </button>
-      {state === "error" && <p className="self-center text-xs text-red-600">{msg}</p>}
+      </div>
+      <div className="mt-2"><Consent consent={consent} setConsent={setConsent} purpose="email me filing-deadline reminders" /></div>
+      {state === "error" && <p className="mt-1 text-xs text-red-600">{msg}</p>}
     </form>
   );
 }

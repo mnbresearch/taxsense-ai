@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
 
   const cat = PAY_CATALOG[planKey];
   if (!cat) return NextResponse.json({ error: "unknown plan" }, { status: 400 });
+  if (body.consent !== true) return NextResponse.json({ error: "Please tick the consent box to continue." }, { status: 400 });
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return NextResponse.json({ error: "valid email required" }, { status: 400 });
   if (!/^[6-9]\d{9}$/.test(phone)) return NextResponse.json({ error: "valid 10-digit Indian mobile required" }, { status: 400 });
 
@@ -74,7 +75,7 @@ export async function POST(req: NextRequest) {
     const row = { email, name: name || null, phone: phone || null, source: "pay-online", plan: cat.planLabel };
     const { error } = await admin.from("access_requests").insert(row);
     if (error) await admin.from("access_requests").update({ plan: cat.planLabel }).eq("email", email).eq("status", "lead");
-    await admin.from("audit_events").insert({ event: "pay_order_created", meta: { email, orderId, planKey, amount: cat.amount } });
+    await admin.from("audit_events").insert({ event: "pay_order_created", meta: { orderId, planKey, amount: cat.amount } });
   }
 
   return NextResponse.json({ enabled: true, orderId, paymentSessionId, linkUrl, mode: cashfreeMode() });
