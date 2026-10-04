@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 /** Name shown as Grievance Officer — update here if the designated person changes. */
-const GRIEVANCE_OFFICER = "the Grievance Officer (Data Protection)";
+const GRIEVANCE_OFFICER = "Mridul Nanda";
 
 export default function Privacy() {
   return (
@@ -60,7 +60,7 @@ export default function Privacy() {
         <section>
           <h2 className="text-lg font-bold text-stone-900">Grievance Officer</h2>
           <p className="mt-2 leading-relaxed">
-            For any complaint about how your personal data is handled, contact our Grievance Officer: {GRIEVANCE_OFFICER}, ABROBOT TECHNOLOGIES PRIVATE LIMITED, New Delhi, India —
+            For any complaint about how your personal data is handled, contact our Grievance Officer, {GRIEVANCE_OFFICER}, ABROBOT TECHNOLOGIES PRIVATE LIMITED, New Delhi, India —
             {" "}<a className="font-semibold text-brand-700" href="mailto:contact@mnbresearch.com?subject=Grievance%20%E2%80%94%20TaxSense%20AI">contact@mnbresearch.com</a> (subject “Grievance”), +91 97114 88480.
             We acknowledge within 48 hours and resolve within 30 days. If you are not satisfied, you may approach the Data Protection Board of India.
           </p>
