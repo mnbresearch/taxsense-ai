@@ -7,6 +7,7 @@
  */
 import { useMemo, useState } from "react";
 import { quickCheck } from "@/lib/taxcheck";
+import Consent from "./Consent";
 
 const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
 const field = "mt-1 w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm outline-hidden focus:border-brand-600";
@@ -26,6 +27,8 @@ export default function TaxCheck() {
   const [phone, setPhone] = useState("");
   const [state, setState] = useState<"idle" | "busy" | "done" | "error">("idle");
   const [msg, setMsg] = useState("");
+  const [consent, setConsent] = useState(false);
+  const [marketing, setMarketing] = useState(false);
 
   async function sendReport(e: React.FormEvent) {
     e.preventDefault();
@@ -34,7 +37,7 @@ export default function TaxCheck() {
       const res = await fetch("/api/tax-check", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ name, email, phone, income, rentMonthly: rent, metro, ded80C: d80c, currentRegime: regime }),
+        body: JSON.stringify({ name, email, phone, income, rentMonthly: rent, metro, ded80C: d80c, currentRegime: regime, consent, marketing }),
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error ?? "failed");
@@ -120,11 +123,12 @@ export default function TaxCheck() {
                   <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className={field} />
                   <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" className={field} />
                   <input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 phone number" pattern="[+\d][\d\s\-()]{6,}" className={field} />
+                  <Consent consent={consent} setConsent={setConsent} marketing={marketing} setMarketing={setMarketing} purpose="email me this report and call me about it" />
                   <button type="submit" disabled={state === "busy"} className="rounded-lg bg-brand-600 px-4 py-3 text-sm font-bold text-white hover:bg-brand-700 disabled:opacity-50">
                     {state === "busy" ? "Computing your report…" : `Email me my ${r.totalOpportunity > 0 ? inr(r.totalOpportunity) + " " : ""}savings report — free`}
                   </button>
                   {state === "error" && <p className="text-xs text-red-600">{msg}</p>}
-                  <p className="text-center text-[10px] text-stone-400">No spam — one report + a helping hand. Unsubscribe anytime.</p>
+                  <p className="text-center text-[10px] text-stone-400">One report + a helping hand. No newsletters unless you tick the box above.</p>
                 </form>
               </>
             )}

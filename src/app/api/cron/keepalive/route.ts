@@ -188,14 +188,18 @@ export async function GET(req: NextRequest) {
     out.digest = String(e).slice(0, 120);
   }
 
-  // 6b. Batch 63 — Monday weekly digest to the whole list (suppression-aware).
+  // 6b. Batch 63 — Monday weekly digest to opted-in subscribers (suppression-aware).
   try {
     const istNow = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
     if (istNow.getDay() === 1 && !alreadyRan) {
-      const { data: list } = await sb
+      // Marketing digest goes ONLY to people who explicitly ticked the opt-in.
+      // If the opt-in column doesn't exist yet the query errors → nobody is mailed.
+      const { data: list, error: listErr } = await sb
         .from("access_requests")
         .select("email, name")
+        .eq("marketing_opt_in", true)
         .limit(500);
+      if (listErr) throw new Error("opt-in column missing — digest skipped");
       const recipients = (list ?? []).map((l: { email: string; name: string | null }) => ({ email: l.email, name: l.name }));
       if (recipients.length > 0) {
         const latest = CHANGELOG[0];

@@ -33,9 +33,10 @@ export default function Terms() {
         <section>
           <h2 className="text-lg font-bold text-stone-900">3. Plans, payment & refunds</h2>
           <p className="mt-2 leading-relaxed">
-            Paid plans (Pro, Business, Concierge, Filed For You) are currently activated personally: you request a plan, we contact you, and payment is collected by UPI or bank transfer with a GST invoice.
+            Paid plans (Pro, Business, Concierge, Filed For You) are paid online through Cashfree Payments (UPI, cards, netbanking) and activate automatically, or on request after we contact you; a GST invoice is issued for every payment.
             Prices are listed on the <Link href="/pricing" className="font-semibold text-brand-700 underline">pricing page</Link> and include GST unless stated otherwise.
             Monthly plans can be cancelled any time and end at the close of the paid month. Annual plans are refundable pro-rata within the first 30 days. Filed For You fees are refundable in full until work on your return begins.
+            Full details are in our <Link href="/refund" className="font-semibold text-brand-700 underline">Refund &amp; Cancellation Policy</Link>.
           </p>
         </section>
         <section>

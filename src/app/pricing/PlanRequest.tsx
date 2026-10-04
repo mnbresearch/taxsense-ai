@@ -6,6 +6,7 @@
  * otherwise it degrades to the personal request-and-call flow.
  */
 import { useEffect, useState } from "react";
+import Consent from "../Consent";
 
 const PAY_OPTIONS: Record<string, { key: string; label: string }[]> = {
   pro: [
@@ -60,6 +61,8 @@ export default function PlanRequest({ plan, cta = "Request this plan" }: { plan:
   const [state, setState] = useState<"idle" | "busy" | "done" | "error">("idle");
   const [msg, setMsg] = useState("");
   const [payEnabled, setPayEnabled] = useState(false);
+  const [consent, setConsent] = useState(false);
+  const [marketing, setMarketing] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -73,12 +76,13 @@ export default function PlanRequest({ plan, cta = "Request this plan" }: { plan:
 
   async function payNow(planKey: string) {
     if (!fieldsOk || state === "busy") { setMsg("Fill name, email and phone first."); setState("error"); return; }
+    if (!consent) { setMsg("Please tick the consent box to continue."); setState("error"); return; }
     setState("busy"); setMsg("");
     try {
       const res = await fetch("/api/pay/create-order", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ planKey, email, name, phone }),
+        body: JSON.stringify({ planKey, email, name, phone, consent }),
       });
       const d = await res.json();
       if (!res.ok || !d.paymentSessionId) throw new Error(d.error ?? "could not start payment");
@@ -98,7 +102,7 @@ export default function PlanRequest({ plan, cta = "Request this plan" }: { plan:
         const res2 = await fetch("/api/pay/create-order", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ planKey, email, name, phone, link: true }),
+          body: JSON.stringify({ planKey, email, name, phone, link: true, consent }),
         });
         const d2 = await res2.json().catch(() => ({}));
         if (!res2.ok || !d2.linkUrl) throw new Error(BLOCKED_MSG);
@@ -118,7 +122,7 @@ export default function PlanRequest({ plan, cta = "Request this plan" }: { plan:
       const res = await fetch("/api/access-request", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, name: name || undefined, phone: phone || undefined, plan, source: "pricing" }),
+        body: JSON.stringify({ email, name: name || undefined, phone: phone || undefined, plan, source: "pricing", consent, marketing }),
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error ?? "failed");
@@ -150,6 +154,10 @@ export default function PlanRequest({ plan, cta = "Request this plan" }: { plan:
         className="rounded-lg border border-stone-300 px-3 py-2 text-sm outline-hidden focus:border-brand-600" />
       <input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 phone number" pattern="[+\d][\d\s\-()]{6,}"
         className="rounded-lg border border-stone-300 px-3 py-2 text-sm outline-hidden focus:border-brand-600" />
+      <Consent consent={consent} setConsent={setConsent} marketing={marketing} setMarketing={setMarketing} purpose="process this order or request and contact me about it" />
+      <p className="text-[10px] text-stone-400">
+        Payments are covered by our <a href="/terms" target="_blank" className="underline">Terms</a> and <a href="/refund" target="_blank" className="underline">Refund &amp; Cancellation Policy</a>.
+      </p>
       {payEnabled && payOpts.length > 0 && (
         <div className="flex flex-col gap-1.5">
           {payOpts.map((o) => (

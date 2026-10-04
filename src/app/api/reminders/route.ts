@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { clientKey, rateLimitShared } from "@/lib/rateLimit";
-import { brandedShell, sendOne } from "@/lib/email";
+import { brandedShell, isUndeliverable, sendOne, unsubUrl } from "@/lib/email";
 import { upcomingDeadlines } from "@/lib/deadlines";
 
 export const runtime = "nodejs";
 
-const Input = z.object({ email: z.string().email().max(120) });
+const Input = z.object({ email: z.string().email().max(120), consent: z.boolean().optional() });
 
 /** Subscribe to deadline reminder emails (batch 16). */
 export async function POST(req: NextRequest) {
@@ -16,7 +16,9 @@ export async function POST(req: NextRequest) {
   try {
     const parsed = Input.safeParse(await req.json());
     if (!parsed.success) return NextResponse.json({ error: "valid email required" }, { status: 400 });
+    if (parsed.data.consent !== true) return NextResponse.json({ error: "Please tick the consent box to continue." }, { status: 400 });
     const email = parsed.data.email.toLowerCase();
+    if (isUndeliverable(email)) return NextResponse.json({ error: "valid email required" }, { status: 400 });
     const sb = supabaseAdmin();
     if (!sb) return NextResponse.json({ error: "not configured" }, { status: 500 });
     const { error } = await sb.from("tax_reminders").insert({ email });
@@ -35,7 +37,7 @@ export async function POST(req: NextRequest) {
            <ul style="color:#44403c;font-size:14px;line-height:1.8;padding-left:18px;">
              ${next.map((n) => `<li><strong>${new Date(n.date + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</strong> — ${n.label}</li>`).join("")}
            </ul>
-           <p style="color:#78716c;font-size:12px;">To stop reminders, reply to this email with STOP.</p>`
+           <p style="color:#78716c;font-size:12px;">Don't want these? <a href="${unsubUrl(email)}" style="color:#78716c;">Unsubscribe in one click</a>.</p>`
         ),
       });
     }

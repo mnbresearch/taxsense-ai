@@ -314,6 +314,7 @@ export default function AppPage() {
 
   function shareWhatsApp() {
     if (!state?.profile || !cmp) return;
+    if (!window.confirm("The share link contains your income and deduction figures (no name, email or PAN). Anyone with the link can see them. Share it?")) return;
     const json = JSON.stringify(state.profile);
     const b64 = btoa(unescape(encodeURIComponent(json))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
     const url = `${window.location.origin}/s/${b64}`;
@@ -327,7 +328,7 @@ export default function AppPage() {
       {
         role: "assistant",
         content:
-          "📄 Open your Form 16 PDF, select all the text (Ctrl/Cmd+A), copy it, and paste it straight into this chat. I'll read your salary, TDS, HRA and deductions out of it automatically — messy formatting is fine.",
+          "📄 Open your Form 16 PDF, select all the text (Ctrl/Cmd+A), copy it, and paste it into this chat. It's read by our own parser on our server — never sent to an AI model — and your PAN/TAN are not stored. I'll pull out salary, TDS, HRA and deductions for you to check.",
       },
     ]);
   }
@@ -343,13 +344,15 @@ export default function AppPage() {
   }
 
   async function subscribeReminders() {
-    const email = window.prompt("Email for deadline reminders (7 days & 1 day before every due date):");
+    const email = window.prompt(
+      "Email for deadline reminders (7 days & 1 day before every due date).\n\nBy submitting you agree to the Privacy Policy (taxsense.mnbresearch.com/privacy) and to receive these reminders. One-click unsubscribe in every email."
+    );
     if (!email) return;
     try {
       const res = await fetch("/api/reminders", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, consent: true }),
       });
       const d = await res.json();
       setSaved(res.ok ? d.message : d.error ?? "failed");

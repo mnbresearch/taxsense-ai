@@ -2,6 +2,7 @@
 
 /** Request-access lead capture (batch 10) — lands in the admin panel. */
 import { useState } from "react";
+import Consent from "./Consent";
 
 export default function RequestAccess({ compact = false }: { compact?: boolean }) {
   const [email, setEmail] = useState("");
@@ -9,6 +10,8 @@ export default function RequestAccess({ compact = false }: { compact?: boolean }
   const [company, setCompany] = useState(""); // honeypot — humans never see or fill this
   const [state, setState] = useState<"idle" | "busy" | "done" | "error">("idle");
   const [msg, setMsg] = useState("");
+  const [consent, setConsent] = useState(false);
+  const [marketing, setMarketing] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -17,7 +20,7 @@ export default function RequestAccess({ compact = false }: { compact?: boolean }
       const res = await fetch("/api/access-request", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, name: name || undefined, source: compact ? "hero" : "landing", company: company || undefined }),
+        body: JSON.stringify({ email, name: name || undefined, source: compact ? "hero" : "landing", company: company || undefined, consent, marketing }),
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error ?? "failed");
@@ -37,7 +40,8 @@ export default function RequestAccess({ compact = false }: { compact?: boolean }
     );
 
   return (
-    <form onSubmit={submit} className="relative mx-auto flex max-w-xl flex-col gap-2 sm:flex-row">
+    <form onSubmit={submit} className="relative mx-auto max-w-xl">
+      <div className="flex flex-col gap-2 sm:flex-row">
       <input
         value={company}
         onChange={(e) => setCompany(e.target.value)}
@@ -70,7 +74,11 @@ export default function RequestAccess({ compact = false }: { compact?: boolean }
       >
         {state === "busy" ? "Saving…" : "Request access"}
       </button>
-      {state === "error" && <p className="text-xs text-red-600 sm:self-center">{msg}</p>}
+      </div>
+      <div className="mt-2">
+        <Consent consent={consent} setConsent={setConsent} marketing={marketing} setMarketing={setMarketing} purpose="give me access and email me about it" />
+      </div>
+      {state === "error" && <p className="mt-1 text-xs text-red-600">{msg}</p>}
     </form>
   );
 }
