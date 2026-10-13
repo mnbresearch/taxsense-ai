@@ -14,7 +14,7 @@ TaxSense does **not** share a database or login system with other MNB products. 
 ## Keys
 
 Format `tsk_<16 hex id>_<43 base64url secret>` (256-bit secret). Only a SHA-256 hash is stored; the secret is shown once.
-Lifecycle: create (7–365 day expiry) → rotate (new secret; old one retires immediately or after ≤24 h overlap) → revoke (immediate). Admins can revoke any key.
+Lifecycle: create (1–365 day expiry, default 90) → rotate (new secret; old one retires immediately or after ≤24 h overlap) → revoke (immediate). Admins can revoke any key.
 Limits: free user 30/min + 500/day; paid user 120/min + 10,000/day; service 300/min + 50,000/day. Every key's daily usage is counted.
 
 ## Stable identifiers & data mapping
