@@ -28,7 +28,7 @@ export default function Developers() {
   -H "Authorization: Bearer tsk_xxxxxxxxxxxxxxxx_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"`}</pre>
       <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-stone-600">
         <li>Keys carry <strong>scopes</strong>; a request without the needed scope gets <code>403 forbidden</code>.</li>
-        <li>Keys expire (7–365 days). Rotate with an optional overlap of up to 24 h; revoke instantly.</li>
+        <li>Keys expire after 1–365 days (default 90). Rotate with an optional overlap of up to 24 h; revoke instantly.</li>
         <li>Limits per key: free 30/min &amp; 500/day; paid plans 120/min &amp; 10,000/day. <code>429</code> responses include <code>Retry-After</code>.</li>
         <li>Errors: <code>{`{ "error": { "code", "message" }, "requestId" }`}</code>. Success: <code>{`{ "data": … }`}</code>.</li>
       </ul>
