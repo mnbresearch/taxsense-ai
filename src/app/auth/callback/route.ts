@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin, supabaseServer } from "@/lib/supabase/server";
 import { sendAccessRequestEmails } from "@/lib/email";
 import { cancelPendingDeletionOnSignIn } from "@/lib/deletion";
+import { trackLogin } from "@/lib/analytics";
 
 export const runtime = "nodejs";
 
@@ -22,7 +23,7 @@ export async function GET(req: NextRequest) {
         const { data } = await sb.auth.exchangeCodeForSession(code);
         const user = data?.user;
         const email = user?.email?.toLowerCase();
-        if (user) await cancelPendingDeletionOnSignIn(sb, user.id);
+        if (user) { await cancelPendingDeletionOnSignIn(sb, user.id); await trackLogin(user.id); }
         if (user && email) {
           const admin = supabaseAdmin();
           if (admin) {

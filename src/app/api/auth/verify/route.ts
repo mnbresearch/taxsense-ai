@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import { clientKey, rateLimitShared } from "@/lib/rateLimit";
 import { cancelPendingDeletionOnSignIn } from "@/lib/deletion";
+import { track, trackLogin } from "@/lib/analytics";
 
 export const runtime = "nodejs";
 
@@ -32,8 +33,13 @@ export async function POST(req: NextRequest) {
     data = second.data;
     error = second.error;
   }
-  if (error || !data.session)
+  if (error || !data.session) {
+    await track("login_failed");
     return NextResponse.json({ error: "That code is wrong or has expired — request a new one." }, { status: 401 });
-  if (data.user) await cancelPendingDeletionOnSignIn(sb, data.user.id);
+  }
+  if (data.user) {
+    await cancelPendingDeletionOnSignIn(sb, data.user.id);
+    await trackLogin(data.user.id);
+  }
   return NextResponse.json({ ok: true, email: e });
 }

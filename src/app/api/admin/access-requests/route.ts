@@ -1,3 +1,4 @@
+import { track } from "@/lib/analytics";
 import { NextRequest, NextResponse } from "next/server";
 import { serverError } from "@/lib/http";
 import { demoEvents, isAdminEmail, supabaseAdmin, supabaseServer } from "@/lib/supabase/server";
@@ -52,6 +53,7 @@ export async function PATCH(req: NextRequest) {
       .eq("email", email);
     if (revErr) return serverError("admin/access-requests", revErr);
     await admin.from("audit_events").insert({ event: "admin_access_revoked", meta: { email, by: auth.user.email } });
+    await track("subscription_cancelled", { props: { reason: "admin_revoke" } });
     return NextResponse.json({ ok: true, revoked: true });
   }
 

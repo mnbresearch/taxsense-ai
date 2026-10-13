@@ -1,3 +1,4 @@
+import { track } from "@/lib/analytics";
 import { NextRequest, NextResponse } from "next/server";
 import { verifyCashfreeWebhook } from "@/lib/cashfree";
 import { fulfillPaidOrder } from "@/lib/fulfill";
@@ -60,6 +61,7 @@ export async function POST(req: NextRequest) {
   if (type === "PAYMENT_FAILED_WEBHOOK" && orderId) {
     const admin = supabaseAdmin();
     if (admin) {
+      await track("payment_failed");
       await admin.from("audit_events").insert({ event: "payment_failed", meta: { orderId, email, reason: payment?.payment_message ?? null } });
       try { await admin.from("payments").update({ status: "failed" }).eq("order_id", orderId).neq("status", "paid"); } catch {}
     }

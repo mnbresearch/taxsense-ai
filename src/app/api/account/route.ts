@@ -22,8 +22,20 @@ export async function GET() {
     sb.from("pdf_history").select("created_at, regime, total_tax, profile, estimates"),
     sb.from("deletion_requests").select("status, requested_at, purge_after").maybeSingle(),
   ]);
+  // Server-only tables (no RLS policies): read with the service role, filtered to this user.
+  const admin = supabaseAdmin();
+  const [keys, hooks, pevents] = admin
+    ? await Promise.all([
+        admin.from("api_keys").select("key_id, kind, name, scopes, created_at, expires_at, revoked_at, last_used_at").eq("user_id", auth.user.id),
+        admin.from("webhook_endpoints").select("id, url, events, active, created_at").eq("user_id", auth.user.id),
+        admin.from("product_events").select("event, occurred_at, path, props").eq("user_id", auth.user.id).order("occurred_at", { ascending: false }).limit(5000),
+      ])
+    : [{ data: [] }, { data: [] }, { data: [] }];
   return NextResponse.json({
     export: {
+      api_keys: keys.data ?? [],
+      webhook_endpoints: hooks.data ?? [],
+      analytics_events: pevents.data ?? [],
       account: { id: auth.user.id, email: auth.user.email, created_at: auth.user.created_at },
       profiles: profiles.data ?? [],
       chat_transcripts: messages.data ?? [],

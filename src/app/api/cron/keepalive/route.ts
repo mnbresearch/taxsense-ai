@@ -6,6 +6,9 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 import { deadlinesInDays } from "@/lib/deadlines";
 import { ADMIN_EMAIL, brandedShell, sendOne, sendCampaign, unsubUrl } from "@/lib/email";
 import { escHtml } from "@/lib/html";
+import { runCheckoutFollowups } from "@/lib/followups";
+import { retryFailedDeliveries } from "@/lib/api/webhooks";
+import { supabaseStore } from "@/lib/api/store";
 import { timingSafeEqual } from "crypto";
 
 export const runtime = "nodejs";
@@ -81,7 +84,7 @@ export async function GET(req: NextRequest) {
   } catch { out.rateLimitsPurge = "skipped"; }
 
   // 3. Retention jobs (formerly the manual pg_cron runbook items)
-  for (const fn of ["execute_pending_deletions", "purge_stale_intake_messages"] as const) {
+  for (const fn of ["execute_pending_deletions", "purge_stale_intake_messages", "purge_old_product_events"] as const) {
     try {
       const { error } = await sb.rpc(fn);
       out[fn] = error ? `error: ${error.message}` : "ok";
@@ -228,6 +231,20 @@ export async function GET(req: NextRequest) {
     }
   } catch (e) {
     out.weekly = String(e).slice(0, 120);
+  }
+
+  // 7. Abandoned-checkout follow-ups (respects admin config: disabled + dry-run by default).
+  try {
+    out.checkoutFollowups = alreadyRan ? { status: "skipped (already ran today)" } : await runCheckoutFollowups(sb);
+  } catch (e) {
+    out.checkoutFollowups = String(e).slice(0, 120);
+  }
+
+  // 8. One more delivery pass for webhooks that failed in the last 24h.
+  try {
+    out.webhookRetries = await retryFailedDeliveries(supabaseStore(sb));
+  } catch (e) {
+    out.webhookRetries = String(e).slice(0, 120);
   }
 
   // 6. Log the run so the admin panel can display "last keep-alive"

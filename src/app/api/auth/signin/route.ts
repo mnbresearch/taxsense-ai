@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer, supabaseAdmin } from "@/lib/supabase/server";
 import { clientKey, rateLimitShared } from "@/lib/rateLimit";
+import { track } from "@/lib/analytics";
 import { brandedShell, sendOne } from "@/lib/email";
 
 export const runtime = "nodejs";
@@ -25,6 +26,7 @@ export async function POST(req: NextRequest) {
   const perDay = await rateLimitShared(`signin-d:${e}`, 15, 86_400, { capacity: 15, refillPerMinute: 0.01 });
   if (!perEmail.allowed || !perDay.allowed)
     return NextResponse.json({ error: "A code was sent recently — check your inbox (and spam) or try again in a few minutes." }, { status: 429 });
+  await track("login_attempt");
   const sb = await supabaseServer();
   if (!sb) return NextResponse.json({ message: "Demo mode — sign-in unavailable without Supabase." });
   const origin = req.nextUrl.origin;
