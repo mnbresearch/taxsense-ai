@@ -4,6 +4,10 @@ import { computeBoth } from "@/lib/tax-engine";
 import { safeParseProfile } from "@/lib/tax-engine/validate";
 import { demoStore, supabaseServer } from "@/lib/supabase/server";
 import { getEntitlementsForEmail } from "@/lib/entitlements";
+import { later } from "@/lib/api/later";
+import { getApiStore } from "@/lib/api/store";
+import { profileEventData } from "@/lib/api/profiles";
+import { emitWebhook } from "@/lib/api/webhooks";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -48,7 +52,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { error } = await sb.from("tax_profiles").upsert(
+  const { data: saved, error } = await sb.from("tax_profiles").upsert(
     {
       user_id: auth.user.id,
       fy: "FY2025-26",
@@ -58,8 +62,10 @@ export async function POST(req: NextRequest) {
       intake_state: intakeState ?? null,
     },
     { onConflict: "user_id,fy,label" }
-  );
+  ).select("id, label, fy, profile, computation, created_at, updated_at").single();
   if (error) return serverError("profile", error);
+  const uid = auth.user.id;
+  if (saved) later(() => emitWebhook(getApiStore(), uid, "profile.saved", profileEventData(saved)));
   return NextResponse.json({ saved: true, mode: "supabase" });
 }
 
@@ -93,11 +99,14 @@ export async function DELETE(req: NextRequest) {
   if (!auth.user) return NextResponse.json({ error: "sign in required" }, { status: 401 });
   const label = req.nextUrl.searchParams.get("label");
   if (!label) return NextResponse.json({ error: "label required" }, { status: 400 });
-  const { error } = await sb
+  const { data: gone, error } = await sb
     .from("tax_profiles")
     .delete()
     .eq("fy", "FY2025-26")
-    .eq("label", label.slice(0, 120));
+    .eq("label", label.slice(0, 120))
+    .select("id, label, fy");
   if (error) return serverError("profile", error);
+  const uid = auth.user.id;
+  for (const g of gone ?? []) later(() => emitWebhook(getApiStore(), uid, "profile.deleted", { profileId: g.id, label: g.label, financialYear: g.fy }));
   return NextResponse.json({ deleted: true });
 }

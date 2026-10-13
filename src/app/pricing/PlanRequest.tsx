@@ -7,6 +7,7 @@
  */
 import { useEffect, useState } from "react";
 import Consent from "../Consent";
+import { trackEvent } from "../track";
 
 const PAY_OPTIONS: Record<string, { key: string; label: string }[]> = {
   pro: [
@@ -139,7 +140,7 @@ export default function PlanRequest({ plan, cta = "Request this plan" }: { plan:
 
   if (!open)
     return (
-      <button onClick={() => setOpen(true)} className="w-full rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">
+      <button onClick={() => { setOpen(true); trackEvent("plan_selected", { plan: plan.trim().split(/\s+/)[0].toLowerCase() }); }} className="w-full rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">
         {cta}
       </button>
     );

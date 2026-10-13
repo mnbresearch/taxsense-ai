@@ -1,3 +1,4 @@
+import { track } from "@/lib/analytics";
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { cashfreeConfigured, cashfreeMode, createCashfreeOrder, createPaymentLink, PAY_CATALOG } from "@/lib/cashfree";
@@ -38,7 +39,10 @@ export async function POST(req: NextRequest) {
   // Ledger row FIRST: fulfilment trusts only orders we recorded, at catalog price.
   const admin = supabaseAdmin();
   if (admin) {
-    const led = await admin.from("payments").insert({ order_id: orderId, email, plan_key: planKey, amount: cat.amount, status: "created", via: wantLink ? "checkout-link" : "checkout" });
+    const ledgerRow = { order_id: orderId, email, plan_key: planKey, amount: cat.amount, status: "created", via: wantLink ? "checkout-link" : "checkout" };
+    // consent_at = documented consent record (needed before any checkout follow-up email).
+    let led = await admin.from("payments").insert({ ...ledgerRow, consent_at: new Date().toISOString() });
+    if (led.error && /consent_at|column/i.test(led.error.message)) led = await admin.from("payments").insert(ledgerRow); // migration 0014 not yet applied
     if (led.error) {
       console.error("payments ledger insert failed", led.error.message);
       return NextResponse.json({ error: "could not start payment — try again" }, { status: 500 });
@@ -76,6 +80,7 @@ export async function POST(req: NextRequest) {
     const { error } = await admin.from("access_requests").insert(row);
     if (error) await admin.from("access_requests").update({ plan: cat.planLabel }).eq("email", email).eq("status", "lead");
     await admin.from("audit_events").insert({ event: "pay_order_created", meta: { orderId, planKey, amount: cat.amount } });
+    await track("checkout_started", { props: { plan_key: planKey, amount: cat.amount } });
   }
 
   return NextResponse.json({ enabled: true, orderId, paymentSessionId, linkUrl, mode: cashfreeMode() });

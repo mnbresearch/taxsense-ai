@@ -3,6 +3,7 @@
 /** Admin dashboard (Session 5) — aggregates only; raw financial data never leaves RLS. */
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import AdminPlatform from "./AdminPlatform";
 
 export default function AdminPage() {
   const [data, setData] = useState<any>(null);
@@ -673,11 +674,13 @@ export default function AdminPage() {
             </div>
           )}
 
+          <AdminPlatform />
+
           <div className="mt-6 rounded-xl border border-stone-200 bg-white p-5 text-sm text-stone-600">
             <h2 className="font-semibold text-stone-900">Operational runbook</h2>
             <ul className="mt-2 list-disc space-y-1 pl-5">
-              <li>Deletion queue: run <code>select public.execute_pending_deletions()</code> daily (pg_cron).</li>
-              <li>Transcript retention: <code>select public.purge_stale_intake_messages()</code> monthly (18-month window).</li>
+              <li>Daily cron (<code>/api/cron/keepalive</code>) runs account erasure, retention purges, reminders, checkout follow-ups and webhook retries.</li>
+              <li>Backups &amp; rollback: see <code>docs/OPERATIONS.md</code>.</li>
               <li>Rules-engine year rollover: swap <code>src/lib/tax-engine/constants.ts</code> when Budget 2026 figures are notified.</li>
             </ul>
           </div>

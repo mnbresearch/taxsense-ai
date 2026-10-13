@@ -14,6 +14,7 @@ import PdfHistory from "./PdfHistory";
 import { SAMPLES } from "./samples";
 import InstallApp from "../InstallApp";
 import { nextDeadline } from "@/lib/deadlines";
+import { trackEvent } from "../track";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -202,6 +203,9 @@ export default function AppPage() {
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
+      if (data.state?.complete && !state?.complete) trackEvent("onboarding_completed");
+      if (messages.filter((x) => x.role === "user").length === 0) trackEvent("feature_used", { feature: "chat" });
+      if (data.provider === "docimport/local") trackEvent("feature_used", { feature: "form16_import" });
       setState(data.state);
       setProvider(data.provider);
       setMessages((m) => [...m, { role: "assistant", content: data.reply }]);
@@ -231,6 +235,7 @@ export default function AppPage() {
       setSaved("PDF generation failed — try again.");
       return;
     }
+    trackEvent("feature_used", { feature: "pdf" });
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -314,6 +319,7 @@ export default function AppPage() {
 
   function shareWhatsApp() {
     if (!state?.profile || !cmp) return;
+    trackEvent("feature_used", { feature: "share" });
     if (!window.confirm("The share link contains your income and deduction figures (no name, email or PAN). Anyone with the link can see them. Share it?")) return;
     const json = JSON.stringify(state.profile);
     const b64 = btoa(unescape(encodeURIComponent(json))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");

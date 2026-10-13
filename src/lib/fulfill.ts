@@ -13,6 +13,10 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 import { ADMIN_EMAIL, brandedShell, sendOne } from "@/lib/email";
 import { PAY_CATALOG } from "@/lib/cashfree";
 import { escHtml } from "@/lib/html";
+import { track } from "@/lib/analytics";
+import { getApiStore } from "@/lib/api/store";
+import { emitWebhook } from "@/lib/api/webhooks";
+import { later } from "@/lib/api/later";
 
 const DAY = 86_400_000;
 /** Validity granted by each catalog key. */
@@ -82,6 +86,14 @@ export async function fulfillPaidOrder(opts: {
   let err = await activate(true);
   if (err && /paid_until|column/i.test(err.message)) err = await activate(false); // migration 0012 not yet applied
   if (err) return { ok: false, error: "activation failed" };
+
+  // Verified-payment analytics + plan.activated webhook (only from this server-side path).
+  const renewal = !!current?.paid_until;
+  let userId: string | null = null;
+  try { const { data } = await admin.rpc("user_id_by_email", { p_email: email }); userId = typeof data === "string" ? data : null; } catch { userId = null; }
+  await track("payment_succeeded", { userId, props: { plan_key: planKey, amount: opts.amount ?? cat.amount, renewal } });
+  await track("subscription_activated", { userId, props: { plan_key: planKey, renewal } });
+  if (userId) { const uid = userId; later(() => emitWebhook(getApiStore(), uid, "plan.activated", { planKey, plan: cat.planLabel, paidUntil, renewal, orderId: opts.orderId })); }
 
   await admin.from("audit_events").insert({
     event: "payment_fulfilled",

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import AnalyticsToggle from "./AnalyticsToggle";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | TaxSense AI",
@@ -14,7 +15,7 @@ export default function Privacy() {
     <main className="mx-auto max-w-3xl px-6 py-12">
       <Link href="/" className="text-sm font-bold text-brand-700">← TaxSense AI</Link>
       <h1 className="mt-6 text-3xl font-bold">Privacy Policy</h1>
-      <p className="mt-1 text-sm text-stone-500">Effective 4 October 2026 (updated) · TaxSense AI is operated by ABROBOT TECHNOLOGIES PRIVATE LIMITED (brand: MNB Research), New Delhi, India.</p>
+      <p className="mt-1 text-sm text-stone-500">Effective 13 October 2026 (updated) · TaxSense AI is operated by ABROBOT TECHNOLOGIES PRIVATE LIMITED (brand: MNB Research), New Delhi, India.</p>
 
       <div className="prose-sm mt-8 space-y-6 text-stone-700">
         <section>
@@ -27,8 +28,10 @@ export default function Privacy() {
             <strong> Contact details</strong> (email, optional name and phone) when you request access, request or buy a plan, run the Tax Check, or subscribe to deadline reminders — collected only after you tick the consent box, and used only for that purpose.
             The weekly tax-tips email goes only to people who separately opt in.
             <strong> Payment details</strong> are entered on Cashfree's checkout; we receive the order status, amount and your email — never card or bank details.
-            <strong> Technical telemetry</strong> that is deliberately minimal: error events, feature-usage counters, feedback clicks and a first-party page-view count. Campaign emails contain a one-pixel open counter so we can see whether an email was opened. We do not use advertising trackers.
+            <strong> Product analytics</strong>, first-party only: page views (path, no query strings), sign-in attempts and successes, plan selection, checkout started/completed (payment status comes from Cashfree's verified notification, never your browser), and which features are used. Events are tied to a random per-browser ID and, when you're signed in, to your account. They never contain your email, name, phone, income figures, card details or keys. No cookies and no third-party trackers; we skip analytics entirely if your browser sends Global Privacy Control or Do Not Track. Kept for 13 months.
+            Error reports and feedback clicks are logged without personal data. Campaign emails contain a one-pixel open counter.
           </p>
+          <AnalyticsToggle />
         </section>
         <section>
           <h2 className="text-lg font-bold text-stone-900">How your data is protected</h2>
@@ -48,9 +51,17 @@ export default function Privacy() {
           </p>
         </section>
         <section>
+          <h2 className="text-lg font-bold text-stone-900">API keys &amp; webhooks</h2>
+          <p className="mt-2 leading-relaxed">
+            If you use the developer API, we store each key's name, scopes, dates and usage counts — never the key itself (only a one-way hash).
+            Webhooks you register receive profile IDs, labels and tax summaries (not your full inputs) at the HTTPS address you choose; you control and can delete them at any time.
+            Other MNB Research products may use TaxSense through restricted service keys that can only run calculations — they cannot read your saved data.
+          </p>
+        </section>
+        <section>
           <h2 className="text-lg font-bold text-stone-900">Retention & your rights</h2>
           <p className="mt-2 leading-relaxed">
-            Chat transcripts are not stored. Account deletion (available in-app) starts a 30-day grace period (sign in again to cancel); after that your profiles, PDFs, reminders, email history, lead records, audit entries and your login are permanently erased.
+            Chat transcripts are not stored. Account deletion (available in-app) starts a 30-day grace period (sign in again to cancel); after that your profiles, PDFs, reminders, email history, lead records, audit entries, analytics events, API keys, webhooks and your login are permanently erased.
             Payment records are kept for the period required by tax and accounting law, unlinked from any account.
             You can export your data as JSON at any time, unsubscribe from any email in one click, withdraw consent, and request access, correction or erasure of anything we hold by writing to
             {" "}<a className="font-semibold text-brand-700" href="mailto:contact@mnbresearch.com">contact@mnbresearch.com</a>.
