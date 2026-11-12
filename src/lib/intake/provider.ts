@@ -272,10 +272,51 @@ function chainProvider(providers: LlmProvider[]): LlmProvider {
   };
 }
 
+/**
+ * MNB Intelligence gateway — the shared MNB Research model layer.
+ * Set MNB_INTELLIGENCE_URL (e.g. https://ai.mnbresearch.com/v1) and
+ * MNB_INTELLIGENCE_KEY and it goes FIRST in the chain; the direct Groq and
+ * Anthropic keys stay behind it, so a gateway outage degrades to exactly what
+ * runs today. Unset both variables to roll back. The gateway call has a hard
+ * timeout: a slow gateway must cost seconds, not hang the chat.
+ */
+function mnbGatewayProvider(baseUrl: string, apiKey: string, model: string, timeoutMs: number): LlmProvider {
+  const url = baseUrl.replace(/\/+$/, "") + "/chat/completions";
+  async function call(messages: ChatMessage[], json: boolean): Promise<string> {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
+      signal: AbortSignal.timeout(timeoutMs),
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature: json ? 0 : 0.4,
+        max_tokens: 1024,
+        ...(json ? { response_format: { type: "json_object" } } : {}),
+      }),
+    });
+    if (!res.ok) throw new Error(`mnb-intelligence ${res.status}`);
+    const data = await res.json();
+    const content = data?.choices?.[0]?.message?.content;
+    if (typeof content !== "string" || !content) throw new Error("mnb-intelligence returned no content");
+    return content;
+  }
+  return {
+    name: `mnb-intelligence/${model}`,
+    completeJson: (m) => call(m, true),
+    completeText: (m) => call(m, false),
+  };
+}
+
 export function getProvider(): LlmProvider {
   const forced = process.env.INTAKE_PROVIDER;
   if (forced === "mock") return mockProvider();
   const chain: LlmProvider[] = [];
+  if (process.env.MNB_INTELLIGENCE_URL && process.env.MNB_INTELLIGENCE_KEY) {
+    const timeoutMs = Number(process.env.MNB_INTELLIGENCE_TIMEOUT_MS) || 20_000;
+    chain.push(mnbGatewayProvider(process.env.MNB_INTELLIGENCE_URL, process.env.MNB_INTELLIGENCE_KEY,
+      process.env.MNB_INTELLIGENCE_MODEL ?? "mnb-tax-intake", timeoutMs));
+  }
   if (forced === "anthropic" && process.env.ANTHROPIC_API_KEY) {
     chain.push(anthropicProvider(process.env.ANTHROPIC_API_KEY));
     if (process.env.GROQ_API_KEY) chain.push(groqProvider(process.env.GROQ_API_KEY));
