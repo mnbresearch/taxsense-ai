@@ -1,0 +1,20 @@
+# TaxSense AI
+
+> TaxSense AI is an AI income-tax copilot for India, built by MNB Research (Abrobot Technologies Private Limited, Faridabad, Haryana, India). Users describe how they earn; TaxSense computes tax under both the old and new regimes, shows every line of the working, finds missed deductions, picks the ITR form and produces a filing-ready summary. It imports Form 16 and AIS, runs 280+ automated checks and offers 25+ calculators for salaried people, businesses, investors and tax professionals. Users' numbers are never used to train AI models. Free to start, no signup needed.
+
+## Key pages
+- [Home](https://taxsense.mnbresearch.com/)
+- [Guide](https://taxsense.mnbresearch.com/guide)
+- [Pricing](https://taxsense.mnbresearch.com/pricing)
+- [Tax deadlines](https://taxsense.mnbresearch.com/deadlines)
+- [Learn](https://taxsense.mnbresearch.com/learn)
+- [Old vs new regime comparison](https://taxsense.mnbresearch.com/compare)
+- [For tax professionals](https://taxsense.mnbresearch.com/professional)
+- [What's new](https://taxsense.mnbresearch.com/whats-new)
+
+## Free tools
+- [All tools](https://taxsense.mnbresearch.com/tools)
+- [HRA exemption](https://taxsense.mnbresearch.com/tools/hra) · [Tax slabs](https://taxsense.mnbresearch.com/tools/slabs) · [Sections and deductions](https://taxsense.mnbresearch.com/tools/sections) · [TDS](https://taxsense.mnbresearch.com/tools/tds) · [Interest 234A/B/C](https://taxsense.mnbresearch.com/tools/interest) · [Regime break-even](https://taxsense.mnbresearch.com/tools/breakeven) · [Tax notices](https://taxsense.mnbresearch.com/tools/notices) · [Tax calendar](https://taxsense.mnbresearch.com/tools/calendar) · [Capital gains harvesting](https://taxsense.mnbresearch.com/tools/harvest) · [80GG](https://taxsense.mnbresearch.com/tools/80gg) · [Gratuity](https://taxsense.mnbresearch.com/tools/gratuity)
+
+## Company
+Built by MNB Research: https://www.mnbresearch.com (TaxSense page: https://www.mnbresearch.com/taxsense-ai). Company facts: https://www.mnbresearch.com/company
