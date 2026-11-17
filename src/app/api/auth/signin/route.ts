@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
         );
         const sent = await sendOne({ to: e, subject: `${otp} is your TaxSense sign-in code`, html, kind: "confirmation" });
         if (sent.ok)
-          return NextResponse.json({ message: `Code sent to ${e} — type the 6 digits below (works on any device).` });
+          return NextResponse.json({ message: `Code sent to ${e} — type the code below (works on any device).` });
       }
     } catch (err) {
       console.error("branded OTP send failed, falling back", err);

@@ -25,8 +25,11 @@ export async function GET() {
     });
   }
   const { data: auth } = await sb.auth.getUser();
-  if (!auth.user || !isAdminEmail(auth.user.email))
-    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  // Not signed in is a different problem from "signed in, not an admin" —
+  // the page offers a sign-in form for the first and names the email for the second.
+  if (!auth.user) return NextResponse.json({ error: "signin_required" }, { status: 401 });
+  if (!isAdminEmail(auth.user.email))
+    return NextResponse.json({ error: "forbidden", email: auth.user.email ?? null }, { status: 403 });
 
   const admin = supabaseAdmin();
   if (!admin) return NextResponse.json({ error: "service key not configured" }, { status: 500 });

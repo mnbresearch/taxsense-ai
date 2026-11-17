@@ -45,7 +45,7 @@ function ReturnInner() {
           <h1 className="mt-3 text-2xl font-bold text-brand-700">Payment received — your plan is live!</h1>
           <p className="mt-2 text-sm text-stone-600">
             Everything is unlocked for the email you paid with. A confirmation email is on its way.
-            Sign in inside the app with that email (6-digit code — works on any device).
+            Sign in inside the app with that email (one-time code — works on any device).
           </p>
           <Link href="/app" className="mt-5 rounded-lg bg-brand-600 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-700">
             Open TaxSense AI →

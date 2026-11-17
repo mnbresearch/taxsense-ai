@@ -26,17 +26,24 @@ export function useEntitlements(): Ent | null {
   return ent;
 }
 
-export function AccountControl({ ent }: { ent: Ent | null }) {
-  const [open, setOpen] = useState(false);
+/**
+ * Sign-in codes: Supabase's "Email OTP length" setting decides how many digits
+ * the email carries (6 by default, configurable up to 10 — this project sends 8).
+ * Accept the whole range so a dashboard change can never lock everyone out again.
+ */
+export const OTP_RE = /^\d{6,10}$/;
+
+/** Email + code form, shared by the header popover, /signin and /admin. */
+export function SignInForm({ onSignedIn, compact = false }: { onSignedIn: () => void; compact?: boolean }) {
   const [email, setEmail] = useState("");
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [code, setCode] = useState("");
 
-  // Batch 74 — the 6-digit code works from ANY device, unlike the link.
+  // The code works from ANY device, unlike the link.
   async function verifyCode() {
-    if (!/^\d{6}$/.test(code.trim()) || busy) return;
+    if (!OTP_RE.test(code.trim()) || busy) return;
     setBusy(true);
     try {
       const res = await fetch("/api/auth/verify", {
@@ -45,7 +52,7 @@ export function AccountControl({ ent }: { ent: Ent | null }) {
         body: JSON.stringify({ email, code: code.trim() }),
       });
       const d = await res.json();
-      if (res.ok) window.location.reload();
+      if (res.ok) onSignedIn();
       else setMsg(d.error ?? "code didn't match — try again");
     } catch {
       setMsg("verification failed — try again");
@@ -73,6 +80,57 @@ export function AccountControl({ ent }: { ent: Ent | null }) {
     }
   }
 
+  const txt = compact ? "text-xs" : "text-sm";
+  return (
+    <span className="block">
+      <input
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && sendLink()}
+        placeholder="you@example.com"
+        type="email"
+        autoComplete="email"
+        className={`mt-2 w-full rounded-md border border-stone-300 px-2.5 py-2 ${txt} outline-hidden focus:border-brand-600`}
+      />
+      <button
+        onClick={sendLink}
+        disabled={busy}
+        className={`mt-2 w-full rounded-md bg-brand-600 py-2 ${txt} font-semibold text-white hover:bg-brand-700 disabled:opacity-50`}
+      >
+        {busy && !sent ? "Sending…" : sent ? "Send a new code" : "Email me a sign-in code"}
+      </button>
+      {msg && <span className="mt-1.5 block text-[11px] text-stone-500">{msg}</span>}
+      {sent && (
+        <span className="mt-2 block border-t border-stone-100 pt-2">
+          <span className="block text-[11px] font-semibold text-stone-600">Type the code from the email</span>
+          <span className="mt-1 flex gap-1.5">
+            <input
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 10))}
+              onKeyDown={(e) => e.key === "Enter" && verifyCode()}
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              placeholder="12345678"
+              className="w-32 rounded-md border border-stone-300 px-2 py-1.5 text-center text-sm tracking-widest outline-hidden focus:border-brand-600"
+            />
+            <button
+              onClick={verifyCode}
+              disabled={busy || !OTP_RE.test(code)}
+              className="flex-1 rounded-md bg-brand-600 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+            >
+              Verify
+            </button>
+          </span>
+          <span className="mt-1 block text-[10px] text-stone-400">Works on any device — no need to open the link here.</span>
+        </span>
+      )}
+    </span>
+  );
+}
+
+export function AccountControl({ ent }: { ent: Ent | null }) {
+  const [open, setOpen] = useState(false);
+
   if (ent?.signedIn) {
     return (
       <span
@@ -87,56 +145,26 @@ export function AccountControl({ ent }: { ent: Ent | null }) {
     );
   }
 
+  // A real link: before the page has hydrated (slow phone, slow network) a
+  // click still works and lands on the full /signin page. Once hydrated it
+  // opens the popover instead.
   return (
     <span className="relative">
-      <button onClick={() => setOpen(!open)} className="font-semibold text-brand-700 hover:underline">
+      <Link
+        href="/signin?next=/app"
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen(!open);
+        }}
+        className="font-semibold text-brand-700 hover:underline"
+      >
         Sign in
-      </button>
+      </Link>
       {open && (
-        <span className="absolute right-0 top-6 z-20 block w-64 rounded-lg border border-stone-200 bg-white p-3 shadow-lg">
-          <span className="block text-xs font-semibold text-stone-700">Sign in with a magic link</span>
-          <span className="mt-0.5 block text-[11px] text-stone-500">
-            Use your plan email to unlock paid features.
-          </span>
-          <input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendLink()}
-            placeholder="you@example.com"
-            type="email"
-            className="mt-2 w-full rounded-md border border-stone-300 px-2.5 py-2 text-xs outline-hidden focus:border-brand-600"
-          />
-          <button
-            onClick={sendLink}
-            disabled={busy}
-            className="mt-2 w-full rounded-md bg-brand-600 py-2 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
-          >
-            {busy ? "Sending…" : "Email me a sign-in link"}
-          </button>
-          {msg && <span className="mt-1.5 block text-[11px] text-stone-500">{msg}</span>}
-          {sent && (
-            <span className="mt-2 block border-t border-stone-100 pt-2">
-              <span className="block text-[11px] font-semibold text-stone-600">Or type the 6-digit code from the email</span>
-              <span className="mt-1 flex gap-1.5">
-                <input
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                  onKeyDown={(e) => e.key === "Enter" && verifyCode()}
-                  inputMode="numeric"
-                  placeholder="123456"
-                  className="w-24 rounded-md border border-stone-300 px-2 py-1.5 text-center text-sm tracking-widest outline-hidden focus:border-brand-600"
-                />
-                <button
-                  onClick={verifyCode}
-                  disabled={busy || code.length !== 6}
-                  className="flex-1 rounded-md bg-brand-600 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
-                >
-                  Verify
-                </button>
-              </span>
-              <span className="mt-1 block text-[10px] text-stone-400">Works on any device — no need to open the link here.</span>
-            </span>
-          )}
+        <span className="absolute right-0 top-6 z-50 block w-72 rounded-lg border border-stone-200 bg-white p-3 shadow-lg">
+          <span className="block text-xs font-semibold text-stone-700">Sign in with your email</span>
+          <span className="mt-0.5 block text-[11px] text-stone-500">We email you a one-time code.</span>
+          <SignInForm compact onSignedIn={() => window.location.reload()} />
         </span>
       )}
     </span>

@@ -7,7 +7,8 @@ import { track, trackLogin } from "@/lib/analytics";
 export const runtime = "nodejs";
 
 /**
- * Batch 74 — device-independent sign-in: verify the 6-digit code from the
+ * Batch 74 — device-independent sign-in: verify the code (6–10 digits, per the
+ * Supabase "Email OTP length" setting; this project sends 8) from the
  * sign-in email. Unlike the magic link, this works from ANY browser or
  * device — no PKCE cookie required.
  */
@@ -17,8 +18,8 @@ export async function POST(req: NextRequest) {
   const { email, code } = (await req.json().catch(() => ({}))) as { email?: unknown; code?: unknown };
   const e = typeof email === "string" ? email.trim().toLowerCase() : "";
   const token = typeof code === "string" ? code.trim() : "";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) || !/^\d{6}$/.test(token))
-    return NextResponse.json({ error: "valid email and 6-digit code required" }, { status: 400 });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) || !/^\d{6,10}$/.test(token))
+    return NextResponse.json({ error: "valid email and the code from the email required" }, { status: 400 });
   // Per-account guess cap across ALL IPs — a 6-digit code can't be brute-forced
   // from a botnet (10 guesses / 15 min / email).
   const perEmail = await rateLimitShared(`verify-e:${e}`, 10, 900, { capacity: 10, refillPerMinute: 0.67 });

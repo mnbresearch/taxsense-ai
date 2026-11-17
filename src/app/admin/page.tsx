@@ -4,11 +4,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import AdminPlatform from "./AdminPlatform";
+import { SignInForm } from "../app/Account";
 
 export default function AdminPage() {
   const [data, setData] = useState<any>(null);
   const [leads, setLeads] = useState<any[] | null>(null);
   const [err, setErr] = useState<string>("");
+  const [errEmail, setErrEmail] = useState<string | null>(null);
   const [emails, setEmails] = useState<any[] | null>(null);
   const [templates, setTemplates] = useState<any[]>([]);
   const [suppressions, setSuppressions] = useState<any[]>([]);
@@ -86,7 +88,7 @@ export default function AdminPage() {
   useEffect(() => {
     fetch("/api/admin/stats")
       .then((r) => r.json())
-      .then((d) => (d.error ? setErr(d.error) : setData(d)))
+      .then((d) => (d.error ? (setErr(d.error), setErrEmail(d.email ?? null)) : setData(d)))
       .catch((e) => setErr(String(e)));
     loadLeads();
     loadEmails();
@@ -195,12 +197,24 @@ export default function AdminPage() {
         <Link href="/app" className="text-sm text-brand-700 hover:underline">← Back to app</Link>
       </header>
 
-      {err && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          {err === "forbidden"
-            ? "You're not on the ADMIN_EMAILS list. Set it in your environment to access this page."
-            : err}
+      {err === "signin_required" && (
+        <div className="max-w-sm rounded-xl border border-stone-200 bg-white p-5">
+          <h2 className="text-base font-bold text-stone-800">Sign in to the admin dashboard</h2>
+          <p className="mt-1 text-sm text-stone-500">Use the email listed in ADMIN_EMAILS. We&apos;ll email you a one-time code.</p>
+          <SignInForm onSignedIn={() => window.location.reload()} />
         </div>
+      )}
+      {err === "forbidden" && (
+        <div className="max-w-sm rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
+          <p>
+            {errEmail ? <>You&apos;re signed in as <strong>{errEmail}</strong>, which</> : "This account"} isn&apos;t on the
+            ADMIN_EMAILS list. Sign in with the admin email instead:
+          </p>
+          <SignInForm onSignedIn={() => window.location.reload()} />
+        </div>
+      )}
+      {err && err !== "signin_required" && err !== "forbidden" && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">{err}</div>
       )}
 
       {data && (
