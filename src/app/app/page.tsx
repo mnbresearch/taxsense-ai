@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Planner from "./Planner";
 import { AccountControl, UpsellModal, useEntitlements } from "./Account";
+import AppMenu from "./AppMenu";
 import { HINDI_OPENER, quickChips, t, type Lang } from "@/lib/i18n";
 import PdfHistory from "./PdfHistory";
 import { SAMPLES } from "./samples";
@@ -396,10 +397,7 @@ export default function AppPage() {
               🔑 Request access
             </Link>
           )}
-          <Link href="/tools" className="hidden hover:text-brand-700 md:inline">Tools</Link>
-          <Link href="/professional" className="hidden font-semibold text-brand-700 hover:underline md:inline">For professionals</Link>
-          <Link href="/guide" className="hidden hover:text-brand-700 sm:inline">{t("taxGuide", lang)}</Link>
-          <Link href="/admin" className="hidden hover:text-brand-700 sm:inline">Admin</Link>
+          <AppMenu />
           <InstallApp compact />
         </div>
       </header>
